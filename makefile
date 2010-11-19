@@ -1,3 +1,7 @@
+TARGETS = linux palmos
+MODES = normal debug
+
+
 MODE ?= normal
 TARGET ?= linux
 
@@ -13,9 +17,9 @@ CCFLAGS_linux=
 CCFLAGS_linux_debug= -g
 ARFLAGS_linux= rvs
 
-CCFLAGS_linux-fractal=
-CCFLAGS_linux-fractal_debug= -g
-ARFLAGS_linux-fractal= rvs
+CCFLAGS_linux_fractal=
+CCFLAGS_linux_fractal_debug= -g
+ARFLAGS_linux_fractal= rvs
 
 CC=$(CC_DEFAULT$(CC_$(TARGET))) $(CC_$(TARGET))
 AR=$(AR_DEFAULT$(AR_$(TARGET))) $(AR_$(TARGET))

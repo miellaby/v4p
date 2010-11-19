@@ -1,6 +1,5 @@
 /* Name: LowMath
  Content: Innacurate integer only Math routines for game authoring
- - Symbols and commentaries in french language
 */
 #include "lowmath.h"
 int cosa = 255 ;

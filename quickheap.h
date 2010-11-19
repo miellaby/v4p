@@ -1,23 +1,28 @@
-/* ========================================================================== */
+/* ======================================================================= */
 // Quick Heaps
-/* ========================================================================== */
+/* ======================================================================= */
 typedef struct sQuickHeap {
    int sizeOfItem ;
-   void *heap ;
+   char *heap ;
    int maxSize ;
    int size ;
-   void *hole ;
+   int baseIndice ;
+   int hole ;
    struct sQuickHeap *next ;
 } QuickHeapS, *QuickHeap ;
 
-#define QuickHeapInitializer(S) { (S), (void *)0, 0, 0, (void *)0, NULL }
-#define QuickHeapInitializerFor(T) QuickHeapInitializer(sizeof(T))
-
+#define   QuickHeapInitializer(S) { (S), NULL, 0, 0, 0, 0, NULL }
+#define   QuickHeapInitializerFor(T) QuickHeapInitializer(sizeof(T))
 QuickHeap QuickHeapNew(int sizeOfItem) ;
 void      QuickHeapDelete(QuickHeap q);
+#define   QuickHeapNewFor(T) QuickHeapNew(sizeof(T))
+void      QuickHeapReset(QuickHeap q) ;
 
-#define QuickHeapNewFor(T) QuickHeapNew(sizeof(T))
-
+// Pointer mode
 void* QuickHeapAlloc(QuickHeap q) ;
 void  QuickHeapFree(QuickHeap q, void  *p) ;
-void  QuickHeapReset(QuickHeap q) ;
+
+// Indice mode
+int QuickHeapAllocIndice(QuickHeap q);
+void QuickHeapFreeIndice(QuickHeap q, int i);
+void* QuickHeapGetPointer(QuickHeap q, int i);
