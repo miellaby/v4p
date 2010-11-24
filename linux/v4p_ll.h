@@ -8,7 +8,7 @@ typedef Uint32   UInt32;
 typedef Sint16   Int16;
 typedef Sint32   Int32;
 
-typedef Sint16   Coord;
+typedef Sint32  Coord;
 typedef UInt8    Color;
 typedef struct stuffing_s* Stuffing;
 

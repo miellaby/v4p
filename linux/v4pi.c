@@ -83,7 +83,7 @@ static SDL_Color
 
 const Color
    gray=225, marron=226, purple=227, green=228, cyan=229,
-   black=215, red=125, blue=120, yellow=95, dark=217, oliver=58,
+   black=215, red=125, blue=95, yellow=120, dark=217, oliver=58,
    fluo=48;
 
 const Coord defaultScreenWidth = 640, defaultScreenHeight = 400;

@@ -42,7 +42,7 @@ typedef UInt16 Flags ;
 // RO flags
 #define V4P_DISABLED (Flags)32 // wont be displayed for now
 #define V4P_IN_DISABLED (Flags)64 // ancester disabled
-#define V4P_CHANGED (Flags)128 // something has changed
+#define V4P_CHANGED (Flags)128 // definition changed since last rendering
 
 typedef UInt16 ILayer ; // < 16
 typedef UInt16 ICollide ; // < 8
@@ -75,7 +75,7 @@ Boolean v4pInit() ;
 void    v4pQuit() ;
 
 // v4p context
-int     v4pSetBgColor(Color bg);
+int     v4pSetBGColor(Color bg);
 void    v4pSetScene(PolygonP *scene) ;
 Boolean v4pSetView(Coord x0, Coord y0, Coord x1, Coord y1) ;
 Boolean v4pRender() ;
@@ -116,6 +116,7 @@ PolygonP v4pPolygonTransform(PolygonP p, Coord dx, Coord dy, int angle, ILayer d
 
 // helpers
 void v4pViewToAbsolute(Coord x, Coord y, Coord *xa, Coord *ya) ;
+void v4pAbsoluteToView(Coord x, Coord y, Coord *xa, Coord *ya) ;
 PolygonP v4pPolygonRect(PolygonP p, Coord x0, Coord y0, Coord x1, Coord y1) ;
 PolygonProps v4pPolygonEnable(PolygonP p) ;
 PolygonProps v4pPolygonDisable(PolygonP p) ;
