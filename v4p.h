@@ -75,7 +75,7 @@ Boolean v4pInit() ;
 void    v4pQuit() ;
 
 // v4p context
-int     v4pSetBGColor(Color bg);
+Color   v4pSetBGColor(Color bg);
 void    v4pSetScene(PolygonP *scene) ;
 Boolean v4pSetView(Coord x0, Coord y0, Coord x1, Coord y1) ;
 Boolean v4pRender() ;
