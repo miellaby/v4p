@@ -10,7 +10,7 @@ CC_linux=gcc
 AR_linux=ar
 ARFLAGS_linux= rsv
 CCFLAGS_linux=
-CCFLAGS_linux_debug= -g
+CCFLAGS_linux_debug= -pg
 
 CC=$(CC_$(TARGET))
 AR=$(AR_$(TARGET))
