@@ -31,7 +31,7 @@ Boolean gmOnInit() {
     v4pSetView(-i, -i, v4pDisplayWidth + i, v4pDisplayHeight + i);
     for (j= 0; j < STRESS_AMOUNT; j++) {
       for (k = 0; k < STRESS_AMOUNT; k++) {
-       v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (j - STRESS_AMOUNT / 2), v4pDisplayHeight * (k - STRESS_AMOUNT / 2), (j * k) + 16 * i / STRESS_AMOUNT, 0);
+       v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (k - STRESS_AMOUNT / 2), v4pDisplayHeight * (j - STRESS_AMOUNT / 2), (j * k) + 16 * i / STRESS_AMOUNT, 0);
       }
     }
     v4pRender();

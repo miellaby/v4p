@@ -1,10 +1,10 @@
 /* ========================================================================== */
 /*                                                                            */
 /*   Experimental inline version of a Divide & Conquer type sort algorihm     */
-/*   (c) 2008 Garden Sylvain sylvain.garden@gmail.com                         */
+/*   Support: Garden Sylvain sylvain.garden@gmail.com                         */
 /*                                                                            */
-/*   Description                                                              */
-/*   I aim a O(n) complexity when the to-be-ordered list is the               */
+/*   Description:                                                             */
+/*   This code aims a O(n) complexity when the to-be-ordered list is the      */
 /*   concatenation of y (y << n) median-sized sub-lists.                      */
 /*   There are a lot of applicative case.                                     */
 /* ========================================================================== */
@@ -22,6 +22,7 @@ int (*ListDataPrior)(void *, void *) = NULL ;
 
 // create a list item
 List ListNew() {
+  QuickHeapReserve(listHeap, 2048); // This will work only once. That's fine.
   return (List)QuickHeapAlloc(listHeap) ;
 }
 

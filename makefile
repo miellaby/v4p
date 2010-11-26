@@ -14,11 +14,11 @@ CCFLAGS_palmos= -g -fno_builtin -I/m68k_palmos/include
 ARFLAGS_palmos= rcs
 
 CCFLAGS_linux=
-CCFLAGS_linux_debug= -g
+CCFLAGS_linux_debug= -pg
 ARFLAGS_linux= rvs
 
 CCFLAGS_linux_fractal=
-CCFLAGS_linux_fractal_debug= -g
+CCFLAGS_linux_fractal_debug= -pg
 ARFLAGS_linux_fractal= rvs
 
 CC=$(CC_DEFAULT$(CC_$(TARGET))) $(CC_$(TARGET))

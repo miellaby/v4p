@@ -24,6 +24,14 @@ QuickHeap QuickHeapReservedNew(int sizeOfItem, int maxSize) {
   return p ;
 }
 
+// Call this function to reserve more memory than the default 128 bytes chunck
+// It will improve performance of QuickHeapFree and indice based functions
+void QuickHeapReserve(QuickHeap q, int reservedSize) {
+  if (q->maxSize) return;
+  q->maxSize = reservedSize ;
+  q->heap = (char *)malloc(q->sizeOfItem * reservedSize) ;
+}
+
 void QuickHeapReset(QuickHeap q) {
   QuickHeap p = q->next; // we keep first heap block
   while (p) {

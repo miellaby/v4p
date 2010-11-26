@@ -464,8 +464,8 @@ PolygonP v4pPolygonDelActiveEdges(PolygonP p) {
 
 // merge-sort fn
 int compareListActiveEdgey0(void *data1, void *data2) {
-   ActiveEdgeP b1 = data1, b2 = data2 ;
-   return (b1->y0 < b2->y0) ;
+   //ActiveEdgeP b1 = data1, b2 = data2 ;
+   return ((ActiveEdgeP)data1)->y0 < ((ActiveEdgeP)data2)->y0;
 }
 
 List v4pSortListActiveEdgey(List list) {
@@ -1124,6 +1124,7 @@ Boolean v4pRender() {
 
 #ifndef NEW_DEAL_2
       //  polygon closing loop
+
 #ifdef NEW_DEAL
       for (l = v4p->openedPolygonsList ;
            l && y > (p = (PolygonP)ListData(l))->maxyv ; l = ListFree(l)) ;

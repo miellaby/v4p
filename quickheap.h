@@ -17,6 +17,7 @@ QuickHeap QuickHeapNew(int sizeOfItem) ;
 void      QuickHeapDelete(QuickHeap q);
 #define   QuickHeapNewFor(T) QuickHeapNew(sizeof(T))
 void      QuickHeapReset(QuickHeap q) ;
+void      QuickHeapReserve(QuickHeap q, int reservedSize);
 
 // Pointer mode
 void* QuickHeapAlloc(QuickHeap q) ;

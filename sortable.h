@@ -1,7 +1,7 @@
 /* ========================================================================== */
 /*   Sortable Lists +                                                         */
 /*   Experimental inline version of a Divide & Conquer type sort algorihm     */
-/*   (c) 2008 Garden Sylvain sylvain.garden@gmail.com                         */
+/*   Support: Garden Sylvain sylvain.garden@gmail.com                         */
 /* ========================================================================== */
 
 // A settable function to compare lists. Please set it before sorting!
