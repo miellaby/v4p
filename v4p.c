@@ -731,13 +731,15 @@ void v4pBuildOpenableAELists(PolygonP polygonChain) {
      while (l) {
        b = (ActiveEdgeP)ListData(l) ;
        if (isRelative) {
-         QuickTableAdd(v4p->relativeOpenableAETable, b->y0 & YHASH_MASK, b);
-       } else if (zoomOut) { // view width > screen width
+		 QuickTableAdd(v4p->relativeOpenableAETable, (b->y0 > 0 ? b->y0 : 0) & YHASH_MASK, b);
+       } else if (b->y0 < v4p->yvu0) {
+         QuickTableAdd(v4p->relativeOpenableAETable, 0, b);		 
+	   } else if (zoomOut) { // view width > screen width
          Coord stub, yr0;
          v4pAbsoluteToView(0, b->y0, &stub, &yr0);
          QuickTableAdd(v4p->relativeOpenableAETable, yr0 & YHASH_MASK, b);
        } else {
-         QuickTableAdd(v4p->absoluteOpenableAETable, b->y0 & YHASH_MASK, b);
+         QuickTableAdd(v4p->absoluteOpenableAETable, b-> y0 & YHASH_MASK, b);
        }
        l = ListNext(l);
      }
@@ -770,11 +772,18 @@ Boolean v4pOpenActiveEdge(Coord yl, Coord yu) {
       b = (ActiveEdgeP)ListData(l) ;
 
       if (!(b->p->props & relative)) {
-        if (!zoomOut && b->y0 != yu) continue;
-          
+	    if (!zoomOut) {
+	  	   if (b->y0 < v4p->yvu0 && yl == 0) {
+		     // OK
+		   } else if (b->y0 != yu) continue;
+        } 
         v4pAbsoluteToView(b->x0, b->y0, &xr0, &yr0) ;
-        if (zoomOut && yr0 != yl) continue;
-
+        if (zoomOut) {
+		   if (b->y0 < v4p->yvu0 && yl == 0) {
+		      // OK
+		   } else if (zoomOut && yr0 != yl) continue;
+        }
+         
         v4pAbsoluteToView(b->x1, b->y1, &xr1, &yr1) ;
         if (yr1 <= yl) continue ;
 
@@ -796,7 +805,7 @@ Boolean v4pOpenActiveEdge(Coord yl, Coord yu) {
         b->h = yr1 - yl - 1;
         b->x = xr0 ;
       } else { // relative
-        if (b->y0 != yl) continue;
+        if (yl == 0 && b->y0 > 0 || b->y0 != yl) continue;
         if (b->y1 <= yl) continue ;
         b->s = b->r2 - b->r1 ;
         b->x = b->x0 ;

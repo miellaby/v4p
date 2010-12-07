@@ -23,6 +23,7 @@ Boolean gmOnInit() {
     }
   }
 
+#if 1
   for (i = 0 ; i < STRESS_AMOUNT * 300 ; i+= 2 * STRESS_AMOUNT) {
     v4pSetView(-i, -i, v4pDisplayWidth + i, v4pDisplayHeight + i);
     for (j= 0; j < STRESS_AMOUNT; j++) {
@@ -37,9 +38,9 @@ Boolean gmOnInit() {
     v4pSetView(-i, -i, v4pDisplayWidth + i, v4pDisplayHeight + i);
     v4pRender();
   }
+#endif
 
-
-  v4pSetView(v4pDisplayWidth / 3, v4pDisplayHeight / 3, v4pDisplayWidth - v4pDisplayWidth / 3, v4pDisplayHeight - v4pDisplayHeight / 3);
+  v4pSetView(-v4pDisplayWidth / 5, -v4pDisplayHeight / 5, v4pDisplayWidth - v4pDisplayWidth / 5, v4pDisplayHeight - v4pDisplayHeight / 5);
 
   for (i = 0 ; i < STRESS_AMOUNT * 300 ; i+= 2 * STRESS_AMOUNT) {
     for (j= 0; j < STRESS_AMOUNT; j++) {
