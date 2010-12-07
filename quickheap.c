@@ -40,10 +40,11 @@ void QuickHeapReset(QuickHeap q) {
     free(p) ;
     p = next ;
   }
-  if (q->heap) free(q->heap) ;
-  q->heap = NULL;
+  // if (q->heap) free(q->heap) ;
+  // q->heap = NULL;
   q->hole = 0;
   q->size = 0;
+  // q->maxSize = 0;
   q->baseIndice = 0;
   q->next = NULL;
 }

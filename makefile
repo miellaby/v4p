@@ -17,7 +17,7 @@ ARFLAGS_palmos= rcs
 CCFLAGS_palmos_debug = -g
 
 CCFLAGS_linux=
-CCFLAGS_linux_debug= -g
+CCFLAGS_linux_debug= -pg
 ARFLAGS_linux= rvs
 
 CCFLAGS_linux_fractal=

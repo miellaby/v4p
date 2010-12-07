@@ -15,6 +15,7 @@ QuickTable QuickTableNew(size_t sizeOfTable) {
   if (!q->table) { free(q) ; return NULL; }
   q->listHeap = QuickHeapNewFor(struct sList);
   if (!q->listHeap) { free (q->table) ; free(q) ; return NULL; }
+  QuickHeapReserve(q->listHeap, 2048);
   QuickTableReset(q);
   return q;
 }

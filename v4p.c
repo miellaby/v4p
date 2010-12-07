@@ -31,6 +31,8 @@
 ** opened polygon : polygon intersected by the scan-line : min(y(points)) < y < max(y(points))
 ** to be opened polygon : y(scan-line) < min(y(points))
 ** closed polygon : y(scan-line) > max(y(points))
+** absolute = in scene-referential (position on screen depends on view)
+** relative = in screen-referential (0,0 ==> screen corner)
 */
 #include <stdlib.h>
 #include "v4p.h"
@@ -68,19 +70,27 @@ typedef struct activeEdge_s {
 typedef struct v4pContext_s {
  V4pDisplayP display;
  PolygonP *scene ; // scene = a polygon set
- Coord   xvu0,yvu0,xvu1,yvu1 ; // view coordinates
+ Coord   xvu0,yvu0,xvu1,yvu1 ; // view corner coordinates
  Color   bgColor;
  int debug1 ;
  QuickHeap pointHeap, polygonHeap, activeEdgeHeap ;
  List    openedAEList ; // ActiveEdge lists
  QuickTable relativeOpenableAETable, absoluteOpenableAETable; // ActiveEdge Hash Table
- Coord   dxvu,dyvu, // view related data
-  divxvu,modxvu,divxvub,modxvub,
-  divyvu,modyvu,divyvub,modyvub;
- Boolean scaling; // do polygons need to be scaled?
+ Coord   dxvu,dyvu; // view width and height
+ Coord divxvu,modxvu,divyvu,modyvu; // ratios screen / view in result+reminder pairs
+ Coord divxvub,modxvub,divyvub,modyvub; // ratios view / screen in result+reminder pairs
+ Boolean scaling; // is scaling necessary?
  UInt32 changes;
 } V4pContext ;
 
+/*
+ * About screen vs view ratios:
+ * divyvu == 0 when view bigger than screen (zoom out)
+ * divyvub == 0 when screen bigger than view (zoom in)
+ * when zoom in : yline++ ==> y-absolute may be inchanged
+   * so when divyvu == 0, y-absolute comparison is avoided
+ * when zoom out : yline++ ==>  y-absolute+=x where x>0
+ */
 #define V4P_CHANGED_ABSOLUTE 1
 #define V4P_CHANGED_RELATIVE 2
 #define V4P_CHANGED_VIEW 4
@@ -582,7 +592,7 @@ PolygonP v4pPolygonBuildActiveEdgeList(PolygonP p) {
    int dx, dy, q, r;
    Coord sx0, sx1, sy0, sy1;
    ActiveEdgeP b ;
-
+   int isVisible = 0;
 
    if (!(p->props & V4P_CHANGED)) {
 
@@ -592,26 +602,35 @@ PolygonP v4pPolygonBuildActiveEdgeList(PolygonP p) {
       } else if (!(v4p->changes & V4P_CHANGED_VIEW)) {
          // Polygon coordinates are absolute but the view window didn't change. No change.  
          return p;
-      } else { // The polygon hasn't change but it might have moved in view window.
-         Coord stub;
-         // First, we update polygon boundaries in view coordinates.
-         v4pAbsoluteToView(0, p->miny, &stub, &(p->minyv));
-         v4pAbsoluteToView(0, p->maxy, &stub, &(p->maxyv));
-         // Second, we have to recompute Active Edges. No return "here"!
-         // However, maybe we could avoid computation in some case: TBC 
+      } else { // This absolute polygon hasn't changed but it might have moved within view referential.
+         // we simply update its boundaries in view coordinates. 
+         //Coord stub;
+         //v4pAbsoluteToView(0, p->miny, &stub, &(p->minyv));
+         //v4pAbsoluteToView(0, p->maxy, &stub, &(p->maxyv));
+        isVisible = v4pIsVisible(p);
+        if (isVisible && p->ActiveEdge1)
+          // if AE lists are set, we return because they are up-to-date.
+          return p; 
       }
+   } else {
+	 isVisible = v4pIsVisible(p);
 
+     // Remember than at least one polygon is changed
+     v4p->changes |= (p->props & relative) ? V4P_CHANGED_RELATIVE : V4P_CHANGED_ABSOLUTE;
+     p->props &= ~V4P_CHANGED ; // remove the flag saying this polygon is changed.
    }
-   // A polygon changed
-   v4p->changes |= (p->props & relative) ? V4P_CHANGED_RELATIVE : V4P_CHANGED_ABSOLUTE;
+
 
    // Need to recompile AE
+   // ==================== 
    v4pPolygonDelActiveEdges(p) ;
 
-   // Mmmm: autrefois, j'ai retiré v4pIsVisible(p) mais pourquoi?
-   // !v4pIsVisible(p) || 
    if ((p->props & (V4P_DISABLED | V4P_IN_DISABLED | invisible)))
       return p;
+
+   if (!isVisible)
+    // Not visible, we don't build AE lists
+    return p;
 
    s1 = p->point1;
    while (s1 && s1->next) { // lacots
@@ -674,7 +693,6 @@ PolygonP v4pPolygonBuildActiveEdgeList(PolygonP p) {
       } //  points
    } // lacots
 
-   p->props &= ~V4P_CHANGED ; // remove the flag
 
    return p ;
 }
@@ -698,41 +716,33 @@ Boolean v4pDrawSlice(int y, int x0, int x1, PolygonP p) {
 
 
 // build AE lists
-void v4pBuildOpenableAELists(PolygonP l) {
-   PolygonP p ;
-   for (p = l ; p ; p = p->next) {
-      //if (p->props & (V4P_DISABLED | V4P_IN_DISABLED | invisible) continue ;
-
-      //if (!v4pIsVisible(p)) continue ;
-
-      v4pPolygonBuildActiveEdgeList(p) ;
-
-      if (p->sub1) v4pBuildOpenableAELists(p->sub1) ;
-   }
-}
-
-// build AE tables
-void v4pBuildOpenableAETables(PolygonP polygonChain) {
+void v4pBuildOpenableAELists(PolygonP polygonChain) {
    PolygonP p ;
    List l ;
    ActiveEdgeP b;
+   int zoomOut = (v4p->divyvu == 0);
 
    for (p = polygonChain ; p ; p = p->next) {
-     l = p->ActiveEdge1 ;
+     int isRelative = p->props & relative;
+
+     v4pPolygonBuildActiveEdgeList(p) ;
+
+     l = p->ActiveEdge1;
      while (l) {
        b = (ActiveEdgeP)ListData(l) ;
-       if (p->props & relative) {
+       if (isRelative) {
          QuickTableAdd(v4p->relativeOpenableAETable, b->y0 & YHASH_MASK, b);
-       } else if (v4p->divyvu == 0) { // view width bigger than screen width
-          Coord stub, yr0;
-          v4pAbsoluteToView(0, b->y0, &stub, &yr0);
-          QuickTableAdd(v4p->relativeOpenableAETable, yr0 & YHASH_MASK, b);
+       } else if (zoomOut) { // view width > screen width
+         Coord stub, yr0;
+         v4pAbsoluteToView(0, b->y0, &stub, &yr0);
+         QuickTableAdd(v4p->relativeOpenableAETable, yr0 & YHASH_MASK, b);
        } else {
-          QuickTableAdd(v4p->absoluteOpenableAETable, b->y0 & YHASH_MASK, b);
+         QuickTableAdd(v4p->absoluteOpenableAETable, b->y0 & YHASH_MASK, b);
        }
-       l = ListNext(l) ;
-      }
-      if (p->sub1) v4pBuildOpenableAETables(p->sub1) ;
+       l = ListNext(l);
+     }
+
+     if (p->sub1) v4pBuildOpenableAELists(p->sub1) ;
    }
 }
 
@@ -743,6 +753,7 @@ Boolean v4pOpenActiveEdge(Coord yl, Coord yu) {
    Boolean open = false ;
    List l, la, lr ;
    ActiveEdgeP b ;
+   int zoomOut = (v4p->divyvu == 0);
 
    Coord xr0, yr0, xr1, yr1, dx, dy, q, r ;
 
@@ -758,11 +769,11 @@ Boolean v4pOpenActiveEdge(Coord yl, Coord yu) {
    for (; l; (l = ListNext(l)) || (l = la) && (la = 0)) {
       b = (ActiveEdgeP)ListData(l) ;
 
-      if (!b->p & relative) {
-        if (v4p->divyvu != 0 && b->y0 != yu) continue;
+      if (!(b->p->props & relative)) {
+        if (!zoomOut && b->y0 != yu) continue;
           
         v4pAbsoluteToView(b->x0, b->y0, &xr0, &yr0) ;
-        if (v4p->divyvu == 0 && yr0 != yl) continue;
+        if (zoomOut && yr0 != yl) continue;
 
         v4pAbsoluteToView(b->x1, b->y1, &xr1, &yr1) ;
         if (yr1 <= yl) continue ;
@@ -778,7 +789,7 @@ Boolean v4pOpenActiveEdge(Coord yl, Coord yu) {
         b->s = -dy;
         if (yr0 < yl) { // top crop needed
           int dy2 = yl - yr0 ;
-          if (yr0 > 0 && dy2 > v4p->divyvub) v4pDisplayError("issue crop = %d > ratio = %d; yl=%d yu=%d y0=%d", (int)dy2, (int)v4p->divyvub, (int)yl, (int)yu, (int)b->y0);
+          if (yr0 > 0 && dy2 > v4p->divyvu) v4pDisplayError("issue crop = %d > ratio = %d; yl=%d yu=%d y0=%d", (int)dy2, (int)v4p->divyvub, (int)yl, (int)yu, (int)b->y0);
           xr0 += dy2 * q + dy2 * (dx > 0 ? r : -r) / dy ;
           b->s += (dy2 * r) % dy ;
         }
@@ -834,7 +845,6 @@ Boolean v4pRender() {
    QuickTableReset(v4p->absoluteOpenableAETable);
    QuickTableReset(v4p->relativeOpenableAETable);
    v4pBuildOpenableAELists(*(v4p->scene));
-   v4pBuildOpenableAETables(*(v4p->scene));
    
    // list of opened ActiveEdges
    v4p->openedAEList = NULL ;
