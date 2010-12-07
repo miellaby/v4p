@@ -2,7 +2,7 @@
 #include "v4p.h"
 #include "v4pi.h"
 
-#define STRESS_AMOUNT 24
+#define STRESS_AMOUNT 1
 
 PolygonP  scene;
 Boolean gmOnInit() {
@@ -35,9 +35,10 @@ Boolean gmOnInit() {
       }
     }
     v4pRender();
-    //break;
+    break;
   }
-  { char buf[2]; fgets(buf, 1, stdin); }
+  sleep(5);
+  { char buf[20]; fgets(buf, 20, stdin); }
 }
 Boolean gmOnIterate() {
   return failure;

@@ -53,8 +53,6 @@ void QuickHeapDelete(QuickHeap q) {
   free(q);
 }
 
-#define QuickHeapNewFor(T) QuickHeapNew(sizeof(T))
-
 void *QuickHeapAlloc(QuickHeap q) {
    if (q->maxSize == 0) {
       q->maxSize = 128 ;

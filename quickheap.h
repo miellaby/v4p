@@ -1,3 +1,5 @@
+#ifndef QUICKHEAP_H
+#define QUICKHEAP_H
 /* ======================================================================= */
 // Quick Heaps
 /* ======================================================================= */
@@ -21,9 +23,11 @@ void      QuickHeapReserve(QuickHeap q, int reservedSize);
 
 // Pointer mode
 void* QuickHeapAlloc(QuickHeap q) ;
-void  QuickHeapFree(QuickHeap q, void  *p) ;
+void  QuickHeapFree(QuickHeap q, void *p) ;
 
 // Indice mode
 int QuickHeapAllocIndice(QuickHeap q);
 void QuickHeapFreeIndice(QuickHeap q, int i);
 void* QuickHeapGetPointer(QuickHeap q, int i);
+#endif
+

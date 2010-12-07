@@ -22,5 +22,5 @@ all: square
 clean:
 	-rm *.a *.o square
 
-square: main.o
-	gcc $(CPPFLAGS) -o $@ $? -L../.. -lSDL -lv4p -lgm 
+square: main.o ../../libv4p.a
+	gcc $(CPPFLAGS) -o $@ main.o -L../.. -lSDL -lv4p -lgm 

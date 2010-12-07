@@ -1,3 +1,5 @@
+#ifndef SORTABLE_H
+#define SORTABLE_H
 /* ========================================================================== */
 /*   Sortable Lists +                                                         */
 /*   Experimental inline version of a Divide & Conquer type sort algorihm     */
@@ -23,8 +25,8 @@ List ListFree(List p) ;
 #define ListSetNext(l,n) ((l)->next=(n))
 #define ListSetData(l,d) ((l)->data=(d))
 #define ListPrior(A,B) ListDataPrior((A)->data,(B)->data)
-#define ListAdd(l,n) (ListSetNext(n, l), l = n)
-#define ListAddData(l,d) { List _n = ListNew() ; ListSetData(_n, d) ; ListAdd(l, _n) ; }
+#define ListAdd(l,n) (ListSetNext((n), (l)), (l) = (n))
+#define ListAddData(l,d) { List _nXYZ = ListNew() ; ListSetData(_nXYZ, (d)) ; ListAdd((l), _nXYZ) ; }
 
 // merge 2 lists
 List ListMerge(List previous, List after) ;
@@ -37,4 +39,6 @@ List ListGetNextRise(List l) ;
 //  - then merge both as a weight+1 ordered list
 List inlineDivideAndConquerSort(List list) ;
 #define ListSort(l) inlineDivideAndConquerSort(l)
+
+#endif
 

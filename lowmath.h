@@ -1,5 +1,5 @@
-#ifndef LOWMATH
-#define LOWMATH
+#ifndef LOWMATH_H
+#define LOWMATH_H
 #include "v4p_ll.h"
 
 // These variables store the current angle and related values

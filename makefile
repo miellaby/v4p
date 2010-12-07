@@ -10,11 +10,14 @@ AR_DEFAULT=ar
 
 CC_palmos=m68k-palmos-gcc
 AR_palmos=m68k-palmos-ar
-CCFLAGS_palmos= -g -fno_builtin -I/m68k_palmos/include
+PALMOS_INCLUDE=/m68k_palmos/include
+
+CCFLAGS_palmos= -fno_builtin -I$(PALMOS_INCLUDE)
 ARFLAGS_palmos= rcs
+CCFLAGS_palmos_debug = -g
 
 CCFLAGS_linux=
-CCFLAGS_linux_debug= -pg
+CCFLAGS_linux_debug= -g
 ARFLAGS_linux= rvs
 
 CCFLAGS_linux_fractal=
@@ -42,7 +45,7 @@ install: $(LIBS) $(EXES)
 clean:
 	-rm *.a *.o
 
-libv4p.a: quickheap.o sortable.o lowmath.o v4p.o v4pi.o
+libv4p.a: quickheap.o quicktable.o sortable.o lowmath.o v4p.o v4pi.o
 	$(AR) $(ARFLAGS) $@ $?
 
 libv4pserial.a: v4pserial.o

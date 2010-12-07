@@ -51,8 +51,8 @@ typedef UInt16 ICollide ; // < 8
 typedef UInt16 PolygonProps ;
 //typedef Int16  Coord ;
 typedef struct point_s *PointP ;
-typedef struct poly_s *PolygonP ;
-typedef struct ba_s *ActiveEdgeP ;
+typedef struct polygon_s *PolygonP ;
+typedef struct activeEdge_s *ActiveEdgeP ;
 typedef struct v4pContext_s* V4pContextP;
 
 
