@@ -75,7 +75,7 @@ typedef struct v4pContext_s {
  int debug1 ;
  QuickHeap pointHeap, polygonHeap, activeEdgeHeap ;
  List    openedAEList ; // ActiveEdge lists
- QuickTable relativeOpenableAETable, absoluteOpenableAETable; // ActiveEdge Hash Table
+ QuickTable openableAETable; // ActiveEdge Hash Table
  Coord   dxvu,dyvu; // view width and height
  Coord divxvu,modxvu,divyvu,modyvu; // ratios screen / view in result+reminder pairs
  Coord divxvub,modxvub,divyvub,modyvub; // ratios view / screen in result+reminder pairs
@@ -143,8 +143,7 @@ V4pContextP v4pContextNew() {
   v4p->pointHeap = QuickHeapNewFor(Point) ;
   v4p->polygonHeap = QuickHeapNewFor(Polygon) ;
   v4p->activeEdgeHeap = QuickHeapNewFor(ActiveEdge) ;
-  v4p->absoluteOpenableAETable = QuickTableNew(YHASH_SIZE) ; // vertical sort
-  v4p->relativeOpenableAETable = QuickTableNew(YHASH_SIZE) ; // vertical sort
+  v4p->openableAETable = QuickTableNew(YHASH_SIZE) ; // vertical sort
   v4p->xvu0=0;
   v4p->yvu0=0;
   v4p->xvu1=lineWidth;
@@ -174,8 +173,7 @@ void v4pContextFree(V4pContextP p) {
   QuickHeapDelete(v4p->pointHeap) ;
   QuickHeapDelete(v4p->polygonHeap) ;
   QuickHeapDelete(v4p->activeEdgeHeap) ;
-  QuickTableDelete(v4p->relativeOpenableAETable);
-  QuickTableDelete(v4p->absoluteOpenableAETable);
+  QuickTableDelete(v4p->openableAETable);
   free(p);
 }
 
@@ -720,7 +718,6 @@ void v4pBuildOpenableAELists(PolygonP polygonChain) {
    PolygonP p ;
    List l ;
    ActiveEdgeP b;
-   int zoomOut = (v4p->divyvu == 0);
 
    for (p = polygonChain ; p ; p = p->next) {
      int isRelative = p->props & relative;
@@ -731,15 +728,13 @@ void v4pBuildOpenableAELists(PolygonP polygonChain) {
      while (l) {
        b = (ActiveEdgeP)ListData(l) ;
        if (isRelative) {
-		 QuickTableAdd(v4p->relativeOpenableAETable, (b->y0 > 0 ? b->y0 : 0) & YHASH_MASK, b);
+		 QuickTableAdd(v4p->openableAETable, (b->y0 > 0 ? b->y0 : 0) & YHASH_MASK, b);
        } else if (b->y0 < v4p->yvu0) {
-         QuickTableAdd(v4p->relativeOpenableAETable, 0, b);		 
-	   } else if (zoomOut) { // view width > screen width
+         QuickTableAdd(v4p->openableAETable, 0, b);		 
+	   } else {
          Coord stub, yr0;
          v4pAbsoluteToView(0, b->y0, &stub, &yr0);
-         QuickTableAdd(v4p->relativeOpenableAETable, yr0 & YHASH_MASK, b);
-       } else {
-         QuickTableAdd(v4p->absoluteOpenableAETable, b-> y0 & YHASH_MASK, b);
+         QuickTableAdd(v4p->openableAETable, yr0 & YHASH_MASK, b);
        }
        l = ListNext(l);
      }
@@ -753,35 +748,21 @@ void v4pBuildOpenableAELists(PolygonP polygonChain) {
 Boolean v4pOpenActiveEdge(Coord yl, Coord yu) {
 
    Boolean open = false ;
-   List l, la, lr ;
+   List l;
    ActiveEdgeP b ;
-   int zoomOut = (v4p->divyvu == 0);
-
+   
    Coord xr0, yr0, xr1, yr1, dx, dy, q, r ;
 
-   lr = QuickTableGet(v4p->relativeOpenableAETable, yl & YHASH_MASK);
-   la = QuickTableGet(v4p->absoluteOpenableAETable, yu & YHASH_MASK);
-   if (lr)
-     l = lr;
-   else {
-     l = la;
-     la = NULL;
-   }
-    
-   for (; l; (l = ListNext(l)) || (l = la) && (la = 0)) {
+   l = QuickTableGet(v4p->openableAETable, yl & YHASH_MASK);
+   for (; l; l = ListNext(l)) {
       b = (ActiveEdgeP)ListData(l) ;
 
       if (!(b->p->props & relative)) {
-	    if (!zoomOut) {
-	  	   if (b->y0 < v4p->yvu0 && yl == 0) {
-		     // OK
-		   } else if (b->y0 != yu) continue;
-        } 
-        v4pAbsoluteToView(b->x0, b->y0, &xr0, &yr0) ;
-        if (zoomOut) {
-		   if (b->y0 < v4p->yvu0 && yl == 0) {
-		      // OK
-		   } else if (zoomOut && yr0 != yl) continue;
+	    if (!yl && b->y0 < v4p->yvu0) {
+		   v4pAbsoluteToView(b->x0, b->y0, &xr0, &yr0) ;
+        } else {
+            v4pAbsoluteToView(b->x0, b->y0, &xr0, &yr0) ;
+            if (yr0 != yl) continue;
         }
          
         v4pAbsoluteToView(b->x1, b->y1, &xr1, &yr1) ;
@@ -847,12 +828,11 @@ Boolean v4pRender() {
 
    v4pDisplayStart() ;
 
-   // clean ActiveEdges
+   // update AE lists and build an y-index hash table
 
    if (!v4p->scene) return failure;
 
-   QuickTableReset(v4p->absoluteOpenableAETable);
-   QuickTableReset(v4p->relativeOpenableAETable);
+   QuickTableReset(v4p->openableAETable);
    v4pBuildOpenableAELists(*(v4p->scene));
    
    // list of opened ActiveEdges
