@@ -195,15 +195,15 @@ Boolean v4pDisplayEnd() {
 }
 
 Boolean v4pDisplaySlice(Coord y, Coord x0, Coord x1, Color c) {
- int l ;
- if (x1 <= x0) return success ;
- l = x1 - x0 ;
+ int l = x1 - x0;
+ if (l <= 0) return success ;
+ 
  //WinSetForeColor((IndexedColorType)c);
  //WinDrawLine(x0 + 10, y+10, x1+9, y+10);
  SDL_memset(&currentBuffer[iBuffer], (char)c, l) ;
  iBuffer+= l ;
- if (x1 == v4pDisplayWidth)
-    iBuffer+= bytesBetweenLines ;
+// if (!x0 && y)
+//    iBuffer+= bytesBetweenLines ;
 
  return success ;
 }
@@ -222,7 +222,7 @@ Boolean v4pDisplayInit(int quality, Boolean fullscreen) {
 
   /* Initialise un mode vidéo idéal pour cette image */
   v4pDisplayDefaultContextS.screenSurface = SDL_SetVideoMode(screenWidth, screenHeight, 
-                                   8, (fullscreen ? SDL_FULLSCREEN : 0) | /*SDL_HWSURFACE*/0);
+                                   8, (fullscreen ? SDL_FULLSCREEN : 0) |SDL_HWSURFACE);
 
 
   SDL_SetColors(v4pDisplayDefaultContextS.screenSurface, palette, 0, 256);

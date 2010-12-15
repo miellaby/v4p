@@ -2,7 +2,7 @@
 #include "v4p.h"
 #include "v4pi.h"
 
-#define STRESS_AMOUNT 128
+#define STRESS_AMOUNT 16
 PolygonP  scene;
 Boolean gmOnInit() {
   int i = 0, j, k, loop;
@@ -24,8 +24,8 @@ Boolean gmOnInit() {
     }
   }
 
-  for (i = 0 ; i < (1 + STRESS_AMOUNT / 2) * v4pDisplayWidth ; i+= 2 * STRESS_AMOUNT) {
-    v4pSetView(-v4pDisplayWidth * (256 + i) / 256,-v4pDisplayHeight * (256 + i) / 256, v4pDisplayWidth * (256 + i) / 256, v4pDisplayHeight * (256 + i) / 256);
+  for (i = 0 ; i < 128 * STRESS_AMOUNT ; i+= STRESS_AMOUNT) {
+    v4pSetView(-v4pDisplayWidth * i / 256, -v4pDisplayHeight * i / 256, v4pDisplayWidth + v4pDisplayWidth * i / 256, v4pDisplayHeight + v4pDisplayHeight * i / 256);
     for (j= 0; j < STRESS_AMOUNT; j++) {
       for (k = 0; k < STRESS_AMOUNT; k++) {
         v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (k - STRESS_AMOUNT / 2), v4pDisplayWidth * (j - STRESS_AMOUNT / 2), (j * k) + i / 16, 0);
@@ -34,8 +34,8 @@ Boolean gmOnInit() {
     v4pRender();
   }
 
-  for (; i > -50 ; i-= 2 * STRESS_AMOUNT) {
-    v4pSetView(-v4pDisplayWidth * (256 + i) / 256,-v4pDisplayHeight * (256 + i) / 256, v4pDisplayWidth * (256 + i) / 256, v4pDisplayHeight * (256 + i) / 256);
+  for (; i > -100 ; i-= STRESS_AMOUNT) {
+    v4pSetView(-v4pDisplayWidth * i / 256, -v4pDisplayHeight * i / 256, v4pDisplayWidth + v4pDisplayWidth * i / 256, v4pDisplayHeight + v4pDisplayHeight * i / 256);
     for (j= 0; j < STRESS_AMOUNT; j++) {
       for (k = 0; k < STRESS_AMOUNT; k++) {
         v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (k - STRESS_AMOUNT / 2), v4pDisplayWidth * (j - STRESS_AMOUNT / 2), (j * k) + i / 16, 0);
@@ -43,9 +43,9 @@ Boolean gmOnInit() {
     }
     v4pRender();
   }
-
-  for (i; i < (1 + STRESS_AMOUNT / 2) * v4pDisplayWidth ; i+= 2 * STRESS_AMOUNT) {
-    v4pSetView(-v4pDisplayWidth * (256 + i) / 256,-v4pDisplayHeight * (256 + i) / 256, v4pDisplayWidth * (256 + i) / 256, v4pDisplayHeight * (256 + i) / 256);
+  if (i < -100) i = -100;
+  for (; i < 128 * (STRESS_AMOUNT / 2) ; i+= STRESS_AMOUNT) {
+    v4pSetView(-v4pDisplayWidth * i / 256, -v4pDisplayHeight * i / 256, v4pDisplayWidth + v4pDisplayWidth * i / 256, v4pDisplayHeight + v4pDisplayHeight * i / 256);
     v4pRender();
   }
 }

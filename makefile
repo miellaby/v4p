@@ -1,6 +1,7 @@
 TARGETS = linux palmos
 BACKENDS = sdl xlib
 MODES = normal debug
+DEMOS = square ved
 
 MODE ?= normal
 TARGET ?= linux
@@ -38,6 +39,11 @@ PUBLIC_HEADERS=*.h
 
 all: $(LIBS) $(EXES)
 
+demo: all $(DEMOS:=.demo)
+
+%.demo:
+	$(MAKE) -C demo/$(@:.demo=)
+   
 install: $(LIBS) $(EXES)
 	-mkdir -p $(PREFIX)/usr/include/$(PROJECT)/
 	cp $(LIBS) $(PREFIX)/usr/lib/

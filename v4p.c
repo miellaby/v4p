@@ -659,16 +659,24 @@ PolygonP v4pPolygonBuildActiveEdgeList(PolygonP p) {
 
    s1 = p->point1;
    
-   while (s1 && s1->x == JUMPCOORD && s1->y == JUMPCOORD) s1 = s1->next;
+   int toBeClosed;
    
-   while (s1 && s1->next) { // lacots
+   
+   while (s1) { // lacots
+      toBeClosed = true;
+      if (s1->x == JUMPCOORD && s1->y == JUMPCOORD) {
+	    toBeClosed = false;
+	    s1 = s1->next;
+      }
+      if (!s1) break;
       sa = s1;
       sb = s1->next;
+      if (!sb) break;
       loop = false;
       end = false;
       while (!end) { // points
-        if (!(sa->x == JUMPCOORD && sa->y == JUMPCOORD)
-            && !(sb->x == JUMPCOORD && sb->y == JUMPCOORD)
+        if ((sa->x != JUMPCOORD || sa->y != JUMPCOORD)
+            && (sb->x != JUMPCOORD || sb->y != JUMPCOORD)
             && sa->y != sb->y) { // active
           b = v4pActiveEdgeNew(p) ;
 
@@ -706,19 +714,23 @@ PolygonP v4pPolygonBuildActiveEdgeList(PolygonP p) {
          } // active
 
          if (loop) {
-            s1 = NULL ;
             end = true ;
          } else if (sb->x == s1->x && sb->y == s1->y) {
             // new lacot
             s1 = sb->next ;
-            while (s1 && s1->x == JUMPCOORD && s1->y == JUMPCOORD) s1 = s1->next;
-            end = true ;
+            end = true;
          } else {
             sa = sb ;
             sb = sb->next ;
             if (!sb) {
-               sb = s1 ;
-               loop = true ;
+               if (toBeClosed) {
+			      sb = s1 ;
+			      s1 = NULL;
+                  loop = true;
+               } else {
+				  s1 = NULL;
+                  end = true;
+               }
             }
          }
       } //  points

@@ -22,7 +22,7 @@ int (*ListDataPrior)(void *, void *) = NULL ;
 
 // create a list item
 List ListNew() {
-  QuickHeapReserve(listHeap, 2048); // This will work only once. That's fine.
+  //QuickHeapReserve(listHeap, 2048); // This will work only once. That's fine.
   return (List)QuickHeapAlloc(listHeap) ;
 }
 
