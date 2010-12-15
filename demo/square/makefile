@@ -23,5 +23,5 @@ all: square
 clean:
 	-rm *.a *.o square
 
-square: main.o ../../libv4p.a
+square: square.o ../../libv4p.a
 	$(CC) $(CPPFLAGS) -o $@ main.o -L../.. -lSDL -lv4p -lgm 
