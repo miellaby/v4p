@@ -13,7 +13,6 @@ AR_DEFAULT=ar
 CC_palmos=m68k-palmos-gcc
 AR_palmos=m68k-palmos-ar
 PALMOS_INCLUDE=/m68k_palmos/include
-
 CCFLAGS_palmos= -fno_builtin -I$(PALMOS_INCLUDE)
 ARFLAGS_palmos= rcs
 CCFLAGS_palmos_debug = -g
@@ -21,10 +20,6 @@ CCFLAGS_palmos_debug = -g
 CCFLAGS_linux=
 CCFLAGS_linux_debug= -pg
 ARFLAGS_linux= rvs
-
-CCFLAGS_linux_fractal=
-CCFLAGS_linux_fractal_debug= -pg
-ARFLAGS_linux_fractal= rvs
 
 CC=$(CC_DEFAULT$(CC_$(TARGET))) $(CC_$(TARGET))
 AR=$(AR_DEFAULT$(AR_$(TARGET))) $(AR_$(TARGET))

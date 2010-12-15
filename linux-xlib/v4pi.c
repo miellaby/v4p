@@ -6,18 +6,18 @@
 #include <stdarg.h>
 #include <sys/times.h>
 
-#include <X11/Xlib.h>
 #include <X11/Xutil.h>
-#include <X11/Xos.h>
-#include <X11/Xatom.h>
-
-#include "v4pi.h"
+#include "_v4pi.h"
 #include "lowmath.h"
 
 /* A 256 color system palette inspired from old Palm Computing Devices.
 **
 */
-static struct s_color { uchar r; uchar g; uchar b; uchar t }
+static struct s_color {
+	unsigned short r;
+	unsigned short g;
+	unsigned short b;
+	unsigned short youDontWantToKnow; }
   palette[256] =
   {
     {255, 255,255, 0}, {255, 204,255, 0}, {255, 153,255, 0}, {255, 102,255, 0},
@@ -86,24 +86,20 @@ static struct s_color { uchar r; uchar g; uchar b; uchar t }
     {  0,   0,  0, 0}, {  0,   0,  0, 0}, {  0,   0,  0, 0}, {  0,   0,  0, 0}
   };
 
-static XColor[256] xColorTabs;
+static char* applicationName = "v4pX";
+static char* applicationClass = "V4pX";
+static char* fakeArgv[] = { "v4pX" };
+
+static unsigned long xColorsTab[256];
 const Color
    gray=225, marron=226, purple=227, green=228, cyan=229,
    black=215, red=125, blue=95, yellow=120, dark=217, oliver=58,
    fluo=48;
 
-const Coord defaultScreenWidth = 640, defaultScreenHeight = 400;
+Coord defaultScreenWidth = 640, defaultScreenHeight = 400;
 
 static const int borderWidth=1;
 
-typedef struct v4pDisplay_s {
-  Display *d;
-  int      s;
-  Window   w;
-  GC       gc;
-  unsigned int width;
-  unsigned int height;
-} V4pDisplayS;
 
 //struct v4pDisplay_s* V4pDisplayP;
 
@@ -114,13 +110,9 @@ V4pDisplayP v4pDisplayContext = &v4pDisplayDefaultContextS;
 Coord       v4pDisplayWidth;
 Coord       v4pDisplayHeight;
 
-Display*         currentDisplay;
-static Window    currentWindow;
-static int       currentScreen;
-static GC        currentGC;
-
+// Data buffer
 static XGCValues values;
-static struct    tms;
+static struct tms tmsBuffer;
 
 typedef struct collide_s {
     Coord x ;
@@ -167,7 +159,7 @@ static clock_t laps[4] = {0,0,0,0}, tlaps=0 ;
 Boolean v4pDisplayStart() {
   int i ;
   
-  t1 = times(&tms); 
+  t1 = times(&tmsBuffer); 
 
   //Init collides
   for (i = 0 ; i < 16 ; i++) {
@@ -184,9 +176,9 @@ Boolean v4pDisplayEnd() {
 
     int i ;
     static int j=0;
-    clock_t t2 = times(&tms);
+    clock_t t2 = times(&tmsBuffer);
     tlaps -= laps[j % 4];
-    tlaps += laps[j % 4]=t2-t1;
+    tlaps += laps[j % 4]=t2 - t1;
     j++;
     v4pDisplayDebug("%d", tlaps);
 
@@ -210,19 +202,19 @@ Boolean v4pDisplaySlice(Coord y, Coord x0, Coord x1, Color c) {
     return success ;
 }
 
-static void createWindow(V4pDisplay vd, int width, int height) {
+static void createWindow(V4pDisplayP vd, int width, int height) {
 	Display* d = vd->d;
 	int      s = vd->s;
 	Window   w;
     GC       gc;	
-
+    
    /* Miscellaneous X variables */
     XSizeHints *  size_hints;
     XWMHints   *  wm_hints;
     XClassHint *  class_hints;
     XTextProperty windowName, iconName;
     XEvent        report;
-
+  
     w = /* create window */
        XCreateSimpleWindow(d, RootWindow(d, s), 10, 10, width, height, borderWidth,
        BlackPixel(d, s), WhitePixel(d, s));
@@ -232,30 +224,29 @@ static void createWindow(V4pDisplay vd, int width, int height) {
     if ( !( size_hints  = XAllocSizeHints() ) || 
 	 !( wm_hints    = XAllocWMHints()   ) ||
 	 !( class_hints = XAllocClassHint() )    ) {
-	fprintf(stderr, "%s: couldn't allocate memory.\n", argv[0]);
+	v4pDisplayError("couldn't allocate memory.\n");
 	exit(EXIT_FAILURE);
     }
 
     /*  Set hints for window manager */
-    if ( XStringListToTextProperty(&argv[0], 1, &windowName) == 0
-        || XStringListToTextProperty(&argv[0], 1, &iconName) == 0 ) {
-	    fprintf(stderr, "%s: xlib structure allocation failed.\n",
-		argv[0]);
+    if ( XStringListToTextProperty(&applicationName, 1, &windowName) == 0
+        || XStringListToTextProperty(&applicationName, 1, &iconName) == 0 ) {
+	    v4pDisplayError("xlib structure allocation failed.\n");
 	exit(EXIT_FAILURE);
     }
 
     size_hints->flags       = PPosition | PSize | PMinSize;
-    size_hints->min_width   = defaultScreenWidth;
-    size_hints->min_height  = defaultScreenHeight;
+    size_hints->min_width   = width;
+    size_hints->min_height  = height;
 
     wm_hints->flags         = StateHint | InputHint;
     wm_hints->initial_state = NormalState;
     wm_hints->input         = True;
 
-    class_hints->res_name   = argv[0];
-    class_hints->res_class  = "v4px";
+    class_hints->res_name   = applicationName;
+    class_hints->res_class  = applicationClass;
 
-    XSetWMProperties(d, w, &windowName, &iconName, argv, argc,
+    XSetWMProperties(d, w, &windowName, &iconName, (char**)&fakeArgv, 0,
 		     size_hints, wm_hints, class_hints);
 
     /*  Choose which events we want to handle  */
@@ -266,10 +257,10 @@ static void createWindow(V4pDisplay vd, int width, int height) {
 
     gc = /* create graphic context */
          XCreateGC(d, w, 0, &values);
-    XSetForeground(d, vd->gc, BlackPixel(d, s));
+    XSetForeground(d, gc, BlackPixel(d, s));
 
-    vd->width = winWidth;
-    vd->height = winHeight;
+    vd->width = width;
+    vd->height = height;
     vd->w  = w;
     vd->gc = gc;
     
@@ -283,21 +274,25 @@ Boolean v4pDisplayInit(int quality, Boolean fullscreen) {
 
    /* connect to X server */
    Display *d = XOpenDisplay(NULL);
-   if (defaultDisplay == NULL) {
-     fprintf(stderr, "Cannot open display\n");
+   if (d == NULL) {
+     v4pDisplayError("Cannot open display\n");
      exit(EXIT_FAILURE);
    }
    int s     = DefaultScreen(d);
 
    // Prepare "tablette"
-   Colormap cmap = DefaultColormap (mydisp, myscreen);
+   Colormap cmap = DefaultColormap (d, s);
    int i;
-   for (i= 0; i < 256; i++) {
-	   Xcolor c;
+   XColor c;
+   c.flags = DoRed|DoGreen|DoBlue;
+
+   for (i = 0; i < 256; i++) {
 	   c.red = palette[i].r;
 	   c.green = palette[i].g;
 	   c.blue = palette[i].b;
-	   xColorTabs[i] = XAllocColor(d, cmap, &c); 
+	   XAllocColor(d, cmap, &c);
+	   xColorsTab[i] = c.pixel;
+	   printf("%d\n", (int)c.pixel);
    }
    
    v4pDisplayDefaultContextS.d = d;
@@ -309,7 +304,7 @@ Boolean v4pDisplayInit(int quality, Boolean fullscreen) {
    int winWidth = defaultScreenWidth * 2 / (3 - quality);
    int winHeight = defaultScreenHeight * 2 / (3 - quality);
    
-   createWindow(v4pDisplayDefaultContext, widthWidth, winHeight);
+   createWindow(v4pDisplayDefaultContext, winWidth, winHeight);
 
    v4pDisplaySetContext(v4pDisplayDefaultContext);
 }
@@ -351,5 +346,5 @@ V4pDisplayP v4pDisplaySetContext(V4pDisplayP c) {
 
 void v4pDisplayQuit() {
    /* close connection to server */
-   XCloseDisplay(d);
+   XCloseDisplay(v4pDisplayDefaultContext->d);
 }

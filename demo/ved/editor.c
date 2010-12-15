@@ -311,6 +311,10 @@ Boolean gmOnIterate() {
  return success ;
 }
 
+void gmOnQuit() {
+	 v4pDisplayQuit();
+}
+
 
 struct option longopts[] =
   {
@@ -364,6 +368,6 @@ int main(int argc, char** argv) {
         return 0;
       }
 
-    return gmMain(argc, argv);
+   return gmMain(argc, argv);
 }
 

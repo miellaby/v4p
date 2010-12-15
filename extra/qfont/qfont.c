@@ -135,12 +135,14 @@ Boolean gmOnInit() {
 #if 1
   for (i = 0 ; i < 128 ; i++) {
     v4pSetView(-v4pDisplayWidth * i / 256, -v4pDisplayHeight * i / 256, v4pDisplayWidth + v4pDisplayWidth * i / 256, v4pDisplayHeight + v4pDisplayHeight * i / 256);
+    v4pSetBGColor(i & 1 ? blue : black);
     v4pRender();
   }
 
  
   for (; i > -110 ; i--) {
     v4pSetView(-v4pDisplayWidth * i / 256, -v4pDisplayHeight * i / 256, v4pDisplayWidth + v4pDisplayWidth * i / 256, v4pDisplayHeight + v4pDisplayHeight * i / 256);
+    v4pSetBGColor(i & 1 ? blue : black);
     v4pRender();
   }
 
@@ -152,6 +154,10 @@ Boolean gmOnInit() {
   // pause:
   { char buf[20]; fgets(buf, 20, stdin); }
 }
+
+void gmOnQuit() {
+}
+
 Boolean gmOnIterate() {
   return failure;
 }

@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <string.h>
 #include "v4p.h"
 #include "v4pserial.h"
 
@@ -105,7 +107,7 @@ PolygonP v4pDecodePolygon(char *s, int scale) {
 
 char *v4pEncodePolygon(PolygonP p, int scale) {
   const char *t = "0123456789ABCDEF" ;
-  Uint16 i, v ;
+  UInt16 i, v ;
   char *s, *ss, *sss ;
 
   s = (char *)malloc(7) ;

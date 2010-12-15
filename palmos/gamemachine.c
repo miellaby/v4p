@@ -201,6 +201,7 @@ void applicativeLoop(UInt16 almProcCmd, SysAlarmTriggeredParamType *paramP)
   while (!(StopEvent || gmOnIterate())) {
     Application_ProcessMessages(5);
   }
+  gmOnQuit();
 }
 Boolean startApplicativeLoop() {
    AlmSetProcAlarm(applicativeLoop,0,TimGetSeconds()+1);

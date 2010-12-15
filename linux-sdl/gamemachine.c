@@ -59,8 +59,8 @@ int gmMain(int argc, char* argv[])
       exit |= gmOnIterate();
       
     }
-
-    SDL_Quit();
-  
-    return 0;
+    
+    gmOnQuit();
+    
+    return EXIT_SUCCESS;
 }

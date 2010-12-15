@@ -6,9 +6,11 @@
 PolygonP  scene;
 Boolean gmOnInit() {
   int i = 0, j, k, loop;
+  scene = NULL;
+
   v4pDisplayInit(1, 0);
   v4pInit();
-  scene = NULL;
+
   v4pSetScene(&scene);
   v4pSetBGColor(blue);
  
@@ -54,7 +56,11 @@ Boolean gmOnIterate() {
   return 0;
 }
 
+void gmOnQuit() {
+  v4pDisplayQuit();
+}
+
 int main(int argc, char** argv) {
-     return gmMain(argc, argv);
+  return gmMain(argc, argv);
 }
 

@@ -15,6 +15,7 @@ extern GmState gmMachineState;
 
 extern Boolean gmOnInit() ;
 extern Boolean gmOnIterate() ;
+extern void    gmOnQuit() ;
 
 int gmMain(int argc, char* argv[]);
 #endif

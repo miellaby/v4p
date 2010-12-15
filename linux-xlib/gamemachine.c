@@ -1,13 +1,9 @@
 #include <stdio.h>
 #include "gamemachine.h"
 #include "v4p_ll.h"
-#include "v4pi.h"
-
+#include "_v4pi.h"
 
 #include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xos.h>
-#include <X11/Xatom.h>
 
 GmState gmMachineState;
 
@@ -15,6 +11,8 @@ int gmMain(int argc, char* argv[])
 {
     /* Miscellaneous X variables */
     XEvent        report;
+    
+    Boolean exit;
     
     gmMachineState.buttons[0] = 0;
 
@@ -68,7 +66,9 @@ int gmMain(int argc, char* argv[])
 	}
     exit |= gmOnIterate();
     }
-
-    return 0;
+    
+    gmOnQuit();
+    
+    return success;
 }
 
