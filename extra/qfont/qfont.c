@@ -29,12 +29,12 @@
 #define NA3 " 1 1   1  1       1    1    1 1  1  1   1  1    1 "
 #define NA4 " 111  111 1111 1111    1 1111 1111  1   1111 1111 "
 
-// /?,"'.:;&*+-<=>@$
-#define PA0 "   1  11  1 1    1        11   11   11  1  1   1  "
-#define PA1 "  11 1  1 1 1    1        11   11  1  1  11    1  "
-#define PA2 " 11    1  1 1   1                   1   1111  111 "
-#define PA3 "11                   11   11    1  1 1   11    1  "
-#define PA4 "1      1             11   11   1    111 1  1   1  "
+// !/?,"'.:;&*+-<=>@$
+#define PA0 " 11     1  11  1 1    1        11   11   11  1  1   1  "
+#define PA1 " 11    11 1  1 1 1    1        11   11  1  1  11    1  "
+#define PA2 " 11   11    1  1 1   1                   1   1111  111 "
+#define PA3 "     11                   11   11    1  1 1   11    1  "
+#define PA4 " 11  1      1             11   11   1    111 1  1   1  "
 
 #define PB0 "       11      11    11   111 "
 #define PB1 "      11  1111  11  1  1 111  "
@@ -63,7 +63,7 @@ char* qfont[5] = {
 PolygonP qfontDefinePolygonFromChar(char c, PolygonP poly,
     Coord x, Coord y, Coord width, Coord height) {
   int ichar = 0;
-  char* s = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/?,\"'.:;&*+-<=>@$";
+  char* s = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!/?,\"'.:;&*+-<=>@$";
   if (!c || c == ' ') return poly;
   
   while (c != s[ichar] && s[ichar]) ichar++;
@@ -105,64 +105,72 @@ PolygonP qfontDefinePolygonFromString(char* s, PolygonP poly,
 }
 
 #ifdef TESTU
-#define STRESS_AMOUNT 1
-PolygonP scene;
+#define STRESS_AMOUNT 10
+PolygonP  scene;
+PolygonP pCol;
+PolygonP pColMatrix[STRESS_AMOUNT][STRESS_AMOUNT];
+
+int iu = 0;
+int diu = STRESS_AMOUNT;
+int liu  = 3;
+
+
 Boolean gmOnInit() {
-  int i, j, k, loop;
+  int j, k;
+  scene = NULL;
+
   v4pDisplayInit(1, 0);
   v4pInit();
-  scene = NULL;
+
   v4pSetScene(&scene);
   v4pSetBGColor(blue);
  
-  PolygonP pColMatrix[STRESS_AMOUNT][STRESS_AMOUNT];
-  PolygonP pCol=v4pPolygonNew(absolute, red, 10);
+  pCol=v4pPolygonNew(absolute, red, 10);
   qfontDefinePolygonFromString("HELLO", pCol,
     -v4pDisplayWidth / 4, -v4pDisplayWidth / 16,
      v4pDisplayWidth / 8, v4pDisplayWidth / 8,
      5);
-  
+  qfontDefinePolygonFromString("WORLD", pCol,
+    -v4pDisplayWidth / 4, v4pDisplayWidth / 16 + 5,
+     v4pDisplayWidth / 8, v4pDisplayWidth / 8,
+     5);
 
   for (j= 0; j < STRESS_AMOUNT; j++) {
     for (k = 0; k < STRESS_AMOUNT; k++) {
       pColMatrix[j][k] = v4pPolygonClone(pCol);
-      v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (1 + k - STRESS_AMOUNT/2) / 2, v4pDisplayHeight * (1 + k - STRESS_AMOUNT/2) / 2, 0, 0);
       v4pPolygonIntoList(pColMatrix[j][k], &scene);
+      v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (2 + 2 * k - STRESS_AMOUNT) / 2, v4pDisplayWidth * (1 + j - STRESS_AMOUNT/2)/2, 0, 10);
     }
   }
-
-  
-#if 1
-  for (i = 0 ; i < 128 ; i++) {
-    v4pSetView(-v4pDisplayWidth * i / 256, -v4pDisplayHeight * i / 256, v4pDisplayWidth + v4pDisplayWidth * i / 256, v4pDisplayHeight + v4pDisplayHeight * i / 256);
-    v4pSetBGColor(i & 1 ? blue : black);
-    v4pRender();
-  }
-
- 
-  for (; i > -110 ; i--) {
-    v4pSetView(-v4pDisplayWidth * i / 256, -v4pDisplayHeight * i / 256, v4pDisplayWidth + v4pDisplayWidth * i / 256, v4pDisplayHeight + v4pDisplayHeight * i / 256);
-    v4pSetBGColor(i & 1 ? blue : black);
-    v4pRender();
-  }
-
-#else
-    v4pSetView(-v4pDisplayWidth, -v4pDisplayHeight, v4pDisplayWidth, v4pDisplayHeight);
-    v4pRender();
-#endif
-
-  // pause:
-  { char buf[20]; fgets(buf, 20, stdin); }
-}
-
-void gmOnQuit() {
 }
 
 Boolean gmOnIterate() {
-  return failure;
+	int i = iu, j, k;
+	if (diu>0 && i >128 * STRESS_AMOUNT) diu=-diu;
+	if (diu<0 && i + diu < -100) {
+	  diu=-diu;
+	  liu--;
+	}
+    v4pSetView(-v4pDisplayWidth * i / 256, -v4pDisplayHeight * i / 256, v4pDisplayWidth + v4pDisplayWidth * i / 256, v4pDisplayHeight + v4pDisplayHeight * i / 256);
+    
+    if (0) // dead code, not compatible with qfont because of lacking horizontal edges
+      for (j= 0; j < STRESS_AMOUNT; j++) {
+        for (k = 0; k < STRESS_AMOUNT; k++) {
+          v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (1 + 2 * k - STRESS_AMOUNT/2) / 2, v4pDisplayWidth * (1 + j - STRESS_AMOUNT/2)/2, (j * k) + i / 16, 0);
+        }
+      }
+      
+  v4pRender();
+  iu+=diu;
+  return (liu < 0);
+}
+
+void gmOnQuit() {
+  v4pDisplayQuit();
 }
 
 int main(int argc, char** argv) {
-     return gmMain(argc, argv);
-}
+  return gmMain(argc, argv);
+}  
+  
 #endif

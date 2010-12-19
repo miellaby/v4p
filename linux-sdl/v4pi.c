@@ -121,7 +121,7 @@ Collide collides[16] ;
 void v4pDisplayDebug(char *formatString, ...)
 { va_list args ; char text[0x100] ;
   va_start(args, formatString) ;
-  //vprintf(formatString, args) ;
+  vprintf(formatString, args) ;
   va_end(args);
 }
 
@@ -222,7 +222,7 @@ Boolean v4pDisplayInit(int quality, Boolean fullscreen) {
 
   /* Initialise un mode vidéo idéal pour cette image */
   v4pDisplayDefaultContextS.screenSurface = SDL_SetVideoMode(screenWidth, screenHeight, 
-                                   8, (fullscreen ? SDL_FULLSCREEN : 0) |SDL_HWSURFACE);
+                                   8, (fullscreen ? SDL_FULLSCREEN : 0) | SDL_HWSURFACE );
 
 
   SDL_SetColors(v4pDisplayDefaultContextS.screenSurface, palette, 0, 256);

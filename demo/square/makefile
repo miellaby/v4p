@@ -1,27 +1,6 @@
-TARGET ?= linux
-MODE ?= normal
-BACKEND = sdl
-
-CC_palmos=m68k-palmos-gcc
-AR_palmos=m68k-palmos-ar
-CCFLAGS_palmos= -g -fno_builtin -I/m68k_palmos/include
-ARFLAGS_palmos= rcs
-
-CC_linux=gcc
-AR_linux=ar
-ARFLAGS_linux= rsv
-CCFLAGS_linux=
-CCFLAGS_linux_debug= -pg
-
-CC=$(CC_$(TARGET))
-AR=$(AR_$(TARGET))
-CPPFLAGS=$(CCFLAGS_$(TARGET)) $(CCFLAGS_$(TARGET)_$(MODE)) -I. -I../../$(TARGET)-$(BACKEND) -I../..
-ARFLAGS=$(ARFLAGS_$(TARGET)) $(ARFLAGS_$(TARGET)_$(MODE))
-
-all: square
-
-clean:
-	-rm *.a *.o square
+TOP=../..
+EXES=square
+include $(TOP)/rules.mak
 
 square: square.o ../../libv4p.a
-	$(CC) $(CPPFLAGS) -o $@ main.o -L../.. -lSDL -lv4p -lgm 
+	$(CC) $(CPPFLAGS) -o $@ square.o -L$(TOP) -lv4p -lgm 

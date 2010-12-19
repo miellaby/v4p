@@ -143,7 +143,6 @@ Boolean gmOnIterate() {
 
   if (true) {
     //v4pSetView(xvu,yvu,xvu+lvu,yvu+lvu);
-    v4pRender();
     if (gmMachineState.buttons[0]) {
       if (pen1) {
         gmMachineState.xpen = (2 * gmMachineState.xpen + xpen1) / 3;
@@ -309,6 +308,11 @@ Boolean gmOnIterate() {
   pen1 = gmMachineState.buttons[0];
  }//buffer
  return success ;
+}
+
+Boolean gmOnFrame() {
+  v4pRender();
+  return success;
 }
 
 void gmOnQuit() {

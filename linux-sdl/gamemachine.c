@@ -5,23 +5,18 @@
 #include "SDL/SDL.h"
 
 GmState gmMachineState;
+int     gmFramerate = 30;
 
-int gmMain(int argc, char* argv[])
-{
+int gmSetFramerate(int new) {
+	return (gmFramerate = new);
+}
+
+Boolean poll() {
+    Boolean exit=0;
     SDL_Surface *screen;
     SDL_Event event;
-  
-    Boolean exit=0;
 
-    gmMachineState.buttons[0] = 0;
-
-  
-    gmOnInit();
-  
-    while(!exit) 
-      { //main loop
-
-      while(SDL_PollEvent(&event)) 
+      while (SDL_PollEvent(&event)) 
         { // polling
 
           switch (event.type) 
@@ -55,9 +50,45 @@ int gmMain(int argc, char* argv[])
             
             }
         }
-  
+   return exit;
+}
+
+int gmMain(int argc, char* argv[])
+{
+    SDL_Surface *screen;
+    Boolean exit=0;
+    UInt32 excess, beforeTime, overSleepTime, afterTime,
+       timeDiff, sleepTime;
+    int  period = 1000 / gmFramerate;
+    excess = 0;
+    gmMachineState.buttons[0] = 0;
+
+    gmOnInit();
+
+    afterTime = SDL_GetTicks();
+    sleepTime = 0;
+    while (!exit)  { //main loop
+      beforeTime = SDL_GetTicks();
+      overSleepTime = (beforeTime - afterTime) - sleepTime;
+      exit |= poll();
       exit |= gmOnIterate();
-      
+      exit |= gmOnFrame();
+
+      period = 1000 / gmFramerate;
+      afterTime = SDL_GetTicks();
+      timeDiff = afterTime - beforeTime;
+      sleepTime = (period - timeDiff) - overSleepTime;
+      if (sleepTime <= 0) {
+        excess -= sleepTime;
+        sleepTime = 2;
+      }
+      SDL_Delay(sleepTime);
+
+      while (excess > period) {
+        exit |= poll();
+        exit |= gmOnIterate();
+        excess -= period;
+      }
     }
     
     gmOnQuit();
