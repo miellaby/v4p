@@ -142,6 +142,7 @@ Boolean gmOnInit() {
       v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (2 + 2 * k - STRESS_AMOUNT) / 2, v4pDisplayWidth * (1 + j - STRESS_AMOUNT/2)/2, 0, 10);
     }
   }
+  return success;
 }
 
 Boolean gmOnIterate() {
@@ -160,9 +161,13 @@ Boolean gmOnIterate() {
         }
       }
       
-  v4pRender();
   iu+=diu;
   return (liu < 0);
+}
+
+Boolean gmOnFrame() {
+  v4pRender();
+  return success;
 }
 
 void gmOnQuit() {
