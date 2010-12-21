@@ -20,7 +20,7 @@ ARFLAGS_palmos= rcs
 CCFLAGS_palmos_debug = -g
 
 CCFLAGS_linux=
-CCFLAGS_linux_debug= -pg
+CCFLAGS_linux_debug= -pg -DDEBUG
 ARFLAGS_linux= rvs
 
 CCFLAGS_linux_sdl= -lSDL
@@ -52,6 +52,8 @@ ifneq ($(PUBLIC_HEADERS),)
 endif
 
 clean:
-	-rm *.a *.o $(LIBS) $(EXES)
+	-rm *.o $(LIBS) $(EXES)
 
+pkg: clean
+	find -name .svn -prune -o -name '*~' -exec rm {} \;
 VPATH=.:$(TOP)/$(TARGET)-$(BACKEND):$(TOP)

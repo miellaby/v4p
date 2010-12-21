@@ -2,7 +2,7 @@
 #include "v4p.h"
 #include "v4pi.h"
 
-#define STRESS_AMOUNT 24
+#define STRESS_AMOUNT 64
 PolygonP  scene;
 PolygonP pCol;
 PolygonP pColMatrix[STRESS_AMOUNT][STRESS_AMOUNT];
@@ -16,6 +16,7 @@ Boolean gmOnInit() {
   int j, k;
   scene = NULL;
 
+  v4pDisplayInit(1, 0);
   v4pInit();
 
   v4pSetScene(&scene);
@@ -63,7 +64,6 @@ void gmOnQuit() {
 }
 
 int main(int argc, char** argv) {
-  v4pDisplayInit(1, 0);
   return gmMain(argc, argv);
 }
 

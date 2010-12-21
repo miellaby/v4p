@@ -30,8 +30,11 @@ void    v4pDisplayFreeContext(V4pDisplayP);
 Boolean v4pDisplayStart();
 Boolean v4pDisplaySlice(Coord y, Coord x0, Coord x1, Color c);
 Boolean v4pDisplayEnd();
-
+#ifdef DEBUG
 void    v4pDisplayDebug(char *formatString,...);
+#else
+#define v4pDisplayDebug(...) (0)
+#endif
 Boolean v4pDisplayError(char *s,...);
 Boolean v4pDisplayCollide(ICollide i1, ICollide i2, Coord py, Coord x1, Coord x2, PolygonP p1, PolygonP p2);
 

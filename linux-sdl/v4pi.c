@@ -81,34 +81,37 @@ static SDL_Color
     {  0,   0,  0, 0}, {  0,   0,  0, 0}, {  0,   0,  0, 0}, {  0,   0,  0, 0}
   };
 
+// Some constants linking to basic colors;
 const Color
    gray=225, marron=226, purple=227, green=228, cyan=229,
    black=215, red=125, blue=95, yellow=120, dark=217, oliver=58,
    fluo=48;
 
+// Default window/screen width & heigth
 const Coord defaultScreenWidth = 640, defaultScreenHeight = 400;
 
-
+// A display context
 typedef struct v4pDisplay_s {
-  SDL_Surface* screenSurface;
+  SDL_Surface* surface;
   unsigned int width;
   unsigned int height;
 } V4pDisplayS;
 
-//struct v4pDisplay_s* V4pDisplayP;
-
+// Global variable hosting the default V4P contex
 V4pDisplayS v4pDisplayDefaultContextS;
 V4pDisplayP v4pDisplayDefaultContext = &v4pDisplayDefaultContextS;
 
-V4pDisplayP v4pDisplayContext = &v4pDisplayDefaultContextS;
-Coord       v4pDisplayWidth;
-Coord       v4pDisplayHeight;
-
-static Coord bytesBetweenLines;
-static const SDL_VideoInfo* vi;
+// Variables hosting current context and related properties
+V4pDisplayP   v4pDisplayContext = &v4pDisplayDefaultContextS;
+Coord         v4pDisplayWidth;
+Coord         v4pDisplayHeight;
+// private properties of current context
 static Uint8* currentBuffer;
-static int iBuffer;
+static int    iBuffer;
 
+/***************************/
+/* collide computing stuff */
+/***************************/
 typedef struct collide_s {
    Coord x ;
    Coord y ;
@@ -118,13 +121,25 @@ typedef struct collide_s {
 
 Collide collides[16] ;
 
+/*****************/
+/* metrics stuff */
+/*****************/
+static UInt32 t1;
+static UInt32 laps[4] = {0, 0, 0, 0};
+static UInt32 tlaps = 0;
+
+
+// debug logging helper
+#ifdef DEBUG
 void v4pDisplayDebug(char *formatString, ...)
 { va_list args ; char text[0x100] ;
   va_start(args, formatString) ;
   vprintf(formatString, args) ;
   va_end(args);
 }
+#endif
 
+// error logging helper
 Boolean v4pDisplayError(char *formatString, ...) {
   va_list args ;
   va_start(args, formatString) ;
@@ -132,6 +147,7 @@ Boolean v4pDisplayError(char *formatString, ...) {
   va_end(args);
 }
 
+// record collides
 Boolean v4pDisplayCollide(ICollide i1, ICollide i2, Coord py, Coord x1, Coord x2, PolygonP p1, PolygonP p2) {
  int l, dx, dy ;
  l = x2 - x1 ;
@@ -148,119 +164,139 @@ Boolean v4pDisplayCollide(ICollide i1, ICollide i2, Coord py, Coord x1, Coord x2
  return success ;
 }
 
-static Uint32 t1 ;
-static Uint32 laps[4] = {0,0,0,0}, tlaps=0 ;
-
+// prepare things before V4P engine scanline loop
 Boolean v4pDisplayStart() {
-  int i ;
+  // remember start time
   t1 = SDL_GetTicks();
+
+  //Reset buffer pointer used by v4pDisplaySplice()
   iBuffer = 0;
 
   //Init collides
-  for (i = 0 ; i < 16 ; i++) {
-    collides[i].q = 0 ;
-    collides[i].x = 0 ;
-    collides[i].y = 0 ;
-    collides[i].poly = NULL ;
+  int i;
+  for (i = 0; i < 16; i++) {
+    collides[i].q = 0;
+    collides[i].x = 0;
+    collides[i].y = 0;
+    collides[i].poly = NULL;
   }
 
-  if (SDL_MUSTLOCK(v4pDisplayContext->screenSurface) && SDL_LockSurface(v4pDisplayContext->screenSurface) < 0)
+  // Lock before drawing if necessary
+  if (SDL_MUSTLOCK(v4pDisplayContext->surface) && SDL_LockSurface(v4pDisplayContext->surface) < 0)
     return failure;
   else
-    return success ;
+    return success;
 }
 
+// finalize things after V4P engine scanline loop
 Boolean v4pDisplayEnd() {
-
    int i ;
-   static int j=0;
-   Uint32 t2=SDL_GetTicks();
-   tlaps-=laps[j % 4];
-   tlaps+=laps[j % 4]=t2-t1;
-   j++;
-   v4pDisplayDebug("%d", tlaps);
+   static int j = 0;
 
-   // Bilan des collides
+   // Get end time and compute average rendering time
+   Uint32 t2 = SDL_GetTicks();
+   tlaps -= laps[j % 4];
+   tlaps += laps[j % 4] = t2 - t1;
+   j++;
+   v4pDisplayDebug("v4pDisplayEnd, average time = %dms\n", tlaps / 4);
+
+   // sumarize collides
    for (i = 0 ; i < 16 ; i++) {
       if (!collides[i].q) continue ;
       collides[i].x /= collides[i].q ;
       collides[i].y /= collides[i].q ;
    }
 
-   if (SDL_MUSTLOCK(v4pDisplayContext->screenSurface))
-     SDL_UnlockSurface(v4pDisplayContext->screenSurface);
-   SDL_Flip(v4pDisplayContext->screenSurface);
+   // SDL locking stuff
+   if (SDL_MUSTLOCK(v4pDisplayContext->surface))
+     SDL_UnlockSurface(v4pDisplayContext->surface);
+   
+   // Commit graphic changes we made
+   SDL_Flip(v4pDisplayContext->surface);
 
-   return success ;
+   return success;
 }
 
+// Draw an horizontal video slice with color 'c'
 Boolean v4pDisplaySlice(Coord y, Coord x0, Coord x1, Color c) {
  int l = x1 - x0;
- if (l <= 0) return success ;
+ if (l <= 0) return success;
  
- //WinSetForeColor((IndexedColorType)c);
- //WinDrawLine(x0 + 10, y+10, x1+9, y+10);
- SDL_memset(&currentBuffer[iBuffer], (char)c, l) ;
- iBuffer+= l ;
-// if (!x0 && y)
-//    iBuffer+= bytesBetweenLines ;
+ SDL_memset(&currentBuffer[iBuffer], (char)c, l);
+ iBuffer+= l;
 
- return success ;
+ return success;
 }
 
+// Prepare things before the very first graphic rendering
 Boolean v4pDisplayInit(int quality, Boolean fullscreen) {
-  /* Initialisation de SDL */
+  // Initialize SDL
+  if (SDL_Init(SDL_INIT_VIDEO) < 0 ) {
+    v4pDisplayError("v4pDisplayInit failed, SDL error: '%s'\n", SDL_GetError());
+	  return failure;
+  }
+  
+  // atexit(SDL_Quit);
+
+  // static SDL_VideoInfo* vi = SDL_GetVideoInfo();
+
+  // Set up a suitable video mode depending on wanted quality
   int screenWidth = defaultScreenWidth * 2 / (3 - quality);
   int screenHeight = defaultScreenHeight * 2 / (3 - quality);
+  SDL_Surface* screen =
+       SDL_SetVideoMode(
+            screenWidth,
+            screenHeight,
+            8 /* pixel depth */,
+            (fullscreen ? SDL_FULLSCREEN : 0) | SDL_HWSURFACE /* flags */);
+  
 
-  if (SDL_Init(SDL_INIT_VIDEO) < 0 ) {
-	fprintf(stderr,"Erreur SDL: %s\n", SDL_GetError());
-	exit(1);
-  }
+  // Set a default ugly but portable 256 palette 8 bits pixel
+  SDL_SetColors(screen, palette, 0, 256);
 
-  vi = SDL_GetVideoInfo();
-
-  /* Initialise un mode vidéo idéal pour cette image */
-  v4pDisplayDefaultContextS.screenSurface = SDL_SetVideoMode(screenWidth, screenHeight, 
-                                   8, (fullscreen ? SDL_FULLSCREEN : 0) | SDL_HWSURFACE );
-
-
-  SDL_SetColors(v4pDisplayDefaultContextS.screenSurface, palette, 0, 256);
-
+  // The default context holds the main screen/window
+  v4pDisplayDefaultContextS.surface = screen;
   v4pDisplayDefaultContextS.width = screenWidth;
   v4pDisplayDefaultContextS.height = screenHeight;
   v4pDisplaySetContext(v4pDisplayDefaultContext);
+  
+  return success;
 }
 
+// Create a new buffer-like V4P context
 V4pDisplayP v4pDisplayNewContext(int width, int height) {
   V4pDisplayP c = (V4pDisplayP)malloc(sizeof(V4pDisplayS)); 
-  if (!c) return 0 ;
+  if (!c) return;
 
   c->width = width;
   c->height = height;
-  c->screenSurface = SDL_CreateRGBSurface(SDL_SWSURFACE,width,height,8,0,0,0,0);
+  c->surface = SDL_CreateRGBSurface(SDL_SWSURFACE, width, height, 8, 0, 0, 0, 0);
   return c;
 }
 
+// free a V4P context
 void v4pDisplayFreeContext(V4pDisplayP c) {
   if (!c || c == v4pDisplayDefaultContext)
     return;
 
-  SDL_FreeSurface(c->screenSurface);
+  SDL_FreeSurface(c->surface);
   free(c);
+
+  // One can't let a pointer to a freed context.
   if (v4pDisplayContext == c)
     v4pDisplayContext = v4pDisplayDefaultContext;
 }
 
+// Change the current V4P context
 V4pDisplayP v4pDisplaySetContext(V4pDisplayP c) {
   v4pDisplayContext = c;
   v4pDisplayWidth = c->width;
   v4pDisplayHeight = c->height;
-  currentBuffer = c->screenSurface->pixels;
-  bytesBetweenLines = 0;
+  currentBuffer = c->surface->pixels;
   return c;
 }
 
+// clean things before quitting
 void v4pDisplayQuit() {
   SDL_Quit();
 }
