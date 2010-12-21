@@ -8,7 +8,7 @@ extern int v4pXToD(char c) ;
 // add points to a polygon with coordinates decoded from a c-string
 PolygonP v4pPolygonDecodePoints(PolygonP p, char *s, int scale) {
    int l, j;
-   Coord xs, ys, xs1, ys1;
+   long xs, ys, xs1, ys1;
    Boolean sep, psep;
    char c ;
 
@@ -21,17 +21,16 @@ PolygonP v4pPolygonDecodePoints(PolygonP p, char *s, int scale) {
       if (c == '.') {
          sep = true;
          if (psep)
-            v4pPolygonAddPoint(p, xs1 * scale, ys1 * scale);
+            v4pPolygonAddPoint(p, xs1 * (long)scale / 256, ys1 * (long)scale / 256);
          continue;
       }
 
       sep = false;
 
-      xs = v4pXToD(c) << 4 + v4pXToD(s[++j]);
-      j++ ;
-      ys = v4pXToD(c) << 4 + v4pXToD(s[++j]);
-      j++;
-      v4pPolygonAddPoint(p, xs * scale, ys * scale);
+      xs = (v4pXToD(c) << 4) + v4pXToD(s[++j]);
+      ys = (v4pXToD(s[++j]) << 4) + v4pXToD(s[++j]);
+      
+      v4pPolygonAddPoint(p, xs * (long)scale / 256, ys * (long)scale / 256);
 
       if (sep) {
          xs1 = xs ;
@@ -40,7 +39,7 @@ PolygonP v4pPolygonDecodePoints(PolygonP p, char *s, int scale) {
       }
   }
   if (psep)
-     v4pPolygonAddPoint(p, xs1 * scale, ys1 * scale);
+     v4pPolygonAddPoint(p, xs1 * (long)scale / 256, ys1 * (long)scale / 256);
 
   return p;
 }
@@ -73,7 +72,7 @@ char *v4pPolygonEncodePoints(PolygonP p, int scale) {
         for (i = 0; i <= 1; i++) {
            if (!i) v = m->x;
               else v = m->y;
-           v /= scale;
+           v = v * 256 / scale;
            s[l++] = t[v & 15];
            s[l++] = t[(v >> 4) & 15];
          }
