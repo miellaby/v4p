@@ -134,3 +134,83 @@ char *v4pEncodePolygon(PolygonP p, int scale) {
      return s ;
   }
 }
+
+
+// add points to a polygon with coordinates decoded from a c-string
+PolygonP v4pPolygonDecodeSVGPath(PolygonP p, char *s, int scale) {
+   int j;
+   Boolean toBeClosed = false, knowFirstPoint = false, nextIsRelative=false;
+   char c ;
+   enum e_status { INIT, MOVE, LINE, NEXT } status = INIT;
+   float param_1, xs = 0, xs1;
+   float param_2, ys = 0, ys1;
+   int offset;
+   
+   for (j = 0 ; s[j] ; j++) {
+      c = s[j] ;
+      if (c == ' ' || c == '\t' || c == '\r' || c == '\n')
+         continue ;
+         
+      switch (status) {
+          case NEXT: // way to add more points
+             if (c >= '0' && c <= '9') {
+               if (sscanf(&s[j], "%f,%f%n", &param_1, &param_2, &offset) >= 2) {
+				  j += offset-1;
+			      if (nextIsRelative) {
+				     xs += param_1 ;
+				     ys += param_2 ;
+		          } else {
+		              xs = param_1;
+				      ys = param_2;
+		          }
+			      v4pPolygonAddPoint(p, xs * scale / 256, ys * scale / 256);
+			   if (!knowFirstPoint) {
+				   xs1 = xs ; ys1 = ys ; knowFirstPoint = true;
+			   }
+			   continue; // iterate for loop
+			 } }
+			 // there is no break here, NEXT case also handled hereafter
+		  case INIT:
+		     if ((c == 'M' || c == 'm') && knowFirstPoint)
+			     v4pPolygonAddJump(p);
+	         if (c == 'L' || c == 'l' ) {
+	            status = LINE;
+	         } else if (c == 'M' || c == 'm') {
+	             status = MOVE;
+	         } else if (c == 'C' || c == 'c' || c == 'Q' || c == 'q') {
+	             status = LINE; // Curves are not supported
+	         } else if (c == 'z') {
+		 		 toBeClosed = true;
+	 		     status = NEXT;
+		     }
+		     nextIsRelative = (c == 'm' || c == 'l');
+	         break;
+	      case LINE: case MOVE:
+	         if (sscanf(&s[j], "%f,%f%n", &param_1, &param_2, &offset) >= 2) {
+			   j+= offset -1;
+			   if (toBeClosed && knowFirstPoint) {
+                  v4pPolygonAddPoint(p, xs1 * scale / 256, ys1 * scale / 256);
+                  toBeClosed = knowFirstPoint = false;
+               }
+			   if (nextIsRelative) {
+				   xs += param_1 ;
+				   ys += param_2 ;
+		       } else {
+		           xs = param_1;
+				   ys = param_2;
+		       }
+			   v4pPolygonAddPoint(p, xs * scale / 256, ys * scale / 256);
+			   if (!knowFirstPoint) {
+				   xs1 = xs ; ys1 = ys ; knowFirstPoint = true;
+			   }
+			   status = NEXT;
+			 }
+	         break;
+       } // switch status
+   } // j
+   if (toBeClosed && knowFirstPoint) {
+      v4pPolygonAddPoint(p, xs1 * scale / 256, ys1 * scale / 256);
+      toBeClosed = knowFirstPoint = false;
+   }
+  return p;
+}
