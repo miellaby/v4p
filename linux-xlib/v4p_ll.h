@@ -16,4 +16,7 @@ typedef struct stuffing_s* Stuffing;
 #define false 0
 #define failure -1
 #define success 0
+#ifndef NULL
+#define NULL (0)
+#endif
 #endif

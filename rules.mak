@@ -24,6 +24,8 @@ CCFLAGS_linux_debug= -pg -DDEBUG
 ARFLAGS_linux= rvs
 
 CCFLAGS_linux_sdl= -lSDL
+CCFLAGS_linux_xlib= -lX11
+
 
 CC=$(CC_DEFAULT$(CC_$(TARGET))) $(CC_$(TARGET))
 AR=$(AR_DEFAULT$(AR_$(TARGET))) $(AR_$(TARGET))

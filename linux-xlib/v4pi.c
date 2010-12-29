@@ -137,12 +137,14 @@ static clock_t laps[4] = {0, 0, 0, 0};
 static clock_t tlaps=0 ;
 
 // debug logging helper
+#ifdef DEBUG
 void v4pDisplayDebug(char *formatString, ...) {
     va_list args ; char text[0x100] ;
     va_start(args, formatString) ;
     vprintf(formatString, args) ;
     va_end(args);
 }
+#endif
 
 // error logging helper
 Boolean v4pDisplayError(char *formatString, ...) {

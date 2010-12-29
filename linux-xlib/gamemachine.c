@@ -1,9 +1,10 @@
 #include <stdio.h>
+#include <unistd.h>
+#include <sys/times.h>
+#include <X11/Xlib.h>
 #include "gamemachine.h"
 #include "v4p_ll.h"
 #include "_v4pi.h"
-
-#include <X11/Xlib.h>
 
 // The machine states holds basic up-to-date data
 GmState gmMachineState;
@@ -12,12 +13,14 @@ GmState gmMachineState;
 #define MAX_PERIOD (5 * 60000)
 int     gmFramerate = DEFAULT_FRAMERATE;
 static  int gmPeriod = 1000 / DEFAULT_FRAMERATE; // private
+static  clock_t t;
+static struct tms tmsBuffer;
 
 // change the framerate
 int gmSetFramerate(int new) {
   gmFramerate = new;
   gmPeriod = (new > 0 ? 1000 / new : MAX_PERIOD);
-	return (new);
+  return (new);
 }
 
 static int gmPollEvents() {
@@ -75,7 +78,7 @@ static int gmPollEvents() {
 int gmMain(int argc, char* argv[])
 {
     Boolean rc = false;
-    Int32 excess, beforeTime, overSleepTime, afterTime,
+    clock_t excess, beforeTime, overSleepTime, afterTime,
        timeDiff, sleepTime;
     
     // Reset machine state    
@@ -83,13 +86,12 @@ int gmMain(int argc, char* argv[])
 
     // init call-back
     if (gmOnInit()) return failure;
-
-    afterTime = SDL_GetTicks();
+    afterTime = times(&tmsBuffer); 
     sleepTime = 0;
     excess = 0;
     while (!rc)  { //main machine loop
       // w/ clever hackery to handle properly performance drops
-      beforeTime = SDL_GetTicks();
+      beforeTime = times(&tmsBuffer); 
       overSleepTime = (beforeTime - afterTime) - sleepTime;
 
       // poll user events
@@ -100,14 +102,14 @@ int gmMain(int argc, char* argv[])
       rc |= gmOnFrame();
 
       // maximize frame rates and detect performance drops
-      afterTime = SDL_GetTicks();
+      afterTime = times(&tmsBuffer); 
       timeDiff = afterTime - beforeTime;
       sleepTime = (gmPeriod - timeDiff) - overSleepTime;
       if (sleepTime <= 0) {
         excess -= sleepTime;
         sleepTime = 2;
       }
-      SDL_Delay(sleepTime);
+      usleep(sleepTime * 1000);
 
       // when framerate is low, one repeats non-display steps
       while (excess > gmPeriod) {

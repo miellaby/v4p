@@ -3,7 +3,7 @@
 #include "v4pi.h"
 
 #define STRESS_AMOUNT 64
-PolygonP  scene;
+PolygonP scene;
 PolygonP pCol;
 PolygonP pColMatrix[STRESS_AMOUNT][STRESS_AMOUNT];
 
