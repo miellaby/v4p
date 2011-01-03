@@ -9,7 +9,7 @@ PolygonP pCol;
 PolygonP pColMatrix[STRESS_AMOUNT][STRESS_AMOUNT];
 
 int iu = 0;
-int diu = STRESS_AMOUNT/10;
+int diu = STRESS_AMOUNT/1;
 int liu  = 3;
 int iu2 = 0;
 

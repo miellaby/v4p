@@ -1,0 +1,21 @@
+<svg width="640" height="480" xmlns="http://www.w3.org/2000/svg">
+ <!-- Created with SVG-edit - http://svg-edit.googlecode.com/ -->
+ <g>
+  <title>Calque 1</title>
+  <rect id="svg_10" height="16" width="78" y="367" x="281.5" stroke-width="5" fill="#3f3f3f"/>
+  <rect id="svg_9" height="16" width="78" y="173" x="281.5" stroke-width="5" fill="#3f3f3f"/>
+  <path id="svg_3" d="m264.5,240.5l-19,-42l25,-14l19,41" stroke-width="5" fill="#000000"/>
+  <path id="svg_4" d="m365.5,243.5l-20,-40l27,-17l18,43" stroke-width="5" fill="#000000"/>
+  <path id="svg_5" d="m250,319.5l26.44232,0l1.05768,51l-26.44231,0" stroke-width="5" fill="#000000"/>
+  <path id="svg_6" d="m359.5,319.5l27.88461,0l1.11539,52l-27.88461,0" stroke-width="5" fill="#000000"/>
+  <path id="svg_2" d="m260,355.5l-1,-143l18,-32l86.5,0l16.5,31l1,142l-17.5,22l-86,1" stroke-width="5" fill="#ff0000"/>
+  <path id="svg_7" d="m272,267l10.00632,-31.5l80.12659,0l9.8671,32.5l-4.93671,3.5l-6.29114,-17l-70.75949,-0.5l-7.29114,16" stroke-width="5" fill="#00ffff"/>
+  <path id="svg_8" d="m270,348.83801l16.50601,17.16199l67.12698,0l18.367,-19.32401l-5.43701,-9l-7.79099,11.892l-66.759,-0.16299l-11.79102,-9.905" stroke-width="5" fill="#00ffff"/>
+  <path id="svg_11" d="m281.07693,185.5l-0.57693,29l-10,8l0.42307,-18.26471l10.15387,-18.73529z" stroke-width="5" fill="#bfbfbf"/>
+  <path id="svg_13" d="m269.5,275.5l12.5,3.22037l0,29.83896l-13,8.44067l0.5,-41.5z" stroke-width="5" fill="#00ffff"/>
+  <path id="svg_14" d="m373.2222,275.5l-5.2222,3.35596l0.27777,31.43219l5.72223,5.21185l-0.7778,-40z" stroke-width="5" fill="#00ffff"/>
+  <path id="svg_15" d="m364,187.5l0,28.5l9,8.5l0.00003,-17.26471l-9.00003,-19.73529z" stroke-width="5" fill="#bfbfbf"/>
+  <path id="svg_29" d="m288.5,311.5l10.76105,-16.97238l25.98895,-7.02762l25.98895,7.02762l10.76105,16.97238l-10.76105,16.97238l-25.98895,7.02762l-25.98895,-7.02762l-10.76105,-16.97238z" stroke-width="5" fill="#7f7f7f"/>
+  <path id="svg_27" d="m311,281l9,-13l11.5,0.5l-0.5,59.5l-10,0l0,-46.5l-10,-0.5z" stroke-width="5" fill="#ffff00"/>
+ </g>
+</svg>

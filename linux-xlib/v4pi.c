@@ -86,7 +86,7 @@ static struct s_color {
     {  0,   0,  0, 0}, {  0,   0,  0, 0}, {  0,   0,  0, 0}, {  0,   0,  0, 0}
   };
 
-static unsigned long xColorsTab[256]; // X computed colors
+static unsigned long xPixelsTab[256]; // X computed colors
 
 static char* applicationName = "v4pX";
 static char* applicationClass = "V4pX";
@@ -216,7 +216,7 @@ Boolean v4pDisplayEnd() {
 Boolean v4pDisplaySlice(Coord y, Coord x0, Coord x1, Color c) {
     int l = x1 - x0;
     if (l <= 0) return success;
-    XSetForeground(currentDisplay, currentGC, xColorsTab[c]);
+    XSetForeground(currentDisplay, currentGC, xPixelsTab[c]);
     XFillRectangle(currentDisplay, currentWindow, currentGC, x0, y, l, 1);
     return success;
 }
@@ -226,7 +226,7 @@ static Boolean createWindow(V4pDisplayP vd, int width, int height) {
 	Display* d = vd->d;
 	int      s = vd->s;
 	Window   w;
-  GC       gc;	
+    GC       gc;	
     
  /* Miscellaneous X variables */
   XSizeHints*   size_hints;
@@ -265,6 +265,7 @@ static Boolean createWindow(V4pDisplayP vd, int width, int height) {
   class_hints->res_name   = applicationName;
   class_hints->res_class  = applicationClass;
 
+  
   XSetWMProperties(d, w, &windowName, &iconName, (char**)&fakeArgv, 0,
 		     size_hints, wm_hints, class_hints);
 
@@ -303,18 +304,6 @@ Boolean v4pDisplayInit(int quality, Boolean fullscreen) {
    int s = DefaultScreen(d);
    Colormap cmap = DefaultColormap (d, s);
 
-   XColor c;
-   c.flags = DoRed|DoGreen|DoBlue;
-   int i;
-   for (i = 0; i < 256; i++) {
-	   c.red = palette[i].r;
-	   c.green = palette[i].g;
-	   c.blue = palette[i].b;
-	   XAllocColor(d, cmap, &c);
-	   xColorsTab[i] = c.pixel;
-	   printf("%d\n", (int)c.pixel);
-   }
-   
    v4pDisplayDefaultContextS.d = d;
    v4pDisplayDefaultContextS.s = s;
 
@@ -325,6 +314,22 @@ Boolean v4pDisplayInit(int quality, Boolean fullscreen) {
    int winHeight = defaultScreenHeight * 2 / (3 - quality);
    
    rc |= createWindow(v4pDisplayDefaultContext, winWidth, winHeight);
+
+   XColor c;
+   int i, rcx;
+   for (i = 0; i < 256; i++) {
+	   c.red = (unsigned short)palette[i].r;
+	   c.green = (unsigned short)palette[i].g;
+	   c.blue = (unsigned short)palette[i].b;
+	   printf("%02X %02X %02X %08lX\n", (int)c.red, (int)c.green, (int)c.blue, (unsigned long)c.pixel);
+	   if (!(rcx = XAllocColor(d, cmap, &c)))  {
+          v4pDisplayError("Can't allocate color\n");
+          exit(EXIT_FAILURE);
+ 	   }
+	   xPixelsTab[i] = c.pixel;
+	   printf("%d %02X %02X %02X %08lX\n", rcx, (int)c.red, (int)c.green, (int)c.blue, (unsigned long)c.pixel);
+   }
+   
 
    v4pDisplaySetContext(v4pDisplayDefaultContext);
    
