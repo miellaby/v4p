@@ -25,26 +25,22 @@
 */
 
 
-typedef UInt16 Flags ;
-#define standard (Flags)0
-#define complement (Flags)1 // substracte/add a region to parent
-#define invisible (Flags)2 // invisibles help to gather polygons
-#define translucent (Flags)4 // to be done
-
-#define absolute (Flags)0
-#define relative (Flags)16 // view (not scene) related coordinates
-
-// RO flags
-#define V4P_DISABLED (Flags)32 // wont be displayed for now
-#define V4P_IN_DISABLED (Flags)64 // ancester disabled
-#define V4P_CHANGED (Flags)128 // definition changed since last rendering
 
 typedef UInt16 ILayer ; // < 16
 typedef UInt16 ICollide ; // < 8
 
-//typedef UInt32 Color ;
-typedef UInt16 PolygonProps ;
-//typedef Int16  Coord ;
+typedef UInt16 Flags ;
+typedef Flags  PolygonProps ;
+#define standard (PolygonProps)0
+#define complement (PolygonProps)1 // substracte/add a region to parent
+#define invisible (PolygonProps)2 // invisibles help to gather polygons
+#define translucent (PolygonProps)4 // to be done
+#define absolute (PolygonProps)0
+#define relative (PolygonProps)16 // view (not scene) related coordinates
+#define V4P_DISABLED (Flags)32 // wont be displayed for now
+#define V4P_IN_DISABLED (Flags)64 // ancester disabled
+#define V4P_CHANGED (Flags)128 // definition changed since last rendering
+
 typedef struct point_s *PointP ;
 typedef struct polygon_s *PolygonP ;
 typedef struct activeEdge_s *ActiveEdgeP ;
