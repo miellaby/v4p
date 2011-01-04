@@ -69,7 +69,7 @@ typedef struct activeEdge_s {
 // contexte V4P
 typedef struct v4pContext_s {
  V4pDisplayP display;
- PolygonP *scene ; // scene = a polygon set
+ V4pSceneP   scene; // scene = a polygon set
  Coord   xvu0,yvu0,xvu1,yvu1 ; // view corner coordinates
  Color   bgColor;
  int debug1 ;
@@ -96,14 +96,20 @@ typedef struct v4pContext_s {
 #define V4P_CHANGED_VIEW 4
 
 static V4pContextP v4p = NULL ; // current (selected) v4p Context
+V4pSceneP   v4pDefaultScene   = NULL;
 V4pContextP v4pDefaultContext = NULL;
 
-// define the current BG color
+// change the v4p current context
+void v4pSetContext(V4pContextP p) {
+  v4p = p;
+}
+
+// set the BG color
 Color v4pSetBGColor(Color bg) {
   return v4p->bgColor=bg;
 }
 
-// define the current view
+// set the view
 Boolean v4pSetView(Coord x0, Coord y0, Coord x1, Coord y1) {
   int lineWidth = v4pDisplayWidth, lineNb =  v4pDisplayHeight;
 
@@ -127,19 +133,29 @@ Boolean v4pSetView(Coord x0, Coord y0, Coord x1, Coord y1) {
   return success;
 }
 
+// set the display
 void v4pSetDisplay(V4pDisplayP d) {
   v4p->display = d;
   // call to refresh internal values depending on current display 
   v4pSetView(v4p->xvu0, v4p->yvu0, v4p->xvu1, v4p->yvu1);
 }
 
+// Set the scene
+void v4pSetScene(V4pSceneP scene) {
+   v4p->scene = scene ;
+}
+
+// Get the scene
+V4pSceneP v4pGetScene() {
+   return v4p->scene;
+}
 
 // create a v4p context
 V4pContextP v4pContextNew() {
   V4pContextP v4p = (V4pContextP)malloc(sizeof(V4pContext)) ;
   int lineWidth = v4pDisplayWidth, lineNb = v4pDisplayHeight;
   v4p->display = v4pDisplayContext;
-  v4p->scene = NULL;
+  v4p->scene =  v4pDefaultScene;
   v4p->pointHeap = QuickHeapNewFor(Point) ;
   v4p->polygonHeap = QuickHeapNewFor(Polygon) ;
   v4p->activeEdgeHeap = QuickHeapNewFor(ActiveEdge) ;
@@ -163,11 +179,6 @@ V4pContextP v4pContextNew() {
   return v4p;
 }
 
-// select a v4p context
-void v4pContextSet(V4pContextP p) {
-  v4p = p;
-}
-
 // delete a v4p context
 void v4pContextFree(V4pContextP p) {
   QuickHeapDelete(v4p->pointHeap) ;
@@ -177,14 +188,31 @@ void v4pContextFree(V4pContextP p) {
   free(p);
 }
 
+// Create a new scene
+V4pSceneP v4pSceneNew() {
+	V4pSceneP s = (V4pSceneP)malloc(sizeof(V4pScene));
+	s->label = "";
+	s->polygons = NULL;
+	return s;
+}
+
+void v4pSceneFree(V4pSceneP s) {
+    free(s);
+}
+
+// v4p init
 Boolean v4pInit() {
+  if (!v4pDefaultScene) {
+     v4pDefaultScene = v4pSceneNew();
+  }
   if (!v4pDefaultContext) {
      v4pDefaultContext=v4pContextNew();
   }
-  v4pContextSet(v4pDefaultContext);
+  v4pSetContext(v4pDefaultContext);
   return success ;
 }
 
+// v4p quit
 void v4pQuit() {
   if (v4pDefaultContext) v4pContextFree(v4pDefaultContext);
   if (v4p == v4pDefaultContext) v4p = NULL;
@@ -205,6 +233,17 @@ PolygonP v4pPolygonNew(PolygonProps t, Color col, ILayer z) {
   p->ActiveEdge1 = NULL ;
   return p;
 }
+
+// combo PolygonNew+SceneAdd
+PolygonP v4pSceneAddNew(V4pSceneP s, PolygonProps t, Color col, ILayer z) {
+   PolygonP p = v4pPolygonNew(t, col, z);
+   v4pSceneAdd(s, p);
+   return p;
+}
+PolygonP v4pAddNew(PolygonProps t, Color col, ILayer z) {
+   return v4pSceneAddNew(v4p->scene, t, col, z);
+}
+
 
 #define v4pPolygonChanged(P) ((P)->props|=V4P_CHANGED)
 
@@ -282,7 +321,6 @@ PolygonProps v4pPolygonDisable(PolygonP p) {
    return v4pPolygonPutProp(p, V4P_DISABLED) ;
 }
 
-
 // Add a polygon to an other polygon subs list
 PolygonP v4pPolygonAddSub(PolygonP parent, PolygonP p) {
   if (parent->props & (V4P_DISABLED | V4P_IN_DISABLED))
@@ -290,17 +328,28 @@ PolygonP v4pPolygonAddSub(PolygonP parent, PolygonP p) {
   return v4pPolygonIntoList(p, &parent->sub1);
 }
 
-// combo PolygonNew+PolygonIntoList
-PolygonP v4pListAddPolygon(PolygonP *list, PolygonProps t, Color col, ILayer z) {
-  return v4pPolygonIntoList(v4pPolygonNew(t, col, z), list);
+// Add a polygon into the scene
+V4pSceneP v4pSceneAdd(V4pSceneP s, PolygonP p) {
+    v4pPolygonIntoList(p, &(s->polygons));
+	return v4p->scene;
 }
 
-// combo ListDelPolygon+PolygonOutOfList
-Boolean v4pListDelPolygon(PolygonP *list, PolygonP p) {
-  return v4pPolygonOutOfList(p, list) || v4pPolygonDel(p) ;
+// remove a polygon from the scene
+V4pSceneP v4pSceneRemove(V4pSceneP s, PolygonP p) {
+    v4pPolygonOutOfList(p, &(s->polygons));
+	return v4p->scene;
 }
 
-// combo PolygonAPolygon+PolygonNew
+// combo PolygonDel+SceneRemove
+Boolean v4pSceneDel(V4pSceneP s, PolygonP p) {
+  return v4pSceneRemove(s, p) || v4pPolygonDel(p) ;
+}
+
+Boolean v4pDel(PolygonP p) {
+  return v4pSceneDel(v4p->scene, p) ;
+}
+
+// combo PolygonAddSub+PolygonNew
 PolygonP v4pPolygonAddNewSub(PolygonP parent, PolygonProps t, Color col, ILayer z) {
    return v4pPolygonAddSub(parent, v4pPolygonNew(t, col, z)) ;
 }
@@ -343,7 +392,6 @@ PointP v4pPolygonAddPoint(PolygonP p, Coord x, Coord y) {
    v4pPolygonChanged(p) ;
    return s ;
 }
-
 
 // Add a "jump" point into a polygon
 PointP v4pPolygonAddJump(PolygonP p) {
@@ -537,9 +585,15 @@ PolygonP v4pPolygonClone(PolygonP p) {
    return v4pRecPolygonClone(false, p);
 }
 
-// combo PolygonClone+PolygonIntoList
-PolygonP v4pListAddClone(PolygonP *list, PolygonP p) {
-   return v4pPolygonIntoList(v4pPolygonClone(p), list);
+// combo PolygonClone+SceneAdd
+PolygonP v4pSceneAddClone(V4pSceneP s, PolygonP p) {
+   PolygonP c = v4pPolygonClone(p);
+   v4pSceneAdd(s, c);
+   return c;
+}
+
+PolygonP v4pAddClone(PolygonP p) {
+   return v4pSceneAddClone(v4p->scene, p);
 }
 
 // compute the minimal rectangle surrounding a polygon
@@ -875,10 +929,8 @@ Boolean v4pRender() {
 
    // update AE lists and build an y-index hash table
 
-   if (!v4p->scene) return failure;
-
    QuickTableReset(v4p->openableAETable);
-   v4pBuildOpenableAELists(*(v4p->scene));
+   v4pBuildOpenableAELists(v4p->scene->polygons);
    
    // list of opened ActiveEdges
    v4p->openedAEList = NULL ;
@@ -1034,9 +1086,4 @@ PolygonP v4pPolygonRect(PolygonP p, Coord x0, Coord y0, Coord x1, Coord y1) {
    v4pPolygonAddPoint(p, x1, y1) ;
    v4pPolygonAddPoint(p, x1, y0) ;
    return p ;
-}
-
-// Set a list of polygons as a scene
-void v4pSetScene(PolygonP *scene) {
-   v4p->scene = scene ;
 }

@@ -48,8 +48,12 @@ typedef UInt16 PolygonProps ;
 typedef struct point_s *PointP ;
 typedef struct polygon_s *PolygonP ;
 typedef struct activeEdge_s *ActiveEdgeP ;
-typedef struct v4pContext_s* V4pContextP;
+typedef struct v4pContext_s* V4pContextP ;
 
+typedef struct scene_s {
+	char*    label;
+	PolygonP polygons;
+} V4pScene, *V4pSceneP ;
 
 typedef struct point_s {
  Coord x, y ;
@@ -62,27 +66,37 @@ typedef struct point_s {
  * Variables
  ******************************/
 V4pContextP v4pDefaultContext; // default context (set once by v4pinit())
+V4pSceneP   v4pDefaultScene; // default scene within default context (set once by v4pinit())
 
 /******************************
  * Functions
  ******************************/
 
-// v4p library
+// v4p library fundamentals
 Boolean v4pInit() ;
+void    v4pSetContext(V4pContextP) ; // note there is a default context
+Boolean v4pRender() ;
 void    v4pQuit() ;
 
 // v4p context
-Color   v4pSetBGColor(Color bg);
-void    v4pSetScene(PolygonP *scene) ;
-Boolean v4pSetView(Coord x0, Coord y0, Coord x1, Coord y1) ;
-Boolean v4pRender() ;
+V4pContextP v4pContextNew() ;
+void        v4pContextFree(V4pContextP) ;
+Color       v4pSetBGColor(Color bg) ;
+Boolean     v4pSetView(Coord x0, Coord y0, Coord x1, Coord y1) ;
+void        v4pSetScene(V4pSceneP s) ;
+V4pSceneP   v4pGetScene() ;
 
-// v4pContext
-V4pContextP  v4pContextNew();
-void    v4pContextSet(V4pContextP);
-void    v4pContextFree(V4pContextP);
+// v4p scene
+V4pSceneP  v4pSceneNew() ;
+void       v4pSceneFree(V4pSceneP) ;
+V4pSceneP  v4pSceneAdd(V4pSceneP, PolygonP) ;
+V4pSceneP  v4pSceneRemove(V4pSceneP, PolygonP) ;
 
-// v4pPolygon
+// v4p view
+void v4pViewToAbsolute(Coord x, Coord y, Coord *xa, Coord *ya) ;
+void v4pAbsoluteToView(Coord x, Coord y, Coord *xa, Coord *ya) ;
+
+// v4p polygon
 PolygonP v4pPolygonNew(PolygonProps t, Color col, ILayer pz) ;
 PolygonP v4pPolygonClone(PolygonP p) ;
 PolygonP v4pPolygonConcrete(PolygonP p, ICollide i) ;
@@ -101,22 +115,20 @@ Color   v4pPolygonSetColor(PolygonP p, Color c) ;
 PointP   v4pPolygonGetPoints(PolygonP p) ;
 ILayer   v4pPolygonGetZ(PolygonP p) ;
 Color   v4pPolygonGetColor(PolygonP p) ;
-
-// v4pList
-#define v4pListNew(LISTE) (LISTE)=NULL
-PolygonP v4pListAddPolygon(PolygonP *list, PolygonProps t, Color col, ILayer z) ;
-PolygonP v4pListAddClone(PolygonP *list, PolygonP p) ;
-Boolean  v4pListDelPolygon(PolygonP *list, PolygonP p) ;
+PolygonProps v4pPolygonEnable(PolygonP p) ;
+PolygonProps v4pPolygonDisable(PolygonP p) ;
 
 // transformation
 PolygonP v4pPolygonTransformClone(PolygonP p, PolygonP c, Coord dx, Coord dy, int angle, ILayer dz) ;
 PolygonP v4pPolygonTransform(PolygonP p, Coord dx, Coord dy, int angle, ILayer dz) ;
 
-// helpers
-void v4pViewToAbsolute(Coord x, Coord y, Coord *xa, Coord *ya) ;
-void v4pAbsoluteToView(Coord x, Coord y, Coord *xa, Coord *ya) ;
+// helpers & combo
 PolygonP v4pPolygonRect(PolygonP p, Coord x0, Coord y0, Coord x1, Coord y1) ;
-PolygonProps v4pPolygonEnable(PolygonP p) ;
-PolygonProps v4pPolygonDisable(PolygonP p) ;
+PolygonP v4pSceneAddNew(V4pSceneP, PolygonProps t, Color col, ILayer pz) ;
+PolygonP v4pSceneAddClone(V4pSceneP, PolygonP p) ;
+Boolean  v4pSceneDel(V4pSceneP, PolygonP p) ;
+PolygonP v4pAddNew(PolygonProps t, Color col, ILayer pz) ;
+PolygonP v4pAddClone(PolygonP p) ;
+Boolean  v4pDel(PolygonP p) ;
 
 #endif

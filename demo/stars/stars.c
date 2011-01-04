@@ -4,7 +4,6 @@
 #include "v4pserial.h"
 
 #define STRESS_AMOUNT 48
-PolygonP  scene;
 PolygonP pCol;
 PolygonP pColMatrix[STRESS_AMOUNT][STRESS_AMOUNT];
 
@@ -15,12 +14,8 @@ int iu2 = 0;
 
 Boolean gmOnInit() {
   int j, k;
-  scene = NULL;
-
   v4pDisplayInit(1, 1);
   v4pInit();
-
-  v4pSetScene(&scene);
   v4pSetBGColor(blue);
  
   pCol = v4pPolygonNew(absolute, red, 0);
@@ -49,8 +44,7 @@ Boolean gmOnInit() {
   v4pPolygonTransform(pCol, -83, - 7, 0, 0);
   for (j= 0; j < STRESS_AMOUNT; j++) {
     for (k = 0; k < STRESS_AMOUNT; k++) {
-      pColMatrix[j][k] = v4pPolygonClone(pCol);
-      v4pPolygonIntoList(pColMatrix[j][k], &scene);
+      pColMatrix[j][k] = v4pAddClone(pCol);
       v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (k - STRESS_AMOUNT / 2), v4pDisplayWidth * (j - STRESS_AMOUNT / 2), 10, 0);
     }
   }

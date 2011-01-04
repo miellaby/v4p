@@ -266,7 +266,7 @@ Boolean v4pDisplayInit(int quality, Boolean fullscreen) {
 // Create a new buffer-like V4P context
 V4pDisplayP v4pDisplayNewContext(int width, int height) {
   V4pDisplayP c = (V4pDisplayP)malloc(sizeof(V4pDisplayS)); 
-  if (!c) return;
+  if (!c) return NULL;
 
   c->width = width;
   c->height = height;

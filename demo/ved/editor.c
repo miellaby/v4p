@@ -1,3 +1,6 @@
+#include <unistd.h>
+#include <stdio.h>
+#include "v4p.h"
 #include "v4pi.h"
 #include "gamemachine.h"
 #include "getopt.h"
@@ -23,8 +26,6 @@ extern Collide collides[16] ;
 int  i,j,k,dist,mindist;
 
 ILayer z ;
-
-PolygonP  scene;
 
 Coord x,y,xvu,yvu,lvu,
  xpen1,ypen1, yButton = 1,
@@ -54,7 +55,7 @@ Color currentColor, nextColor ;
 PolygonP buttons[16] ;
 
 int addButton(Color col) {
-  PolygonP button = v4pListAddPolygon(&scene, relative, col, 14);
+  PolygonP button = v4pAddNew(relative, col, 14);
   buttons[iButton] = button ;
   v4pPolygonRect(button, v4pDisplayWidth - 10, yButton, v4pDisplayWidth - 1, 9 + yButton);
   yButton+=10;
@@ -77,8 +78,6 @@ Boolean gmOnInit() {
   v4pDisplayInit(quality, fullscreen);
   v4pInit();
   v4pSetBGColor(green);
-  scene = NULL;
-  v4pSetScene(&scene);
   xvu = -v4pDisplayWidth / 2;
   yvu = -v4pDisplayHeight / 2;
   lvu = v4pDisplayWidth ;
@@ -100,24 +99,24 @@ Boolean gmOnInit() {
   currentZ = 7 ;
   currentPolygon = NULL;
   //(-xvu,-yvu)=milieu écran
-  pSel = v4pListAddPolygon(&scene, relative, black, 13);
+  pSel = v4pAddNew(relative, black, 13);
   v4pPolygonRect(pSel, v4pDisplayWidth - 11, 0 , v4pDisplayWidth, 11);
   
-  pCol=v4pListAddPolygon(&scene, relative,black, 14);
+  pCol = v4pAddNew(relative,black, 14);
   v4pPolygonRect(pCol, -xvu - 20, -yvu - 20, -xvu + 20, -yvu + 20);
-  pSelCol=v4pPolygonAddNewSub(pCol, relative, black, 15);
+  pSelCol = v4pPolygonAddNewSub(pCol, relative, black, 15);
   v4pPolygonRect(pSelCol, -xvu - 18, -yvu - 18, -xvu + 18, -yvu + 18);
   v4pPolygonDisable(pCol);
   
-  pLayer=v4pListAddPolygon(&scene, relative, black, 14);
+  pLayer = v4pAddNew(relative, black, 14);
   v4pPolygonRect(pLayer, -xvu - 3, -yvu - 17, -xvu + 3, -yvu + 17);
-  pSelLayer=v4pPolygonAddNewSub(pLayer, relative, red, 15);
+  pSelLayer = v4pPolygonAddNewSub(pLayer, relative, red, 15);
   v4pPolygonRect(pSelLayer, -xvu - 2, -yvu - 1, -xvu + 2, -yvu + 1);
   v4pPolygonDisable(pLayer);
 
-  pGrid=v4pListAddPolygon(&scene, relative, black, 14);
+  pGrid = v4pAddNew(relative, black, 14);
   v4pPolygonRect(pGrid, -xvu - 9, -yvu - 9, -xvu + 9, -yvu + 9);
-  pSelGrid=v4pPolygonAddNewSub(pGrid, relative, red, 15);
+  pSelGrid = v4pPolygonAddNewSub(pGrid, relative, red, 15);
   v4pPolygonRect(pSelGrid, -xvu - 2, -yvu - 2, -xvu + 2, -yvu + 2);
   v4pPolygonDisable(pGrid);
 
@@ -172,7 +171,7 @@ Boolean gmOnIterate() {
       } else if (guiStatus == edit) { // screen move
         if (brush) {
           if (sel == bScroll) {
-            v4pListDelPolygon(&scene, brush);
+            v4pDel(brush);
             brush = NULL;
           } else {
             v4pPolygonTransform(brush, gmMachineState.xpen - x0, gmMachineState.ypen - y0, 0, 0);
@@ -233,11 +232,11 @@ Boolean gmOnIterate() {
          ajusteSel(gmMachineState.ypen / 10);
          if (selPrec == bAddition) {
            if (currentPolygon && spotNb <= 2)
-             v4pListDelPolygon(&scene, currentPolygon);
+             v4pDel(currentPolygon);
            
            while (spotNb) {
              spotNb--;
-             if (spotNb <64) v4pListDelPolygon(&scene, spots[spotNb]);
+             if (spotNb <64) v4pDel(spots[spotNb]);
            }
          }
          spotNb = 0;
@@ -261,16 +260,16 @@ Boolean gmOnIterate() {
         } else { // screen pen down
          if (sel == bAddition) {
            if (spotNb == 0) {
-             currentPolygon = v4pListAddPolygon(&scene,standard, currentColor, currentZ);
+             currentPolygon = v4pAddNew(standard, currentColor, currentZ);
              v4pPolygonConcrete(currentPolygon, 0);
            }
            currentPoint = v4pPolygonAddPoint(currentPolygon, xs, ys);
            if (spotNb < 64) {
-             spots[spotNb] = v4pListAddPolygon(&scene,standard, currentColor,14);
+             spots[spotNb] = v4pAddNew(standard, currentColor,14);
              v4pPolygonRect(spots[spotNb], xs - 1 , ys - 1 , xs + 1 , ys + 1);
            }
          }
-         brush = v4pListAddPolygon(&scene, relative, black, 15);
+         brush = v4pAddNew(relative, black, 15);
          v4pPolygonRect(brush, gmMachineState.xpen - 1 , gmMachineState.ypen - 1 , gmMachineState.xpen + 1 , gmMachineState.ypen + 1);
          v4pPolygonConcrete(brush, 2);
          x0 = gmMachineState.xpen;
@@ -289,7 +288,7 @@ Boolean gmOnIterate() {
          spotNb++;
        } else if (focus) {
          if (sel == bCol) v4pPolygonSetColor(focus, currentColor);
-         if (sel == bDel) v4pListDelPolygon(&scene, focus);
+         if (sel == bDel) v4pDel(focus);
          if (sel == bLayer) v4pPolygonTransform(focus, 0, 0, 0, currentZ - v4pPolygonGetZ(focus));
          focus = NULL;
          currentPoint = NULL;
@@ -299,7 +298,7 @@ Boolean gmOnIterate() {
          v4pSetView(xvu, yvu, xvu + v4pDisplayWidth, yvu + v4pDisplayHeight);
        }
        if (brush) {
-         v4pListDelPolygon(&scene, brush);
+         v4pDel(brush);
          brush = NULL;
        }
       }//pen up ecran;
