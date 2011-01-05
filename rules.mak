@@ -12,6 +12,7 @@ PREFIX ?= /usr
 CC_DEFAULT=gcc
 AR_DEFAULT=ar
 
+# PALMOS
 CC_palmos=m68k-palmos-gcc
 AR_palmos=m68k-palmos-ar
 PALMOS_INCLUDE=/m68k_palmos/include
@@ -19,11 +20,15 @@ CCFLAGS_palmos= -fno_builtin -I$(PALMOS_INCLUDE)
 ARFLAGS_palmos= rcs
 CCFLAGS_palmos_debug = -g
 
+# LINUX
 CCFLAGS_linux=
 CCFLAGS_linux_debug= -pg -DDEBUG
 ARFLAGS_linux= rvs
 
+# SDL
 CCFLAGS_linux_sdl= -lSDL
+
+# XLIB
 CCFLAGS_linux_xlib= -lX11
 
 

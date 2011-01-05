@@ -11,14 +11,17 @@ typedef struct gmState_s {
  Coord xpen, ypen;
 } GmState;
 
-extern GmState gmMachineState;
-extern int gmFramerate;
+// Game machine entry points
+int gmSetFramerate(int) ;
+int gmMain(int argc, char* argv[]);
 
+// Game machine output
+// To be implemented by the caller
+GmState gmMachineState;
+int gmFramerate;
 extern Boolean gmOnInit() ;
-extern int     gmSetFramerate(int) ;
 extern Boolean gmOnIterate() ;
 extern Boolean gmOnFrame() ;
 extern void    gmOnQuit() ;
 
-int gmMain(int argc, char* argv[]);
 #endif
