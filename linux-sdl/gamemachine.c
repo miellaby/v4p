@@ -10,6 +10,7 @@ GmState gmMachineState;
 //framerate stuff
 #define DEFAULT_FRAMERATE 30
 #define MAX_PERIOD (5 * 60000)
+#define MAX_SKIP 5 
 int     gmFramerate = DEFAULT_FRAMERATE;
 static  int gmPeriod = 1000 / DEFAULT_FRAMERATE; // private
 
@@ -60,7 +61,7 @@ int gmMain(int argc, char* argv[])
 {
     Boolean rc = 0;
     Int32 excess, beforeTime, overSleepTime, afterTime,
-       timeDiff, sleepTime;
+       timeDiff, sleepTime, repeat;
 
     // reset machine state
     gmMachineState.buttons[0] = 0;
@@ -95,11 +96,14 @@ int gmMain(int argc, char* argv[])
       SDL_Delay(sleepTime);
 
       // when framerate is low, one repeats non-display steps
-      while (excess > gmPeriod) {
+      repeat=MAX_SKIP; // max repeat
+      while (repeat-- && excess > gmPeriod) {
         rc |= gmPollEvents();
         rc |= gmOnIterate();
         excess -= gmPeriod;
       }
+      if (excess > gmPeriod) // max repeat reached
+        excess = gmPeriod;
     }
 
     // we're done.    
