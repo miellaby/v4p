@@ -1,7 +1,6 @@
 TARGETS = linux palmos
 BACKENDS = sdl xlib
 MODES = normal debug
-DEMOS = square ved
 
 MODE ?= normal
 TARGET ?= linux
