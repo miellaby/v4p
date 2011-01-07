@@ -35,11 +35,13 @@ CCFLAGS_linux_xlib= -lX11
 
 ifneq ($(MODE),normal)
 CPPFLAGS=$(subst testu,-DTESTU,$(subst debug,-DDEBUG,$(MODE)))
+else
+CPPFLAGS=
 endif
 
 CC=$(or $(CC_$(TARGET)),$(CC_DEFAULT))
 AR=$(or $(AR_$(TARGET)),$(AR_DEFAULT))
-CPPFLAGS=-L$(TOP) -I$(TOP) -I$(TOP)/$(TARGET)-$(BACKEND) $(CCFLAGS_$(TARGET))$(CCFLAGS_$(TARGET)_$(BACKEND)) $(CCFLAGS_$(TARGET)_$(MODE)) -I. 
+CPPFLAGS+=-L$(TOP) -I$(TOP) -I$(TOP)/$(TARGET)-$(BACKEND) $(CCFLAGS_$(TARGET))$(CCFLAGS_$(TARGET)_$(BACKEND)) $(CCFLAGS_$(TARGET)_$(MODE)) -I. 
 ARFLAGS=$(ARFLAGS_$(TARGET)) $(ARFLAGS_$(TARGET)_$(MODE))
 
 all: $(LIBS) $(EXES)

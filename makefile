@@ -1,6 +1,6 @@
 TOP=.
-LIBS=libv4p.a libv4pserial.a
-EXTRAS = qfont gamemachine luagame
+LIBS=libv4p.a
+EXTRAS = v4pserial qfont gamemachine luagame
 DEMOS = square ved stars
 include $(TOP)/rules.mak
 #BACKEND=xlib
