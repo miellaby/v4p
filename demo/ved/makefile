@@ -2,6 +2,8 @@
 TOP=../..
 EXES = ved
 include $(TOP)/rules.mak
+CPPFLAGS+= -I$(TOP)/extra/gamemachine
 
-ved: editor.o $(TOP)/libv4p.a $(TOP)/libgm.a
-	$(CC) $(CPPFLAGS) -o $@ editor.o -L$(TOP) -lv4p -lgm 
+ved: editor.o $(TOP)/libv4p.a $(TOP)/extra/gamemachine/libgm.a
+	$(CC) $(CPPFLAGS) -o $@ editor.o \
+	  -L$(TOP)/extra/gamemachine -lv4p -lgm 

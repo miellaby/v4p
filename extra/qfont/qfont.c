@@ -106,7 +106,6 @@ PolygonP qfontDefinePolygonFromString(char* s, PolygonP poly,
 
 #ifdef TESTU
 #define STRESS_AMOUNT 10
-PolygonP  scene;
 PolygonP pCol;
 PolygonP pColMatrix[STRESS_AMOUNT][STRESS_AMOUNT];
 
@@ -117,15 +116,13 @@ int liu  = 3;
 
 Boolean gmOnInit() {
   int j, k;
-  scene = NULL;
 
   v4pDisplayInit(1, 0);
   v4pInit();
 
-  v4pSetScene(&scene);
   v4pSetBGColor(blue);
  
-  pCol=v4pPolygonNew(absolute, red, 10);
+  pCol = v4pPolygonNew(absolute, red, 10);
   qfontDefinePolygonFromString("HELLO", pCol,
     -v4pDisplayWidth / 4, -v4pDisplayWidth / 16,
      v4pDisplayWidth / 8, v4pDisplayWidth / 8,
@@ -138,7 +135,6 @@ Boolean gmOnInit() {
   for (j= 0; j < STRESS_AMOUNT; j++) {
     for (k = 0; k < STRESS_AMOUNT; k++) {
       pColMatrix[j][k] = v4pPolygonClone(pCol);
-      v4pPolygonIntoList(pColMatrix[j][k], &scene);
       v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (2 + 2 * k - STRESS_AMOUNT) / 2, v4pDisplayWidth * (1 + j - STRESS_AMOUNT/2)/2, 0, 10);
     }
   }

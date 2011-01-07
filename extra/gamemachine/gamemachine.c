@@ -2,7 +2,10 @@
 #include "gamemachine.h"
 #include "v4p_ll.h"
 #include "v4pi.h"
-#include "SDL/SDL.h"
+// gmi
+Int32 gmGetTicks();
+Int32 gmDelay();
+int gmPollEvents();
 
 // The machine states holds basic up-to-date data
 GmState gmMachineState;
@@ -21,41 +24,6 @@ int gmSetFramerate(int new) {
 	return (new);
 }
 
-// poll user events
-Boolean gmPollEvents() {
-  Boolean rc = 0; // return code
-
-  SDL_Event event; // event data
-
-  while (!rc && SDL_PollEvent(&event))  { // polling loop
-    switch (event.type) { // event cases
-       case SDL_QUIT: // time to quit
-         rc = 1;
-         break;
-
-       case SDL_KEYDOWN: {
-         SDLKey keypressed = event.key.keysym.sym;
-         if (keypressed == SDLK_ESCAPE) 
-            rc = 1;
-            break;
-         }
-       case SDL_MOUSEBUTTONDOWN:
-          gmMachineState.buttons[0] = 1;
-          break;
-
-       case SDL_MOUSEBUTTONUP:
-          gmMachineState.buttons[0] = 0;
-          break;
-
-       case SDL_MOUSEMOTION:
-          gmMachineState.xpen = event.motion.x;
-          gmMachineState.ypen = event.motion.y;
-          break;
-       } // switch
-    } // loop
-   return rc;
-}
-
 // Machine main function
 int gmMain(int argc, char* argv[])
 {
@@ -70,12 +38,12 @@ int gmMain(int argc, char* argv[])
     if (gmOnInit())
       return failure;
 
-    afterTime = SDL_GetTicks();
+    afterTime = gmGetTicks();
     sleepTime = 0;
     excess = 0;
     while (!rc)  { //main machine loop
       // w/ clever hackery to handle properly performance drops
-      beforeTime = SDL_GetTicks();
+      beforeTime = gmGetTicks();
       overSleepTime = (beforeTime - afterTime) - sleepTime;
 
       // poll user events
@@ -86,14 +54,14 @@ int gmMain(int argc, char* argv[])
       rc |= gmOnFrame();
 
       // maximize frame rates and detect performance drops
-      afterTime = SDL_GetTicks();
+      afterTime = gmGetTicks();
       timeDiff = afterTime - beforeTime;
       sleepTime = (gmPeriod - timeDiff) - overSleepTime;
       if (sleepTime <= 0) {
         excess -= sleepTime;
         sleepTime = 2;
       }
-      SDL_Delay(sleepTime);
+      gmDelay(sleepTime);
 
       // when framerate is low, one repeats non-display steps
       repeat=MAX_SKIP; // max repeat
