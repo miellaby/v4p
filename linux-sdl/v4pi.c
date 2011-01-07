@@ -255,6 +255,10 @@ Boolean v4pDisplayInit(int quality, Boolean fullscreen) {
   SDL_SetColors(screen, palette, 0, 256);
 
   // The default context holds the main screen/window
+  SDL_VideoInfo* info = SDL_GetVideoInfo();
+  screenWidth = info->current_w;
+  screenHeight = info->current_h;
+
   v4pDisplayDefaultContextS.surface = screen;
   v4pDisplayDefaultContextS.width = screenWidth;
   v4pDisplayDefaultContextS.height = screenHeight;
