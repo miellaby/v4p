@@ -2,7 +2,7 @@
 
 
 TARGETS = linux palmos
-BACKENDS = sdl xlib
+BACKENDS = sdl xlib directFB
 MODES = normal debug testu
 
 MODE ?= normal
@@ -32,6 +32,11 @@ CCFLAGS_linux_sdl= -lSDL
 
 # XLIB
 CCFLAGS_linux_xlib= -lX11
+
+
+# directFB
+CCFLAGS_linux_directFB= -I/usr/include/directfb -ldirectfb
+
 
 ifneq ($(MODE),normal)
 CPPFLAGS=$(subst testu,-DTESTU,$(subst debug,-DDEBUG,$(MODE)))
