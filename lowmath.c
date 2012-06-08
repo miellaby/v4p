@@ -25,37 +25,27 @@ const int tabCos[128] = {
    21, 18, 15, 12,  9,  6,  3, 0
 } ;
 
-int floorLog2(UInt16 bz) {
-   int o ;
-   if (!bz) return -1 ;
-
-   if (bz & (UInt16)0xFF00) {
-      o = 8 ;
-      bz &= (UInt16)0xFF00 ;
-   } else
-      o = 0;
-
-   if (bz & (UInt16)0xF0F0) {
-     o |= 4;
-     bz &= (UInt16)0xF0F0 ;
-   }
-
-   if (bz & (UInt16)0xCCCC) {
-      o |= 2;
-      bz &= (UInt16)0xCCCC ;
-   }
-
-   if (bz & (UInt16)0xAAAA)
-      o |= 1 ;
-
-   return o ;
+int floorLog2(UInt16 v) {
+    return floorLog232(v);
 }
 
-int floorLog232(UInt32 bz) {
- if (bz & (UInt32)0xFFFF0000)
-    return 16 + floorLog2(bz >> 16) ;
-  else
-    return floorLog2(bz);
+int floorLog232(UInt32 v) {
+  //  Find the log base 2 of an N-bit integer in O(lg(N)) operations with multiply and lookup
+  // Credits: http://graphics.stanford.edu/~seander/bithacks.htm
+
+  static const int MultiplyDeBruijnBitPosition[32] =  {
+     0, 9, 1, 10, 13, 21, 2, 29, 11, 14, 16, 18, 22, 25, 3, 30,
+     8, 12, 20, 28, 15, 17, 24, 7, 19, 27, 23, 6, 26, 5, 4, 31
+  };
+  if (!v) return -1;
+
+  v |= v >> 1; // first round down to one less than a power of 2
+  v |= v >> 2;
+  v |= v >> 4;
+  v |= v >> 8;
+  v |= v >> 16;
+
+  return MultiplyDeBruijnBitPosition[(UInt32)(v * 0x07C4ACDDU) >> 27];
 }
 
 Boolean computeCosSin(UInt16 angle) {
@@ -169,10 +159,8 @@ int angleCmp(UInt16 a1, UInt16 a0) {
 }
 
 Coord iabs(Coord i) {
-  if (i < 0)
-     return -i ;
-   else
-     return i ;
+ int const mask = i >> (sizeof(int) * 8 - 1);
+ return (i + mask) ^ mask;
 }
 
 // distance estimation (inaccurate but quick)

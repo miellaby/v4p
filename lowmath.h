@@ -9,10 +9,10 @@ extern int    lwmSina ;
 
 // compute floor(log2(short))
 // floorLog2(10) = floor(log2(10)) = 3
-int floorLog2(UInt16 bz) ;
+int floorLog2(UInt16 v) ;
 
 // floorLog2 on int
-int floorLog232(UInt32 bz) ;
+int floorLog232(UInt32 v) ;
 
 // compute cos/sin and upate angle, cosa, sina vars
 Boolean computeCosSin(UInt16 angle) ;
