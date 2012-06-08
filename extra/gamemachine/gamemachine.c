@@ -11,10 +11,11 @@ int gmPollEvents();
 GmState gmMachineState;
 
 //framerate stuff
-#define DEFAULT_FRAMERATE 30
+#define DEFAULT_FRAMERATE 300
 #define MAX_PERIOD (5 * 60000)
-#define MAX_SKIP 5 
+#define MAX_SKIP 5
 int     gmFramerate = DEFAULT_FRAMERATE;
+int     gmAvgFramePeriod = 1000 / DEFAULT_FRAMERATE;
 static  int gmPeriod = 1000 / DEFAULT_FRAMERATE; // private
 
 // change the framerate
@@ -61,6 +62,7 @@ int gmMain(int argc, char* argv[])
         excess -= sleepTime;
         sleepTime = 2;
       }
+      gmAvgFramePeriod = (3 * gmAvgFramePeriod + timeDiff + sleepTime + overSleepTime) / 4;
       gmDelay(sleepTime);
 
       // when framerate is low, one repeats non-display steps
@@ -74,8 +76,8 @@ int gmMain(int argc, char* argv[])
         excess = gmPeriod;
     }
 
-    // we're done.    
+    // we're done.
     gmOnQuit();
-    
+
     return success;
 }

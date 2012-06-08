@@ -19,6 +19,7 @@ int gmMain(int argc, char* argv[]);
 // To be implemented by the caller
 GmState gmMachineState;
 int gmFramerate;
+extern int gmAvgFramePeriod;
 extern Boolean gmOnInit() ;
 extern Boolean gmOnIterate() ;
 extern Boolean gmOnFrame() ;
