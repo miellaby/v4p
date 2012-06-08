@@ -56,49 +56,43 @@ void QuickHeapDelete(QuickHeap q) {
 
 void *QuickHeapAlloc(QuickHeap q) {
    if (q->maxSize == 0) {
-      q->maxSize = 128 ;
-      q->heap = (char *)malloc(q->sizeOfItem * 128) ;
+      q->maxSize = 1024 ;
+      q->heap = (char *)malloc(q->sizeOfItem * 1024) ;
       q->size = 1 ;
       return (void *)q->heap ;
    }
-
-   if (q->hole) {
-      void* p = q->heap + q->sizeOfItem * q->hole ;
-      q->hole = *(int *)p ;
-      return p ;
-   }
-   
-   if (q->next) {
-       return QuickHeapAlloc(q->next) ;
-   }
+   do {
+       if (q->hole) {
+          void* p = q->heap + q->sizeOfItem * q->hole ;
+          q->hole = *(int *)p ;
+          return p ;
+       }
+   } while (q->next && (q = q->next));
 
    if (q->size >= q->maxSize) {
       q->next = QuickHeapReservedNew(q->sizeOfItem, q->maxSize * 2) ;
       q->next->baseIndice = q->baseIndice + q->maxSize ;
       return QuickHeapAlloc(q->next) ;
    }
-   
+
    return q->heap + q->sizeOfItem * q->size++ ;
 }
 
 int QuickHeapAllocIndice(QuickHeap q) {
    if (q->maxSize == 0) {
-      q->maxSize = 128 ;
-      q->heap = (void *)malloc(q->sizeOfItem * 128) ;
+      q->maxSize = 1024 ;
+      q->heap = (void *)malloc(q->sizeOfItem * 1024) ;
       q->size = 1 ;
       return 0 ;
    }
-
-   if (q->hole) {
-     int o = q->hole ;
-     void* p = q->heap + q->sizeOfItem * o ;
-     q->hole = *(int *)p ;
-     return q->baseIndice + o ;
-   }
-
-   if (q->next) {
-       return QuickHeapAllocIndice(q->next) ;
-   }
+   do {
+       if (q->hole) {
+         int o = q->hole ;
+         void* p = q->heap + q->sizeOfItem * o ;
+         q->hole = *(int *)p ;
+         return q->baseIndice + o ;
+       }
+   } while (q->next && (q = q->next));
 
    if (q->size >= q->maxSize) {
       q->next = QuickHeapReservedNew(q->sizeOfItem, q->maxSize * 2) ;
