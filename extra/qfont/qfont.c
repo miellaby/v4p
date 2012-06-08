@@ -1,6 +1,3 @@
-#ifdef TESTU
-#include "gamemachine.h"
-#endif
 #include "v4p.h"
 #include "v4pi.h"
 
@@ -105,6 +102,9 @@ PolygonP qfontDefinePolygonFromString(char* s, PolygonP poly,
 }
 
 #ifdef TESTU_QFONT
+#include <stdio.h>
+#include "gamemachine.h"
+
 #define STRESS_AMOUNT 10
 PolygonP pCol;
 PolygonP pColMatrix[STRESS_AMOUNT][STRESS_AMOUNT];
@@ -167,6 +167,7 @@ Boolean gmOnFrame() {
 }
 
 void gmOnQuit() {
+  printf("average %d\n", gmAvgFramePeriod);
   v4pDisplayQuit();
 }
 
