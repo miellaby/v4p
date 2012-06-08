@@ -1,9 +1,11 @@
 #include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "v4p.h"
 #include "v4pi.h"
 #include "gamemachine.h"
 #include "getopt.h"
+#include "lowmath.h"
 
 /** global options with their default values */
 
@@ -101,13 +103,13 @@ Boolean gmOnInit() {
   //(-xvu,-yvu)=milieu écran
   pSel = v4pAddNew(relative, black, 13);
   v4pPolygonRect(pSel, v4pDisplayWidth - 11, 0 , v4pDisplayWidth, 11);
-  
+
   pCol = v4pAddNew(relative,black, 14);
   v4pPolygonRect(pCol, -xvu - 20, -yvu - 20, -xvu + 20, -yvu + 20);
   pSelCol = v4pPolygonAddNewSub(pCol, relative, black, 15);
   v4pPolygonRect(pSelCol, -xvu - 18, -yvu - 18, -xvu + 18, -yvu + 18);
   v4pPolygonDisable(pCol);
-  
+
   pLayer = v4pAddNew(relative, black, 14);
   v4pPolygonRect(pLayer, -xvu - 3, -yvu - 17, -xvu + 3, -yvu + 17);
   pSelLayer = v4pPolygonAddNewSub(pLayer, relative, red, 15);
@@ -134,9 +136,7 @@ Coord align(Coord x) {
 
 Boolean gmOnIterate() {
   Coord  stepGrid0, stepGridPrec,
-     xs, ys,
-     xi, yi,
-     t1, t2 ;
+     xs, ys ;
   ILayer z0, precZ ;
   int selPrec ;
 
@@ -190,7 +190,7 @@ Boolean gmOnIterate() {
           }
         } else if (sel==bGrid && currentPoint) {
           v4pPolygonMovePoint(focus, currentPoint, xs, ys);
-          
+
         } else if (collides[2].q > 0) {
           if (sel == bScroll) {
             focus = collides[2].poly;
@@ -233,7 +233,7 @@ Boolean gmOnIterate() {
          if (selPrec == bAddition) {
            if (currentPolygon && spotNb <= 2)
              v4pDel(currentPolygon);
-           
+
            while (spotNb) {
              spotNb--;
              if (spotNb <64) v4pDel(spots[spotNb]);
@@ -332,7 +332,7 @@ struct option longopts[] =
 int main(int argc, char** argv) {
 
   int v=0, h = 0, lose= 0, optc;
-  
+
     while ((optc = getopt_long (argc, argv, "hvf", longopts, (int *) 0)) != EOF)
       {
       switch (optc)
@@ -361,7 +361,7 @@ int main(int argc, char** argv) {
         if (! h)
           return 0;
       }
-  
+
     if (h)
       { // show help
         fprintf(stderr, "%s [-hvf] [--help] [--version] [--fullscreen]\n", argv[0]);
