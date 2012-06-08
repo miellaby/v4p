@@ -65,10 +65,10 @@ PolygonP qfontDefinePolygonFromChar(char c, PolygonP poly,
   int ichar = 0;
   char* s = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!/?,\"'.:;&*+-<=>@$";
   if (!c || c == ' ') return poly;
-  
+
   while (c != s[ichar] && s[ichar]) ichar++;
   if (!s[ichar]) ichar = 45; // *
-  
+
   int i, j, down, is;
   for (i = 0; i <= CHAR_WIDTH ; i++) {
     down = 0;
@@ -97,14 +97,14 @@ PolygonP qfontDefinePolygonFromString(char* s, PolygonP poly,
     Coord x, Coord y, Coord width, Coord height, Coord interleave) {
   char c;
   int i;
-  for (i = 0; c = s[i]; i++) {
+  for (i = 0; (c = s[i]); i++) {
     qfontDefinePolygonFromChar(c, poly, x, y, width, height);
     x += width + interleave;
   }
   return poly;
 }
 
-#ifdef TESTU
+#ifdef TESTU_QFONT
 #define STRESS_AMOUNT 10
 PolygonP pCol;
 PolygonP pColMatrix[STRESS_AMOUNT][STRESS_AMOUNT];
@@ -121,7 +121,7 @@ Boolean gmOnInit() {
   v4pInit();
 
   v4pSetBGColor(blue);
- 
+
   pCol = v4pPolygonNew(absolute, red, 10);
   qfontDefinePolygonFromString("HELLO", pCol,
     -v4pDisplayWidth / 4, -v4pDisplayWidth / 16,
@@ -134,7 +134,7 @@ Boolean gmOnInit() {
 
   for (j= 0; j < STRESS_AMOUNT; j++) {
     for (k = 0; k < STRESS_AMOUNT; k++) {
-      pColMatrix[j][k] = v4pPolygonClone(pCol);
+      pColMatrix[j][k] = v4pAddClone(pCol);
       v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (2 + 2 * k - STRESS_AMOUNT) / 2, v4pDisplayWidth * (1 + j - STRESS_AMOUNT/2)/2, 0, 10);
     }
   }
@@ -149,14 +149,14 @@ Boolean gmOnIterate() {
 	  liu--;
 	}
     v4pSetView(-v4pDisplayWidth * i / 256, -v4pDisplayHeight * i / 256, v4pDisplayWidth + v4pDisplayWidth * i / 256, v4pDisplayHeight + v4pDisplayHeight * i / 256);
-    
+
     if (0) // dead code, not compatible with qfont because of lacking horizontal edges
       for (j= 0; j < STRESS_AMOUNT; j++) {
         for (k = 0; k < STRESS_AMOUNT; k++) {
           v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (1 + 2 * k - STRESS_AMOUNT/2) / 2, v4pDisplayWidth * (1 + j - STRESS_AMOUNT/2)/2, (j * k) + i / 16, 0);
         }
       }
-      
+
   iu+=diu;
   return (liu < 0);
 }
@@ -172,6 +172,6 @@ void gmOnQuit() {
 
 int main(int argc, char** argv) {
   return gmMain(argc, argv);
-}  
-  
+}
+
 #endif
