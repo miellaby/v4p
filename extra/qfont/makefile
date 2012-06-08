@@ -4,6 +4,7 @@ include $(TOP)/rules.mak
 CPPFLAGS+= -I$(TOP)/extra/gamemachine
 
 ifeq ($(MODE),testu)
+CPPFLAGS+= -DTESTU_QFONT
 testu: qfont
 else
 testu:
