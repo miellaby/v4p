@@ -71,7 +71,7 @@ typedef struct v4pContext_s {
  V4pDisplayP display;
  V4pSceneP   scene; // scene = a polygon set
  Coord   xvu0,yvu0,xvu1,yvu1 ; // view corner coordinates
- Color   bgColor;
+ Polygon     dummyBgPoly; // just for color
  int debug1 ;
  QuickHeap pointHeap, polygonHeap, activeEdgeHeap ;
  List    openedAEList ; // ActiveEdge lists
@@ -106,7 +106,7 @@ void v4pSetContext(V4pContextP p) {
 
 // set the BG color
 Color v4pSetBGColor(Color bg) {
-  return v4p->bgColor=bg;
+  return v4pPolygonSetColor(&(v4p->dummyBgPoly), bg);
 }
 
 // set the view
@@ -160,6 +160,7 @@ V4pContextP v4pContextNew() {
   v4p->polygonHeap = QuickHeapNewFor(Polygon) ;
   v4p->activeEdgeHeap = QuickHeapNewFor(ActiveEdge) ;
   v4p->openableAETable = QuickTableNew(YHASH_SIZE) ; // vertical sort
+  v4p->dummyBgPoly.color = 0;
   v4p->xvu0=0;
   v4p->yvu0=0;
   v4p->xvu1=lineWidth;
@@ -376,8 +377,8 @@ PointP v4pPolygonAddPoint(PolygonP p, Coord x, Coord y) {
    PointP s = QuickHeapAlloc(v4p->pointHeap) ;
    s->x = x;
    s->y = y;
-   if (!p->point1) {
-	  if (!(x == JUMPCOORD && y == JUMPCOORD)) {
+   if (p->miny == JUMPCOORD) {
+	  if (y != JUMPCOORD) {
         p->minx = p->maxx = x;
         p->miny = p->maxy = y;
       }
@@ -806,12 +807,6 @@ List v4pSortActiveEdge(List list) {
    return ListSort(list) ;
 }
 
-// draw a scan-line slice depending on its polygon
-Boolean v4pDrawSlice(int y, int x0, int x1, PolygonP p) {
-  return v4pDisplaySlice(y, x0, x1, p ? p->color : v4p->bgColor) ;
-}
-
-
 // build AE lists
 void v4pBuildOpenableAELists(PolygonP polygonChain) {
    PolygonP p ;
@@ -998,7 +993,7 @@ Boolean v4pRender() {
 
       // reset layers
       bz = 0 ;
-      polyVisible = NULL ;
+      polyVisible = &(v4p->dummyBgPoly) ;
       zMax = -1 ;
 
       // reset collides
@@ -1017,14 +1012,14 @@ Boolean v4pRender() {
           //if (px > b->x) v4pDisplayError("pb slice %d %d %d", (int)y, (int)px, (int)b->x);
           if ((int)z >= zMax) {
             if (px < v4pDisplayWidth && b->x > 0)
-               v4pDrawSlice(y, imax(px, 0), imin(b->x, v4pDisplayWidth), polyVisible);
+               v4pDisplaySlice(y, imax(px, 0), imin(b->x, v4pDisplayWidth), polyVisible->color);
             px = b->x ;
             if ((int)z > zMax) {
                polyVisible = layers[z] = p ;
                zMax = z ;
             } else { // z == zMax
                zMax = floorLog2(bz);
-               polyVisible = (zMax >= 0 ? layers[zMax] : NULL) ;
+               polyVisible = (zMax >= 0 ? layers[zMax] : &(v4p->dummyBgPoly)) ;
             }
           } else { // z < zMax
             layers[z] = p ;
@@ -1066,7 +1061,7 @@ Boolean v4pRender() {
 
        // last slice
        if (px < v4pDisplayWidth)
-          v4pDrawSlice(y, imax(0, px), v4pDisplayWidth, polyVisible) ;
+          v4pDisplaySlice(y, imax(0, px), v4pDisplayWidth, polyVisible->color) ;
 
    } // y loop ;
 
