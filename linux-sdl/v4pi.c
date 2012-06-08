@@ -145,6 +145,8 @@ Boolean v4pDisplayError(char *formatString, ...) {
   va_start(args, formatString) ;
   vfprintf(stderr, formatString, args) ;
   va_end(args);
+
+  return success;
 }
 
 // record collides
@@ -210,7 +212,7 @@ Boolean v4pDisplayEnd() {
    // SDL locking stuff
    if (SDL_MUSTLOCK(v4pDisplayContext->surface))
      SDL_UnlockSurface(v4pDisplayContext->surface);
-   
+
    // Commit graphic changes we made
    SDL_Flip(v4pDisplayContext->surface);
 
@@ -221,7 +223,7 @@ Boolean v4pDisplayEnd() {
 Boolean v4pDisplaySlice(Coord y, Coord x0, Coord x1, Color c) {
  int l = x1 - x0;
  if (l <= 0) return success;
- 
+
  SDL_memset(&currentBuffer[iBuffer], (char)c, l);
  iBuffer+= l;
 
@@ -235,7 +237,7 @@ Boolean v4pDisplayInit(int quality, Boolean fullscreen) {
     v4pDisplayError("v4pDisplayInit failed, SDL error: '%s'\n", SDL_GetError());
 	  return failure;
   }
-  
+
   // atexit(SDL_Quit);
 
   // static SDL_VideoInfo* vi = SDL_GetVideoInfo();
@@ -249,13 +251,13 @@ Boolean v4pDisplayInit(int quality, Boolean fullscreen) {
             screenHeight,
             8 /* pixel depth */,
             (fullscreen ? SDL_FULLSCREEN : 0) | SDL_HWSURFACE /* flags */);
-  
+
 
   // Set a default ugly but portable 256 palette 8 bits pixel
   SDL_SetColors(screen, palette, 0, 256);
 
   // The default context holds the main screen/window
-  SDL_VideoInfo* info = SDL_GetVideoInfo();
+  const SDL_VideoInfo* info = SDL_GetVideoInfo();
   screenWidth = info->current_w;
   screenHeight = info->current_h;
 
@@ -263,13 +265,13 @@ Boolean v4pDisplayInit(int quality, Boolean fullscreen) {
   v4pDisplayDefaultContextS.width = screenWidth;
   v4pDisplayDefaultContextS.height = screenHeight;
   v4pDisplaySetContext(v4pDisplayDefaultContext);
-  
+
   return success;
 }
 
 // Create a new buffer-like V4P context
 V4pDisplayP v4pDisplayNewContext(int width, int height) {
-  V4pDisplayP c = (V4pDisplayP)malloc(sizeof(V4pDisplayS)); 
+  V4pDisplayP c = (V4pDisplayP)malloc(sizeof(V4pDisplayS));
   if (!c) return NULL;
 
   c->width = width;

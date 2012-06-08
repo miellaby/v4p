@@ -136,7 +136,7 @@ Boolean v4pSetView(Coord x0, Coord y0, Coord x1, Coord y1) {
 // set the display
 void v4pSetDisplay(V4pDisplayP d) {
   v4p->display = d;
-  // call to refresh internal values depending on current display 
+  // call to refresh internal values depending on current display
   v4pSetView(v4p->xvu0, v4p->yvu0, v4p->xvu1, v4p->yvu1);
 }
 
@@ -287,7 +287,7 @@ Boolean v4pPolygonOutOfList(PolygonP p, PolygonP* list) {
 }
 
 
-static v4pPolygonNotMoreInDisabled(PolygonP p) {
+static void v4pPolygonNotMoreInDisabled(PolygonP p) {
     v4pPolygonRemoveProp(p, V4P_IN_DISABLED) ;
     if (p->next)
       v4pPolygonNotMoreInDisabled(p->next) ;
@@ -305,7 +305,7 @@ PolygonProps v4pPolygonEnable(PolygonP p) {
    return v4pPolygonRemoveProp(p, V4P_DISABLED) ;
 }
 
-static v4pPolygonInDisabled(PolygonP p) {
+static void v4pPolygonInDisabled(PolygonP p) {
     v4pPolygonPutProp(p, V4P_IN_DISABLED) ;
     if (p->next)
       v4pPolygonInDisabled(p->next) ;
@@ -521,7 +521,7 @@ PolygonP v4pPolygonDelActiveEdges(PolygonP p) {
 PolygonP v4pRecPolygonTransformClone(Boolean estSub, PolygonP p, PolygonP c, Coord dx, Coord dy, ILayer dz) {
    PointP sp, sc;
    Coord x, y, x2, y2;
-   c->miny = JUMPCOORD; // invalidate computed boundaries 
+   c->miny = JUMPCOORD; // invalidate computed boundaries
    c->z = c->z+dz;
    sp = p->point1;
    sc = c->point1;
@@ -610,7 +610,7 @@ PolygonP v4pPolygonComputeLimits(PolygonP p) {
         maxy = miny = s->y;
         for (s = s->next; s; s = s->next) {
 		  if (s->x == JUMPCOORD && s->y == JUMPCOORD) continue;
-		  
+
           if (s->x < minx) minx = s->x;
           else if (s->x > maxx) maxx = s->x;
           if (s->y < miny) miny = s->y;
@@ -679,17 +679,17 @@ PolygonP v4pPolygonBuildActiveEdgeList(PolygonP p) {
       if (p->props & relative) { // This polygon is defined in view coordinates. No change.
          return p;
       } else if (!(v4p->changes & V4P_CHANGED_VIEW)) {
-         // Polygon coordinates are absolute but the view window didn't change. No change.  
+         // Polygon coordinates are absolute but the view window didn't change. No change.
          return p;
       } else { // This absolute polygon hasn't changed but it might have moved within view referential.
-         // we simply update its boundaries in view coordinates. 
+         // we simply update its boundaries in view coordinates.
          //Coord stub;
          //v4pAbsoluteToView(0, p->miny, &stub, &(p->minyv));
          //v4pAbsoluteToView(0, p->maxy, &stub, &(p->maxyv));
         isVisible = v4pIsVisible(p);
         if (isVisible && p->ActiveEdge1)
           // if AE lists are set, we return because they are up-to-date.
-          return p; 
+          return p;
       }
    } else {
 	 isVisible = v4pIsVisible(p);
@@ -701,7 +701,7 @@ PolygonP v4pPolygonBuildActiveEdgeList(PolygonP p) {
 
 
    // Need to recompile AE
-   // ==================== 
+   // ====================
    v4pPolygonDelActiveEdges(p) ;
 
    if ((p->props & (V4P_DISABLED | V4P_IN_DISABLED | invisible)))
@@ -712,10 +712,10 @@ PolygonP v4pPolygonBuildActiveEdgeList(PolygonP p) {
     return p;
 
    s1 = p->point1;
-   
+
    int toBeClosed;
-   
-   
+
+
    while (s1) { // lacots
       toBeClosed = true;
       if (s1->x == JUMPCOORD && s1->y == JUMPCOORD) {
@@ -829,7 +829,7 @@ void v4pBuildOpenableAELists(PolygonP polygonChain) {
        if (isRelative) {
 		 QuickTableAdd(v4p->openableAETable, (b->y0 > 0 ? b->y0 : 0) & YHASH_MASK, b);
        } else if (b->y0 < v4p->yvu0) {
-         QuickTableAdd(v4p->openableAETable, 0, b);		 
+         QuickTableAdd(v4p->openableAETable, 0, b);
 	   } else {
          Coord stub, yr0;
          v4pAbsoluteToView(0, b->y0, &stub, &yr0);
@@ -849,7 +849,7 @@ Boolean v4pOpenActiveEdge(Coord yl, Coord yu) {
    Boolean open = false ;
    List l;
    ActiveEdgeP b ;
-   
+
    Coord xr0, yr0, xr1, yr1, dx, dy, q, r ;
 
    l = QuickTableGet(v4p->openableAETable, yl & YHASH_MASK);
@@ -863,7 +863,7 @@ Boolean v4pOpenActiveEdge(Coord yl, Coord yu) {
             v4pAbsoluteToView(b->x0, b->y0, &xr0, &yr0) ;
             if (yr0 != yl) continue;
         }
-         
+
         v4pAbsoluteToView(b->x1, b->y1, &xr1, &yr1) ;
         if (yr1 <= yl) continue ;
 
@@ -885,7 +885,7 @@ Boolean v4pOpenActiveEdge(Coord yl, Coord yu) {
         b->h = yr1 - yl - 1;
         b->x = xr0 ;
       } else { // relative
-        if (yl == 0 && b->y0 > 0 || b->y0 != yl) continue;
+        if ((yl == 0 && b->y0 > 0) || b->y0 != yl) continue;
         if (b->y1 <= yl) continue ;
         b->s = b->r2 - b->r1 ;
         b->x = b->x0 ;
@@ -895,7 +895,7 @@ Boolean v4pOpenActiveEdge(Coord yl, Coord yu) {
           b->x += dy2 * b->o1 + dy2 * (b->o2 >= 0 ? b->r1 : -b->r1) / dy ;
           b->s += (dy2 * b->r1) % dy ;
         }
-      }      
+      }
       ListAddData(v4p->openedAEList, b) ;
       open = true ;
    }
@@ -907,7 +907,7 @@ Boolean v4pOpenActiveEdge(Coord yl, Coord yu) {
 Boolean v4pRender() {
    List l, pl ;
    PolygonP p, polyVisible ;
-   ActiveEdgeP b, pb ;
+   ActiveEdgeP b ;
    Coord y, px, px_collide ;
 
    Coord yu;
@@ -917,7 +917,7 @@ Boolean v4pRender() {
    PolygonP layers[16] ;
    int zMax ;
    UInt16 bz, bi ; // bit-word of layers & collides
-   UInt16 mz, mi ; // masques
+   UInt16 mi ; // masques
    ICollide i, colli1, colli2 ;
    int nColli ;
    PolygonP pColli[16] ;
@@ -931,7 +931,7 @@ Boolean v4pRender() {
 
    QuickTableReset(v4p->openableAETable);
    v4pBuildOpenableAELists(v4p->scene->polygons);
-   
+
    // list of opened ActiveEdges
    v4p->openedAEList = NULL ;
 
@@ -1023,7 +1023,7 @@ Boolean v4pRender() {
                polyVisible = layers[z] = p ;
                zMax = z ;
             } else { // z == zMax
-               zMax = floorLog2(bz) ;
+               zMax = floorLog2(bz);
                polyVisible = (zMax >= 0 ? layers[zMax] : NULL) ;
             }
           } else { // z < zMax
@@ -1052,11 +1052,13 @@ Boolean v4pRender() {
                 nColli-- ;
                 if (nColli == 1 && i == colli1)
                    colli1 = colli2 ;
-                else if (nColli == 2)
-                   if (i == colli1)
-                      colli1 = floorLog2(bi ^ (1 << colli2)) ;
-                   else if (i == colli2)
-                      colli2 = floorLog2(bi ^ (1 << colli1)) ;
+                else if (nColli == 2) {
+                   if (i == colli1) {
+                      colli1 = floorLog2(bi ^ (1 << colli2));
+                   } else if (i == colli2) {
+                      colli2 = floorLog2(bi ^ (1 << colli1));
+                   }
+                }
              }
           }
 

@@ -40,7 +40,7 @@ List ListMerge(List previous, List after) {
 
    if (!previous && !after) return NULL ;
 
-   if (!previous || after && ListPrior(after, previous))
+   if (!previous || (after && ListPrior(after, previous)))
       { // 1st swapping of after & previous lists
       tmp = previous ;
       previous = after ;
