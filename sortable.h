@@ -12,7 +12,7 @@ extern int (*ListDataPrior)(void *, void *) ;
 #define ListSetDataPrior(p) ListDataPrior = (p)
 
 // A classical linked list of orderable data
-typedef struct sList { void *data ; struct sList *next ; } *List ;
+typedef struct sList { void *data ; struct sList *next ; struct sList *quick /* reserved for quicktable */ ; } *List ;
 
 // create list
 List ListNew() ;

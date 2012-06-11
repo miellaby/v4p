@@ -27,7 +27,7 @@ Boolean computeCosSin(UInt16 angle) ;
 #define ilimit(A,B,C) ((A)<(B)?(B):((A)>(C)?(C):(A)))
 
 // rotate (x,y) vector according to current transformation
-Boolean straighten(Coord x, Coord y, Coord *xn, Coord *yn) ;
+void straighten(Coord x, Coord y, Coord *xn, Coord *yn) ;
 
 // Jim Henry's isqrt
 UInt16 isqrt(UInt16 v) ;

@@ -3,7 +3,7 @@
 #include "v4pi.h"
 #include "v4pserial.h"
 
-#define STRESS_AMOUNT 48
+#define STRESS_AMOUNT 128
 PolygonP pCol;
 PolygonP pColMatrix[STRESS_AMOUNT][STRESS_AMOUNT];
 
@@ -17,7 +17,7 @@ Boolean gmOnInit() {
   v4pDisplayInit(1, 1);
   v4pInit();
   v4pSetBGColor(black);
- 
+
   pCol = v4pPolygonNew(absolute, red, 0);
   v4pPolygonDecodeSVGPath(pCol, "M 478.1117,4.99999  L 490.52087,43.198877 L 530.68482,43.196598 L 498.19016,66.802524 \
           L 510.60367,105.00001 L 478.1117,81.390382 L 445.61972,105.00001 L 458.03324,66.80253 \
@@ -30,7 +30,7 @@ Boolean gmOnInit() {
   //     200);
   //			     v4pPolygonAddJump(pCol);
   v4pPolygonTransform(pCol, -200, -300, 0, 0); // x-=400
-  
+
   // v4pPolygonDecodePoints(pCol, "4e05 5a2b 822b 6242 6e69 4e51 2d69 3a42 192b 412b", 700);
   // Path extracted from http://upload.wikimedia.org/wikipedia/commons/4/4e/3_stars.svg
   // path = "M 478.1117,4.99999  L 490.52087,43.198877 L 530.68482,43.196598 L 498.19016,66.802524
@@ -60,7 +60,7 @@ Boolean gmOnIterate() {
 	  liu--;
 	}
     v4pSetView(-v4pDisplayWidth * i / 256, -v4pDisplayHeight * i / 256, v4pDisplayWidth + v4pDisplayWidth * i / 256, v4pDisplayHeight + v4pDisplayHeight * i / 256);
-    
+
     if (!(liu & 1))
       for (j= 0; j < STRESS_AMOUNT; j++) {
         for (k = 0; k < STRESS_AMOUNT; k++) {

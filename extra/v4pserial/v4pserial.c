@@ -8,7 +8,7 @@ extern int v4pXToD(char c) ;
 
 // add points to a polygon with coordinates decoded from a c-string
 PolygonP v4pPolygonDecodePoints(PolygonP p, char *s, int scale) {
-   int l, j;
+   int j;
    long xs, ys, xs1, ys1;
    Boolean sep, psep;
    char c ;
@@ -29,8 +29,9 @@ PolygonP v4pPolygonDecodePoints(PolygonP p, char *s, int scale) {
       sep = false;
 
       xs = (v4pXToD(c) << 4) + v4pXToD(s[++j]);
-      ys = (v4pXToD(s[++j]) << 4) + v4pXToD(s[++j]);
-      
+      ys = v4pXToD(s[++j]) << 4;
+      ys += v4pXToD(s[++j]);
+
       v4pPolygonAddPoint(p, xs * (long)scale / 256, ys * (long)scale / 256);
 
       if (sep) {
@@ -146,12 +147,12 @@ PolygonP v4pPolygonDecodeSVGPath(PolygonP p, char *s, int scale) {
    float param_1, xs = 0, xs1;
    float param_2, ys = 0, ys1;
    int offset;
-   
+
    for (j = 0 ; s[j] ; j++) {
       c = s[j] ;
       if (c == ' ' || c == '\t' || c == '\r' || c == '\n')
          continue ;
-         
+
       switch (status) {
           case NEXT: // way to add more points
              if (c >= '0' && c <= '9') {

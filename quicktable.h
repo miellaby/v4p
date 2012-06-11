@@ -8,15 +8,14 @@
 typedef struct sQuickTable {
    size_t sizeOfTable ;
    List* table;
-   QuickHeap listHeap;
 } QuickTableS, *QuickTable;
 
 QuickTable QuickTableNew(size_t sizeOfTable);
 void       QuickTableDelete(QuickTable t);
 void       QuickTableReset(QuickTable q);
 
-void*      QuickTableAdd(QuickTable q, int index, void* p);
-void       QuickTableRemove(QuickTable q, int index, void* p);
+List       QuickTableAdd(QuickTable q, int index, List l);
+void       QuickTableRemove(QuickTable q, int index, List l);
 List       QuickTableGet(QuickTable q, int index);
 #endif
 

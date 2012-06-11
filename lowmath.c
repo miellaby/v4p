@@ -81,14 +81,13 @@ Boolean computeCosSin(UInt16 angle) {
    return success ;
 }
 
-Boolean straighten(Coord x, Coord y, Coord *xn, Coord *yn) {
+void straighten(Coord x, Coord y, Coord *xn, Coord *yn) {
    if (!lastAngle) {
       *xn = x ; *yn = y ;
    } else {
       *xn = (x * cosa - y * sina) >> 8;
       *yn = (x * sina + y * cosa) >> 8;
    }
-   return success ;
 }
 
 UInt16 isqrt(UInt16 v) { // Jim Henry isqrt

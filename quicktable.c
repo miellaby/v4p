@@ -13,46 +13,39 @@ QuickTable QuickTableNew(size_t sizeOfTable) {
   q->sizeOfTable = sizeOfTable;
   q->table = (List*)malloc(sizeof(List) * sizeOfTable);
   if (!q->table) { free(q) ; return NULL; }
-  q->listHeap = QuickHeapNewFor(struct sList);
-  if (!q->listHeap) { free (q->table) ; free(q) ; return NULL; }
-  QuickHeapReserve(q->listHeap, 2048);
   QuickTableReset(q);
   return q;
 }
 
 void QuickTableDelete(QuickTable q) {
-  QuickHeapDelete(q->listHeap); 
   free(q->table) ;
   free(q);
 }
 
 void QuickTableReset(QuickTable q) {
   memset(q->table, 0, sizeof(List) * q->sizeOfTable);
-  QuickHeapReset(q->listHeap); 
 }
 
-void* QuickTableAdd(QuickTable q, int index, void* p) {
-   List _n = (List)QuickHeapAlloc(q->listHeap);
-   ListSetData(_n, p);
-   ListAdd(q->table[index], _n);
-   return p;
+List QuickTableAdd(QuickTable q, int index, List l) {
+   l->quick = q->table[index];
+   q->table[index] = l;
+   return l;
 }
 
-void QuickTableRemove(QuickTable q, int index, void* p) {
+void QuickTableRemove(QuickTable q, int index, List toBeRemoved) {
    List previous = NULL, l = q->table[index];
    // search loop
-   while (l && ListData(l) != p)  {
+   while (l && l != toBeRemoved)  {
      previous = l;
-     l = ListNext(l);
+     l = l->quick;
    }
 
    if (!l) // not found
      return;
 
-   List n = l->next ;
-   QuickHeapFree(q->listHeap, l);
+   List n = l->quick ;
    if (previous)
-     ListSetNext(previous, n);
+     previous->quick = n;
    else
      q->table[index] = n;
 }

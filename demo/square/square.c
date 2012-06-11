@@ -2,7 +2,7 @@
 #include "v4p.h"
 #include "v4pi.h"
 
-#define STRESS_AMOUNT 64
+#define STRESS_AMOUNT 128
 PolygonP pCol;
 PolygonP pColMatrix[STRESS_AMOUNT][STRESS_AMOUNT];
 
@@ -17,7 +17,7 @@ Boolean gmOnInit() {
   v4pDisplayInit(1, 0);
   v4pInit();
   v4pSetBGColor(blue);
- 
+
   pCol=v4pPolygonNew(absolute, red, 10);
   v4pPolygonRect(pCol, -v4pDisplayWidth / 3 + v4pDisplayWidth, -v4pDisplayHeight / 3, v4pDisplayWidth / 3, v4pDisplayHeight / 3);
 
@@ -38,7 +38,7 @@ Boolean gmOnIterate() {
 	  liu--;
 	}
     v4pSetView(-v4pDisplayWidth * i / 256, -v4pDisplayHeight * i / 256, v4pDisplayWidth + v4pDisplayWidth * i / 256, v4pDisplayHeight + v4pDisplayHeight * i / 256);
-    
+
     if (liu & 1)
       for (j= 0; j < STRESS_AMOUNT; j++) {
         for (k = 0; k < STRESS_AMOUNT; k++) {

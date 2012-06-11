@@ -428,7 +428,7 @@ Color v4pPolygonGetColor(PolygonP p) {
 
 // move a polygon point
 PointP v4pPolygonMovePoint(PolygonP p, PointP s, Coord x, Coord y) {
-   if (p->miny == JUMPCOORD || (x == JUMPCOORD && y == JUMPCOORD))
+   if (p->miny == JUMPCOORD || ((x & y) == JUMPCOORD))
       {}
    else if (s->x == p->minx || s->y == p->miny
       || s->x == p->maxx || s->y == p->maxy) {
@@ -530,7 +530,7 @@ PolygonP v4pRecPolygonTransformClone(Boolean estSub, PolygonP p, PolygonP c, Coo
    while (sp) {
       x = sp->x;
       y = sp->y;
-      if (!(x == JUMPCOORD && y == JUMPCOORD)) {
+      if ((x & y) != JUMPCOORD) {
         straighten(x, y, &x2, &y2);
         x2+= dx;
         y2+= dy;
@@ -605,13 +605,13 @@ PolygonP v4pPolygonComputeLimits(PolygonP p) {
       p->miny = JUMPCOORD;
    } else {
       Coord minx = JUMPCOORD, maxx = JUMPCOORD, miny = JUMPCOORD, maxy = JUMPCOORD;
-      while (s && s->x == JUMPCOORD && s->y == JUMPCOORD)
+      while (s && (s->x & s->y) == JUMPCOORD)
         s = s->next;
 	  if (s) {
 	    maxx = minx = s->x;
         maxy = miny = s->y;
         for (s = s->next; s; s = s->next) {
-		  if (s->x == JUMPCOORD && s->y == JUMPCOORD) continue;
+		  if ((s->x & s->y) == JUMPCOORD) continue;
 
           if (s->x < minx) minx = s->x;
           else if (s->x > maxx) maxx = s->x;
@@ -720,7 +720,7 @@ PolygonP v4pPolygonBuildActiveEdgeList(PolygonP p) {
 
    while (s1) { // lacots
       toBeClosed = true;
-      if (s1->x == JUMPCOORD && s1->y == JUMPCOORD) {
+      if ((s1->x & s1->y) == JUMPCOORD) {
 	    toBeClosed = false;
 	    s1 = s1->next;
       }
@@ -731,8 +731,8 @@ PolygonP v4pPolygonBuildActiveEdgeList(PolygonP p) {
       loop = false;
       end = false;
       while (!end) { // points
-        if ((sa->x != JUMPCOORD || sa->y != JUMPCOORD)
-            && (sb->x != JUMPCOORD || sb->y != JUMPCOORD)
+        if ((sa->x & sa->y) != JUMPCOORD
+            && (sb->x & sb->y) != JUMPCOORD
             && sa->y != sb->y) { // active
           b = v4pActiveEdgeNew(p) ;
 
@@ -827,14 +827,14 @@ void v4pBuildOpenableAELists(PolygonP polygonChain) {
      while (l) {
        b = (ActiveEdgeP)ListData(l) ;
        if (isRelative) {
-		 QuickTableAdd(v4p->openableAETable, (b->y0 > 0 ? b->y0 : 0) & YHASH_MASK, b);
+		 QuickTableAdd(v4p->openableAETable, (b->y0 > 0 ? b->y0 : 0) & YHASH_MASK, l);
        } else {
          v4pAbsoluteToView(b->x0, b->y0, &(b->x0v), &(b->y0v));
          v4pAbsoluteToView(b->x1, b->y1, &(b->x1v), &(b->y1v));
          if (b->y0 < v4p->yvu0) {
-            QuickTableAdd(v4p->openableAETable, 0, b);
+            QuickTableAdd(v4p->openableAETable, 0, l);
 	     } else {
-            QuickTableAdd(v4p->openableAETable, b->y0v & YHASH_MASK, b);
+            QuickTableAdd(v4p->openableAETable, b->y0v & YHASH_MASK, l);
          }
        }
        l = ListNext(l);
@@ -854,7 +854,7 @@ List v4pOpenActiveEdge(Coord yl, Coord yu) {
    Coord xr0, yr0, xr1, yr1, dx, dy, q, r ;
 
    l = QuickTableGet(v4p->openableAETable, yl & YHASH_MASK);
-   for (; l; l = ListNext(l)) {
+   for (; l; l = l->quick) {
       b = (ActiveEdgeP)ListData(l) ;
 
       if (!(b->p->props & relative)) {
@@ -902,6 +902,7 @@ List v4pOpenActiveEdge(Coord yl, Coord yu) {
         b->h = b->y1 - yl - 1;
         if (b->y0 < yl) { // top crop needed
           int dy2 = yl - b->y0 ;
+          dy = b->y1 - b->y0;
           b->x += dy2 * b->o1 + dy2 * (b->o2 >= 0 ? b->r1 : -b->r1) / dy ;
           b->s += (dy2 * b->r1) % dy ;
         }
