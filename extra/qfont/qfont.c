@@ -105,7 +105,7 @@ PolygonP qfontDefinePolygonFromString(char* s, PolygonP poly,
 #include <stdio.h>
 #include "gamemachine.h"
 
-#define STRESS_AMOUNT 10
+#define STRESS_AMOUNT 100
 PolygonP pCol;
 PolygonP pColMatrix[STRESS_AMOUNT][STRESS_AMOUNT];
 

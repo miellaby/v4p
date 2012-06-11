@@ -63,6 +63,7 @@ typedef struct polygon_s {
 typedef struct activeEdge_s {
  Coord x0, y0, x1, y1 ; // vector coordinates; absolute or relative depending on the belonging list
  PolygonP p ; // polygone
+ Coord x0v, y0v, x1v, y1v ; // vector coordinates in view;
  Coord x, o1, o2, s, h, r1, r2 ; // bresenham: offsets, sums, lineNb, remainings
 } ActiveEdge ;
 
@@ -754,6 +755,11 @@ PolygonP v4pPolygonBuildActiveEdgeList(PolygonP p) {
            b->y1 = sy1;
 
            if (p->props & relative) {
+             // relative polygon
+             b->x0v = sx0;
+             b->y0v = sy0;
+             b->x1v = sx1;
+             b->y1v = sy1;
 
              dx = sx1 - sx0;
              dy = sy1 - sy0;
@@ -763,7 +769,6 @@ PolygonP v4pPolygonBuildActiveEdgeList(PolygonP p) {
              b->o2 = b->o1 + (dx > 0 ? 1 : -1) ;
              b->r1 = r ;
              b->r2 = r - dy ;
-
            } // relative polygon
 
          } // active
@@ -823,12 +828,14 @@ void v4pBuildOpenableAELists(PolygonP polygonChain) {
        b = (ActiveEdgeP)ListData(l) ;
        if (isRelative) {
 		 QuickTableAdd(v4p->openableAETable, (b->y0 > 0 ? b->y0 : 0) & YHASH_MASK, b);
-       } else if (b->y0 < v4p->yvu0) {
-         QuickTableAdd(v4p->openableAETable, 0, b);
-	   } else {
-         Coord stub, yr0;
-         v4pAbsoluteToView(0, b->y0, &stub, &yr0);
-         QuickTableAdd(v4p->openableAETable, yr0 & YHASH_MASK, b);
+       } else {
+         v4pAbsoluteToView(b->x0, b->y0, &(b->x0v), &(b->y0v));
+         v4pAbsoluteToView(b->x1, b->y1, &(b->x1v), &(b->y1v));
+         if (b->y0 < v4p->yvu0) {
+            QuickTableAdd(v4p->openableAETable, 0, b);
+	     } else {
+            QuickTableAdd(v4p->openableAETable, b->y0v & YHASH_MASK, b);
+         }
        }
        l = ListNext(l);
      }
@@ -838,10 +845,9 @@ void v4pBuildOpenableAELists(PolygonP polygonChain) {
 }
 
 
-// open all new scan-line intersected ActiveEdge
-Boolean v4pOpenActiveEdge(Coord yl, Coord yu) {
-
-   Boolean open = false ;
+// open all new scan-line intersected ActiveEdge, returns them as a list
+List v4pOpenActiveEdge(Coord yl, Coord yu) {
+   List newlyOpenedAEList = NULL ;
    List l;
    ActiveEdgeP b ;
 
@@ -852,14 +858,21 @@ Boolean v4pOpenActiveEdge(Coord yl, Coord yu) {
       b = (ActiveEdgeP)ListData(l) ;
 
       if (!(b->p->props & relative)) {
-	    if (!yl && b->y0 < v4p->yvu0) {
-		   v4pAbsoluteToView(b->x0, b->y0, &xr0, &yr0) ;
-        } else {
-            v4pAbsoluteToView(b->x0, b->y0, &xr0, &yr0) ;
-            if (yr0 != yl) continue;
-        }
+        xr0 = b->x0v;
+        yr0 = b->y0v;
+	    //if (!yl && b->y0 < v4p->yvu0) {
+		   // v4pAbsoluteToView(b->x0, b->y0, &xr0, &yr0) ;
+        //} else {
+            // v4pAbsoluteToView(b->x0, b->y0, &xr0, &yr0) ;
+          //  if (yr0 != yl) continue;
+        //}
+        if (yl == 0) {
+            if (yr0 > 0) continue;
+        } else if (yr0 != yl) continue;
 
-        v4pAbsoluteToView(b->x1, b->y1, &xr1, &yr1) ;
+        //v4pAbsoluteToView(b->x1, b->y1, &xr1, &yr1) ;
+        xr1 = b->x1v;
+        yr1 = b->y1v;
         if (yr1 <= yl) continue ;
 
         dx = xr1 - xr0;
@@ -880,7 +893,9 @@ Boolean v4pOpenActiveEdge(Coord yl, Coord yu) {
         b->h = yr1 - yl - 1;
         b->x = xr0 ;
       } else { // relative
-        if ((yl == 0 && b->y0 > 0) || b->y0 != yl) continue;
+        if (yl == 0) {
+            if (b->y0 > 0) continue;
+        } else if (b->y0 != yl) continue;
         if (b->y1 <= yl) continue ;
         b->s = b->r2 - b->r1 ;
         b->x = b->x0 ;
@@ -891,11 +906,11 @@ Boolean v4pOpenActiveEdge(Coord yl, Coord yu) {
           b->s += (dy2 * b->r1) % dy ;
         }
       }
-      ListAddData(v4p->openedAEList, b) ;
-      open = true ;
+      ListAddData(newlyOpenedAEList, b) ;
    }
-
-   return open ;
+   if (newlyOpenedAEList)
+     newlyOpenedAEList = v4pSortActiveEdge(newlyOpenedAEList);
+   return newlyOpenedAEList ;
 }
 
 // Render a scene
@@ -984,12 +999,18 @@ Boolean v4pRender() {
          }
       } // opened ActiveEdge loop
 
-      // open newly intersected ActiveEdge
-
-      sortNeeded |= v4pOpenActiveEdge(y, yu) ;
       // sort ActiveEdge
       if (sortNeeded)
          v4p->openedAEList = v4pSortActiveEdge(v4p->openedAEList) ;
+
+      // open newly intersected ActiveEdge
+      List newlyOpenedAEList = v4pOpenActiveEdge(y, yu) ;
+      if (newlyOpenedAEList) {
+        ListSetDataPrior(compareActiveEdgeX) ;
+        v4p->openedAEList = ( v4p->openedAEList
+           ? ListMerge(v4p->openedAEList, newlyOpenedAEList)
+           : newlyOpenedAEList ) ;
+      }
 
       // reset layers
       bz = 0 ;

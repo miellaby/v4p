@@ -62,12 +62,12 @@ void *QuickHeapAlloc(QuickHeap q) {
       return (void *)q->heap ;
    }
    do {
-       if (q->hole) {
+       if (q->hole != 0) {
           void* p = q->heap + q->sizeOfItem * q->hole ;
           q->hole = *(int *)p ;
           return p ;
        }
-   } while (q->next && (q = q->next));
+   } while (q->next != NULL && (q = q->next));
 
    if (q->size >= q->maxSize) {
       q->next = QuickHeapReservedNew(q->sizeOfItem, q->maxSize * 2) ;
