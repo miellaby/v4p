@@ -7,16 +7,18 @@
 
 #define CLOCKS_PER_MSEC (CLOCKS_PER_SEC / 1000);
 
-static Int32 SC_CLK_TCK = 0;
-
-// get ticks
 Int32 gmGetTicks() {
-	
-	static struct tms tmsBuffer;
-	clock_t t = times(&tmsBuffer);
-	if (!SC_CLK_TCK) SC_CLK_TCK = sysconf(_SC_CLK_TCK);
+    static struct tms buf;
+    static int clk_ticks = 0;
+    if (!clk_ticks) {
+        clk_ticks = sysconf(_SC_CLK_TCK);
+#ifdef TESTU_GM_LINUX_SVGA
+        printf("clk_ticks = %d\n", clk_ticks) ;
+#endif
+}
 
-	return (t / SC_CLK_TCK) * 1000 + ((t % SC_CLK_TCK) * 1000) / SC_CLK_TCK;
+    Int32 t = times(&buf) * 1000 / clk_ticks;
+    return t;
 }
 
 // pause execution
@@ -38,7 +40,7 @@ int gmPollEvents() {
       // one operate Expose events only when gmFramerate == 0
       if (gmFramerate == 0)  rc |= gmOnFrame();
       break;
-       
+
     case ConfigureNotify:
 	    /*  Store new window width & height  */
 	    //v4pDisplayWidth = v4pDisplayContext->width  = report.xconfigure.width;
@@ -58,7 +60,7 @@ int gmPollEvents() {
       int pos_x, pos_y;
       Window root, child;
       unsigned int keys_buttons;
-     
+
       while (XCheckMaskEvent(currentDisplay, ButtonMotionMask, &report));
       if (!XQueryPointer(currentDisplay, report.xmotion.window,
            &root, &child, &root_x, &root_y,

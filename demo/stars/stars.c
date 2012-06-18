@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "gamemachine.h"
 #include "v4p.h"
 #include "v4pi.h"
@@ -78,7 +79,7 @@ Boolean gmOnFrame() {
 }
 
 void gmOnQuit() {
-  v4pDisplayQuit();
+ v4pDisplayQuit();
 }
 
 int main(int argc, char** argv) {

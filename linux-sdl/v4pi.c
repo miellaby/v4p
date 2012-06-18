@@ -88,7 +88,7 @@ const Color
    fluo=48;
 
 // Default window/screen width & heigth
-const Coord defaultScreenWidth = 640, defaultScreenHeight = 400;
+const Coord defaultScreenWidth = 640, defaultScreenHeight = 480;
 
 // A display context
 typedef struct v4pDisplay_s {
@@ -132,7 +132,7 @@ static UInt32 tlaps = 0;
 // debug logging helper
 #ifdef DEBUG
 void v4pDisplayDebug(char *formatString, ...)
-{ va_list args ; char text[0x100] ;
+{ va_list args ;
   va_start(args, formatString) ;
   vprintf(formatString, args) ;
   va_end(args);
@@ -200,7 +200,7 @@ Boolean v4pDisplayEnd() {
    tlaps -= laps[j % 4];
    tlaps += laps[j % 4] = t2 - t1;
    j++;
-   v4pDisplayDebug("v4pDisplayEnd, average time = %dms\n", tlaps / 4);
+   if (!(j % 100)) v4pDisplayDebug("v4pDisplayEnd, average time = %dms\n", tlaps / 4);
 
    // sumarize collides
    for (i = 0 ; i < 16 ; i++) {

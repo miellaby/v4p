@@ -4,7 +4,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <unistd.h>
 #include <sys/times.h>
+#include <string.h>
 
 #include <X11/Xutil.h>
 #include "_v4pi.h"
@@ -92,7 +94,7 @@ static char* applicationName = "v4pX";
 static char* applicationClass = "V4pX";
 static char* fakeArgv[] = { "v4pX" };
 // Default window/screen width & heigth
-Coord defaultScreenWidth = 640, defaultScreenHeight = 400;
+Coord defaultScreenWidth = 640, defaultScreenHeight = 480;
 
 // Some constants linking to basic colors;
 const Color
@@ -111,10 +113,10 @@ Coord         v4pDisplayHeight;
 
 // private properties of current context
 static const int borderWidth = 1;
+static int iBuffer;
 
 // Data buffer
 static XGCValues values;
-static struct tms tmsBuffer;
 
 /***************************/
 /* collide computing stuff */
@@ -132,14 +134,26 @@ Collide collides[16] ;
 /* metrics stuff */
 /*****************/
 
-static clock_t t1;
-static clock_t laps[4] = {0, 0, 0, 0};
-static clock_t tlaps=0 ;
+static Int32 t1;
+static Int32 laps[4] = {0, 0, 0, 0};
+static Int32 tlaps=0 ;
+
+static Int32 getTicks() {
+    static struct tms buf;
+    static int clk_ticks = 0;
+    if (!clk_ticks) {
+        clk_ticks = sysconf(_SC_CLK_TCK);
+        printf("clk_ticks = %d\n", clk_ticks) ;
+    }
+
+    Int32 t = times(&buf) * 1000 / clk_ticks;
+    return t;
+}
 
 // debug logging helper
 #ifdef DEBUG
 void v4pDisplayDebug(char *formatString, ...) {
-    va_list args ; char text[0x100] ;
+    va_list args ;
     va_start(args, formatString) ;
     vprintf(formatString, args) ;
     va_end(args);
@@ -152,6 +166,7 @@ Boolean v4pDisplayError(char *formatString, ...) {
     va_start(args, formatString) ;
     vfprintf(stderr, formatString, args) ;
     va_end(args);
+    return success;
 }
 
 // record collides
@@ -174,7 +189,10 @@ Boolean v4pDisplayCollide(ICollide i1, ICollide i2, Coord py, Coord x1, Coord x2
 // prepare things before V4P engine scanline loop
 Boolean v4pDisplayStart() {
   // remember start time
-  t1 = times(&tmsBuffer); 
+  t1 = getTicks();
+
+  //Reset buffer pointer used by v4pDisplaySplice()
+  iBuffer = 0;
 
   //Init collides
   int i ;
@@ -193,7 +211,7 @@ Boolean v4pDisplayEnd() {
 
     // Get end time and compute average rendering time
     static int j = 0;
-    clock_t t2 = times(&tmsBuffer);
+    Int32 t2 = getTicks();
     tlaps -= laps[j % 4];
     tlaps += laps[j % 4] = t2 - t1;
     j++;
@@ -208,17 +226,33 @@ Boolean v4pDisplayEnd() {
     }
 
     // Commit graphic changes we made
+    XPutImage(currentDisplay, currentWindow /* currentPixmap */, currentGC, currentImage, 0, 0, 0, 0, v4pDisplayWidth, v4pDisplayWidth);
+    // XCopyArea(currentDisplay, currentPixmap, currentWindow, currentGC, 0, 0, v4pDisplayWidth, v4pDisplayWidth, 0, 0);
     XFlush(currentDisplay);
     return success ;
 }
 
 // Draw an horizontal video slice with color 'c'
 Boolean v4pDisplaySlice(Coord y, Coord x0, Coord x1, Color c) {
-    int l = x1 - x0;
-    if (l <= 0) return success;
-    XSetForeground(currentDisplay, currentGC, xPixelsTab[c]);
-    XFillRectangle(currentDisplay, currentWindow, currentGC, x0, y, l, 1);
-    return success;
+   int l = x1 - x0;
+   if (l <= 0) return success;
+   unsigned long pixel = xPixelsTab[c] ;
+
+   if (currentDepth == 8) {
+       memset(&currentBuffer[iBuffer], pixel, l);
+       iBuffer += l;
+   } else if (currentDepth == 16) {
+       while (l--) {
+          currentBuffer[iBuffer++] = pixel & 0xFF;
+          currentBuffer[iBuffer++] = (pixel >> 8) & 0xFF;
+       }
+   } else if (currentDepth >= 24) {
+       while (l--) {
+            *(long *)(&currentBuffer[iBuffer +=4 ]) = pixel;
+       }
+   }
+
+   return success;
 }
 
 // Create and "map" a window
@@ -226,14 +260,13 @@ static Boolean createWindow(V4pDisplayP vd, int width, int height) {
 	Display* d = vd->d;
 	int      s = vd->s;
 	Window   w;
-    GC       gc;	
-    
+    GC       gc;
+
  /* Miscellaneous X variables */
   XSizeHints*   size_hints;
   XWMHints*     wm_hints;
   XClassHint*   class_hints;
   XTextProperty windowName, iconName;
-  XEvent        report;
 
   w = /* create window */
      XCreateSimpleWindow(d, RootWindow(d, s), 10, 10, width, height, borderWidth,
@@ -241,7 +274,7 @@ static Boolean createWindow(V4pDisplayP vd, int width, int height) {
 
 
   /* Allocate memory */
-  if ( !( size_hints  = XAllocSizeHints() ) || 
+  if ( !( size_hints  = XAllocSizeHints() ) ||
 	   !( wm_hints    = XAllocWMHints()   ) ||
 	   !( class_hints = XAllocClassHint() )    ) {
    	v4pDisplayError("couldn't allocate memory.\n");
@@ -265,7 +298,7 @@ static Boolean createWindow(V4pDisplayP vd, int width, int height) {
   class_hints->res_name   = applicationName;
   class_hints->res_class  = applicationClass;
 
-  
+
   XSetWMProperties(d, w, &windowName, &iconName, (char**)&fakeArgv, 0,
 		     size_hints, wm_hints, class_hints);
 
@@ -278,11 +311,26 @@ static Boolean createWindow(V4pDisplayP vd, int width, int height) {
          XCreateGC(d, w, 0, &values);
     XSetForeground(d, gc, BlackPixel(d, s));
 
+    int depth = DefaultDepth(d, s);
+    v4pDisplayDebug("depth is %d\n", depth);
+
+    // Pixmap p = XCreatePixmap(d, w, width, height, 8 /* not default depth */);
+
+    char* buffer = (char *) malloc(width * height * (depth <= 8 ? 1 : 4));
+    if (!buffer) {
+      v4pDisplayError("malloc failed \n");
+      return failure;
+    }
+    XImage* i = XCreateImage(d, DefaultVisual(d, s), depth, ZPixmap, 0, buffer, width, height, 8, 0) ;
+    XInitImage(i);
     vd->width = width;
     vd->height = height;
+    vd->depth = depth;
     vd->w  = w;
     vd->gc = gc;
-    
+    // vd->p = p;
+    vd->b = buffer;
+    vd->i = i;
     /*  Display Window  */
     XMapWindow(d, w);
 
@@ -292,7 +340,7 @@ static Boolean createWindow(V4pDisplayP vd, int width, int height) {
 // Prepare things before the very first graphic rendering
 Boolean v4pDisplayInit(int quality, Boolean fullscreen) {
    int rc = success;
-   
+
    /* connect to X server */
    Display *d = XOpenDisplay(NULL);
    if (d == NULL) {
@@ -312,42 +360,57 @@ Boolean v4pDisplayInit(int quality, Boolean fullscreen) {
    defaultScreenHeight = DisplayHeight(d, s);
    int winWidth = defaultScreenWidth * 2 / (3 - quality);
    int winHeight = defaultScreenHeight * 2 / (3 - quality);
-   
+
    rc |= createWindow(v4pDisplayDefaultContext, winWidth, winHeight);
 
    XColor c;
    int i, rcx;
    for (i = 0; i < 256; i++) {
-	   c.red = (unsigned short)palette[i].r;
-	   c.green = (unsigned short)palette[i].g;
-	   c.blue = (unsigned short)palette[i].b;
-	   printf("%02X %02X %02X %08lX\n", (int)c.red, (int)c.green, (int)c.blue, (unsigned long)c.pixel);
+	   c.red = (unsigned short)palette[i].r << 8;
+	   c.green = (unsigned short)palette[i].g << 8;
+	   c.blue = (unsigned short)palette[i].b << 8;
+	   // v4pDisplayDebug("color allocation %02X %02X %02X %08lX\n", (int)c.red, (int)c.green, (int)c.blue, (unsigned long)c.pixel);
 	   if (!(rcx = XAllocColor(d, cmap, &c)))  {
           v4pDisplayError("Can't allocate color\n");
           exit(EXIT_FAILURE);
  	   }
+	   // v4pDisplayDebug("color allocation %02X %02X %02X %08lX\n", (int)c.red, (int)c.green, (int)c.blue, (unsigned long)c.pixel);
 	   xPixelsTab[i] = c.pixel;
-	   printf("%d %02X %02X %02X %08lX\n", rcx, (int)c.red, (int)c.green, (int)c.blue, (unsigned long)c.pixel);
+	   // printf("%d %02X %02X %02X %08lX\n", rcx, (int)c.red, (int)c.green, (int)c.blue, (unsigned long)c.pixel);
    }
-   
+
 
    v4pDisplaySetContext(v4pDisplayDefaultContext);
-   
+
    return rc;
 }
 
 // Create a second window as V4P context
 V4pDisplayP v4pDisplayNewContext(int width, int height) {
-  V4pDisplayP c = (V4pDisplayP)malloc(sizeof(V4pDisplayS)); 
-  if (!c) return 0 ;
-
+  V4pDisplayP c = (V4pDisplayP)malloc(sizeof(V4pDisplayS));
+  if (!c) {
+    v4pDisplayError("malloc failed \n");
+    return 0 ;
+  }
+  c->w = v4pDisplayDefaultContextS.w;
   c->d = v4pDisplayDefaultContextS.d;
   c->s = v4pDisplayDefaultContextS.s;
-  
+  c->gc = v4pDisplayDefaultContextS.gc;
+  c->depth = v4pDisplayDefaultContextS.depth;
+  char* buffer = (char *) malloc(width * height * (c->depth <= 8 ? 1 : 4));
+  if (!buffer) {
+    v4pDisplayError("malloc failed \n");
+    return 0;
+  }
+  c->b = buffer;
+
+  XImage* i = XCreateImage(c->d, DefaultVisual(c->d, c->s), c->depth, ZPixmap, 0, buffer, width, height, 8, 0) ;
+  XInitImage(i);
+
+  c->i = i;
   c->width = width;
   c->height = height;
 
-  createWindow(c, width, height); 
   return c;
 }
 
@@ -355,8 +418,7 @@ V4pDisplayP v4pDisplayNewContext(int width, int height) {
 void v4pDisplayFreeContext(V4pDisplayP c) {
   if (!c || c == v4pDisplayDefaultContext)
     return;
-
-  XFreeGC(c->d, c->gc);
+  XDestroyImage(c->i);
   free(c);
 
   // One can't let a pointer to a freed context.
@@ -373,11 +435,16 @@ V4pDisplayP v4pDisplaySetContext(V4pDisplayP c) {
   currentWindow = c->w;
   currentScreen = c->s;
   currentGC = c->gc;
+  // currentPixmap = c->p;
+  currentDepth = c->depth;
+  currentBuffer = c->b;
+  currentImage = c->i;
   return c;
 }
 
 // clean things before quitting
 void v4pDisplayQuit() {
    /* close connection to server */
+   XFreeGC(v4pDisplayDefaultContext->d, v4pDisplayDefaultContext->gc);
    XCloseDisplay(v4pDisplayDefaultContext->d);
 }
