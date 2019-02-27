@@ -1,93 +1,52 @@
-V4P - Vectors For Pocket - is a minimalistic layered polygons scan-conversion engine.
 
-=Introduction=
+## HeadingV4P - Vectors For Pocket - is a minimalistic layered polygons scan-conversion engine.
 
-V4P is a ridiculously short piece of C code. V4P main engine weights ~1000 instructions.
+### Introduction
 
-V4P targets very light platforms without advanced hardware resources.
+V4P is a ridiculously short piece of C code. Its main engine weights ~1000 instructions.
+
+V4P targets very light platforms without any advanced hardware resources.
 
 V4P may be easily embedeed in any GUI or Game development library or application.
 
-V4P has no dependencies with any library. V4P brings its own integer only maths routines.
+V4P has no technical dependencies. It even brings its own integer-only maths routines.
 
-V4P only asks you to provide an horizontal line drawing function (a memset()-like function should work well in most cases).
+To integrate V4P in your projet, just code the horizontal line drawing function. A memset()-like function in a video buffer will do the job in most cases.
 
-Beside rendering vectors scene, V4P will help you find collides.
+Beside rendering vectorized graphic scene, V4P may help you detect collisions (WIP).
 
-=How to use it=
+### How to use
 
-V4P is a set of C files and their related header files.
+V4P is provided as a set of C files that you should directly add to your project.
 
-They can be compiled and linked into some library or directly added to your own project.
-
-Warning: provided makefiles deal with Palm OS 4 gcc based compilation.
+#### Palm OS 4
+makefiles were written to deal with Palm OS 4 gcc based compilation.
 
 Two Palmphi projects are provided as well. Palmphi is an IDE running on Windows with cygwin which simplifies the authoring of Palm-OS based applications. See: http://www.digital-kingdoms.net/palmphi/
 
-* palmphi-toto : A V4P based top-view car game. A work in progress.
-
-* palmphi-totoe : A V4P based picture editor. Draw layered polygons based picture!
+* palmphi-toto : A V4P based top-view car game (WIP).
+* palmphi-totoe : A V4P based graphic editor.
 
 To compile these 2 projects, put the content of "src" directory into the path /usr/src/v4p/ of your cygwin distribution. Compile V4P sources before the application ones.
 
-=Design Introduction=
+### Technical overview
 
-The underlying algorithm of V4P can be named:
- "Bresenham-like iterative scanline and active edge cross-over computation based polygon scan conversion algorithm".
+The underlying algorithm of V4P may be sumed up:*Bresenham-like iterative scanline and active edge cross-over computation based polygon scan conversion algorithm*
+ 
+Additionaly,
+* most V4P sorted lists are quick-sorted.
+* Bit-based computation helps V4P to find collides and the top polygon under every pixel.
+* V4P is very memory efficient. It doesn't relay on a Z-buffer, not even an "S-buffer" (as depicted here: http://www.gamedev.net/reference/articles/article668.asp).
 
-Additionaly, most V4P computed lists are quick-sorted. And bit-based computation helps V4P to find collides and pixel highest owner.
+V4P was developped with Palm OS 4 gcc based SDK and tested on an ancient PDA . It has been proven to be adaptable after few tweak on any embedeed linux devices.
 
-V4P design spares memory a lot. It doesn't deal with Z-buffer, not even "S-buffer" (as depicted here: http://www.gamedev.net/reference/articles/article668.asp).
+###  What V4P can't do
+* anti-aliasing (a naive implementation through down-scaling)
+* transparent polygons (needs a deep change in the pixel parent election code)
+* curves
+* deep z depth range (only 16 layers for now because of bit-based operations)
+* accurate cos/sin/atan/dist routines
+* scene partial refresh and related optimisations
 
-V4P has been developped and tested on a very old Sony Clie PDA with Palm OS 4 gcc based SDK. V4P can be adapted after few tweakings on any embedeed linux devices and other geeky gadgets.
-
-
-=Further experiments=
-
-==writing more span drawing functions==
-
-# More complex color type. blitting paint implementation.
-
-# direct to linux frame buffer implementation
-
-# SDL based implementation
-
-# DirectFB based implementation
-
-# V4P port for DS linux
-
-# smartest drawing routine considering the Color type as a structure pointer giving a lot of data about the way to fill up a polygon.
-
-# simple anti-aliasing solution through rescaling trick
-
-
-==writing libraries on top of V4P==
-
-# use V4P to design a Flash-like technology
-
-# that is, write V4P bindings to known languages
-
-# use V4P as a basis for a full animated GUI stack
-
-==various improvements==
-
-===transparent polygons===
-this feature needs a change in the pixel parent election code so to call the span drawing routine from the highest opaque polygon to the highest translucent polygon up there.
-
-===adding other edge shapes===
-
-I miss circular curves a lot. But I didn't find a way to draw them in a sinle pass algorithm.
-
-===increasing z depth range===
-
-only 16 layers for now. Using a balanced binary tree of span parents could make z infinitivly more precise.
-
-===Use more accurate cos/sin/atan/dist routines===
-
-===avoid refreshing the static parts of the scene===
-  * an integrated solution need an in-depth rewrite
-  * an other solution is to call V4P repeatidly on "dirty rectangles"
-
-=Otherelse=
 
 Contact: sylvain.garden@gmail.com
