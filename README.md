@@ -1,5 +1,5 @@
 
-## HeadingV4P - Vectors For Pocket - is a minimalistic layered polygons scan-conversion engine.
+## V4P - Vectors For Pocket - : a minimalistic layered polygons scan-conversion engine.
 
 ## Demo Video
 
