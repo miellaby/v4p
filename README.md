@@ -1,6 +1,10 @@
 
 ## HeadingV4P - Vectors For Pocket - is a minimalistic layered polygons scan-conversion engine.
 
+## Demo Video
+
+https://www.youtube.com/watch?v=W7DSjBT2Jfk
+
 ### Introduction
 
 V4P is a ridiculously short piece of C code. Its main engine weights ~1000 instructions.
@@ -18,16 +22,6 @@ Beside rendering vectorized graphic scene, V4P may help you detect collisions (W
 ### How to use
 
 V4P is provided as a set of C files that you should directly add to your project.
-
-#### Palm OS 4
-makefiles were written to deal with Palm OS 4 gcc based compilation.
-
-Two Palmphi projects are provided as well. Palmphi is an IDE running on Windows with cygwin which simplifies the authoring of Palm-OS based applications. See: http://www.digital-kingdoms.net/palmphi/
-
-* palmphi-toto : A V4P based top-view car game (WIP).
-* palmphi-totoe : A V4P based graphic editor.
-
-To compile these 2 projects, put the content of "src" directory into the path /usr/src/v4p/ of your cygwin distribution. Compile V4P sources before the application ones.
 
 ### Technical overview
 
@@ -48,5 +42,14 @@ V4P was developped with Palm OS 4 gcc based SDK and tested on an ancient PDA . I
 * accurate cos/sin/atan/dist routines
 * scene partial refresh and related optimisations
 
+### Palm OS 4 specific info
+makefiles have been written to deal with Palm OS 4 gcc based compilation.
+
+Palmphi projects are provided. Palmphi was an IDE running on Windows with cygwin so to simplify the authoring of Palm-OS based applications. See: http://www.digital-kingdoms.net/palmphi/
+
+* palmphi-toto : A V4P based top-view car game (WIP).
+* palmphi-totoe : A V4P based graphic editor.
+
+To compile these 2 projects, put the content of "src" directory into the path /usr/src/v4p/ of your cygwin distribution.
 
 Contact: sylvain.garden@gmail.com
