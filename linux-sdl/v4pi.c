@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <assert.h>
 #include <SDL/SDL.h>
 
 #include "v4pi.h"
@@ -222,10 +223,34 @@ Boolean v4pDisplayEnd() {
 // Draw an horizontal video slice with color 'c'
 Boolean v4pDisplaySlice(Coord y, Coord x0, Coord x1, Color c) {
  int l = x1 - x0;
- if (l <= 0) return success;
+ if (l <= 0)
+   return success;
+
+#ifdef DEBUG
+ // Calculate expected position from iBuffer
+ int last_y  = iBuffer / v4pDisplayContext->surface->pitch;
+ int last_x1 = iBuffer % v4pDisplayContext->surface->pitch;
+
+ // Check if the call is consistent
+ if (last_y != y || last_x1 != x0) {
+   fprintf(stderr, "v4pDisplaySlice: Inconsistent call sequence!\n");
+   fprintf(stderr, "  Expected (from history): y=%d, x1=%d\n", last_y, last_x1);
+   fprintf(stderr, "  Actual call: y=%d, x0=%d, x1=%d\n", (int)y, (int)x0, (int)x1);
+   // This is a critical error - the engine's assumptions are violated
+   assert(last_y == y && last_x1 == x0);
+ }
+
+#endif
 
  SDL_memset(&currentBuffer[iBuffer], (char)c, l);
- iBuffer+= l;
+ iBuffer += l;
+
+#ifdef SUPPORT_UNALIGNED_WIDTH
+ // Fix: Account for SDL surface pitch when moving to next scanline
+ if (x1 == v4pDisplayWidth) { // end of a scanline, add SDL's padding bytes
+    iBuffer += v4pDisplayContext->surface->pitch - v4pDisplayWidth;
+ }
+#endif
 
  return success;
 }
@@ -296,8 +321,8 @@ void v4pDisplayFreeContext(V4pDisplayP c) {
 // Change the current V4P context
 V4pDisplayP v4pDisplaySetContext(V4pDisplayP c) {
   v4pDisplayContext = c;
-  v4pDisplayWidth = c->width;
-  v4pDisplayHeight = c->height;
+  v4pDisplayWidth = c->surface->w;
+  v4pDisplayHeight = c->surface->h;
   currentBuffer = c->surface->pixels;
   return c;
 }

@@ -24,7 +24,7 @@ CCFLAGS_palmos_debug = -g
 
 # LINUX
 CCFLAGS_linux=
-CCFLAGS_linux_debug= -pg -DDEBUG
+CCFLAGS_linux_debug= -g -O0 -DDEBUG -D_GLIBCXX_DEBUG -fstack-protector
 ARFLAGS_linux= rvs
 
 # SDL
