@@ -27,9 +27,10 @@ int            i, j, k, dist, mindist;
 
 ILayer         z;
 
-Coord          x, y, xvu, yvu, lvu,
-  xpen1, ypen1, yButton = 1,
-                x0, y0, x1, y1, stepGrid;
+static Coord   xvu, yvu, lvu,
+  xpen1, ypen1, xpen0, ypen0,
+  yButton = 1,
+  stepGrid;
 
 PolygonP spots[64];
 
@@ -150,6 +151,7 @@ Boolean gmOnIterate() {
       xpen1 = gmMachineState.xpen;
       ypen1 = gmMachineState.ypen;
 
+      int x, y;
       v4pViewToAbsolute(gmMachineState.xpen, gmMachineState.ypen, &x, &y);
       xs = align(x);
       ys = align(y);
@@ -157,15 +159,15 @@ Boolean gmOnIterate() {
       if (guiStatus == push) {  // bar move
         if (sel == bGrid) {
           stepGridPrec = stepGrid;
-          stepGrid     = 1 << ((iabs(gmMachineState.ypen - y0) / 4) % 4);
+          stepGrid     = 1 << ((iabs(gmMachineState.ypen - ypen0) / 4) % 4);
           if (stepGrid != stepGridPrec)
             v4pPolygonTransform(pSelGrid, stepGrid - stepGridPrec, stepGrid - stepGridPrec, 0, 0);
         } else if (sel == bCol) {
-          nextColor = (((iabs(gmMachineState.ypen - y0) + iabs(gmMachineState.xpen - x0))) + currentColor) % 255;
+          nextColor = (((iabs(gmMachineState.ypen - ypen0) + iabs(gmMachineState.xpen - xpen0))) + currentColor) % 255;
           v4pPolygonSetColor(pSelCol, nextColor);
         } else if (sel == bLayer) {
           precZ    = currentZ;
-          currentZ = (z0 + (iabs(gmMachineState.ypen - y0) / 4)) % 15;
+          currentZ = (z0 + (iabs(gmMachineState.ypen - ypen0) / 4)) % 15;
           if (precZ != currentZ)
             v4pPolygonTransform(pSelLayer, 0, (precZ - currentZ) * 2, 0, 0);
         }
@@ -175,9 +177,9 @@ Boolean gmOnIterate() {
             v4pDel(brush);
             brush = NULL;
           } else {
-            v4pPolygonTransform(brush, gmMachineState.xpen - x0, gmMachineState.ypen - y0, 0, 0);
-            x0 = gmMachineState.xpen;
-            y0 = gmMachineState.ypen;
+            v4pPolygonTransform(brush, gmMachineState.xpen - xpen0, gmMachineState.ypen - ypen0, 0, 0);
+            xpen0 = gmMachineState.xpen;
+            ypen0 = gmMachineState.ypen;
           }
         }
         if (sel == bAddition) {
@@ -195,8 +197,8 @@ Boolean gmOnIterate() {
         } else if (collides[2].q > 0) {
           if (sel == bScroll) {
             focus = collides[2].poly;
-            x0    = xs;
-            y0    = ys;
+            xpen0    = xs;
+            ypen0    = ys;
           } else if (sel == bGrid) {
             if (!focus) {
               focus        = collides[2].poly;
@@ -217,15 +219,15 @@ Boolean gmOnIterate() {
             focus = collides[2].poly;
         } else if (sel == bScroll) {  // scroll fond
           if (focus) {
-            v4pPolygonTransform(focus, xs - x0, ys - y0, 0, 0);
-            x0 = xs;
-            y0 = ys;
+            v4pPolygonTransform(focus, xs - xpen0, ys - ypen0, 0, 0);
+            xpen0 = xs;
+            ypen0 = ys;
           } else {
             v4pSetView(
-              align(xvu + gmMachineState.xpen - x0),
-              align(yvu + gmMachineState.ypen - y0),
-              align(xvu + gmMachineState.xpen - x0) + v4pDisplayWidth,
-              align(yvu + gmMachineState.ypen - y0) + v4pDisplayHeight);
+              align(xvu + gmMachineState.xpen - xpen0),
+              align(yvu + gmMachineState.ypen - ypen0),
+              align(xvu + gmMachineState.xpen - xpen0) + v4pDisplayWidth,
+              align(yvu + gmMachineState.ypen - ypen0) + v4pDisplayHeight);
           }
         }
       } else {                                                                              // pen down
@@ -246,8 +248,8 @@ Boolean gmOnIterate() {
           focus          = NULL;
           currentPolygon = NULL;
           currentPoint   = NULL;
-          x0             = gmMachineState.xpen;
-          y0             = gmMachineState.ypen;
+          xpen0             = gmMachineState.xpen;
+          ypen0             = gmMachineState.ypen;
           if (sel == bCol) {
             v4pPolygonEnable(pCol);
           } else if (sel == bScroll) {
@@ -257,7 +259,7 @@ Boolean gmOnIterate() {
           } else if (sel == bGrid) {
             v4pPolygonEnable(pGrid);
             stepGrid0 = stepGrid;
-            y0        = 4 * (gmMachineState.ypen - floorLog2(stepGrid));
+            ypen0        = 4 * (gmMachineState.ypen - floorLog2(stepGrid));
           }
           guiStatus = push;
         } else {  // screen pen down
@@ -275,8 +277,8 @@ Boolean gmOnIterate() {
           brush = v4pAddNew(relative, black, 15);
           v4pPolygonRect(brush, gmMachineState.xpen - 1, gmMachineState.ypen - 1, gmMachineState.xpen + 1, gmMachineState.ypen + 1);
           v4pPolygonConcrete(brush, 2);
-          x0        = gmMachineState.xpen;
-          y0        = gmMachineState.ypen;
+          xpen0        = gmMachineState.xpen;
+          ypen0        = gmMachineState.ypen;
           guiStatus = edit;
         }  // tap ecran
       }  // pen down
@@ -302,8 +304,8 @@ Boolean gmOnIterate() {
           focus        = NULL;
           currentPoint = NULL;
         } else if (sel == bScroll && !focus) {
-          xvu = align(xvu + (gmMachineState.xpen - x0));
-          yvu = align(yvu + (gmMachineState.ypen - y0));
+          xvu = align(xvu + (gmMachineState.xpen - xpen0));
+          yvu = align(yvu + (gmMachineState.ypen - ypen0));
           v4pSetView(xvu, yvu, xvu + v4pDisplayWidth, yvu + v4pDisplayHeight);
         }
         if (brush) {

@@ -1,3 +1,10 @@
 *.o
 *.a
 .vscode
+
+# Demo directory - keep source files, ignore build artifacts
+demo/*/*
+!demo/*/*.c
+!demo/*/*.h
+!demo/*/Makefile
+!demo/*/README*

@@ -30,6 +30,7 @@ int gmMain(int argc, char *argv[]) {
 
   // reset machine state
   gmMachineState.buttons[0] = 0;
+  gmMachineState.key = 0;
 
   // Initialize
   gmiInit();

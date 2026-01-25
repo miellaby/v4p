@@ -42,6 +42,7 @@ int gmPollEvents() {
           SDLKey keypressed = event.key.keysym.sym;
           if (keypressed == SDLK_ESCAPE)
             rc = 1;
+          gmMachineState.key = (Uint16)keypressed;
           break;
         }
       case SDL_MOUSEBUTTONDOWN:

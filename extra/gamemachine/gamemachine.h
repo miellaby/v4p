@@ -9,6 +9,7 @@
 typedef struct gmState_s {
   Boolean buttons[8];
   Coord   xpen, ypen;
+  UInt16  key;
 } GmState;
 
 // Game machine entry points
