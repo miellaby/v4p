@@ -7,22 +7,27 @@
  ****************************************/
 
 typedef struct gmState_s {
- Boolean buttons[8];
- Coord xpen, ypen;
+  Boolean buttons[8];
+  Coord   xpen, ypen;
 } GmState;
 
 // Game machine entry points
-int gmSetFramerate(int) ;
-int gmMain(int argc, char* argv[]);
+int            gmSetFramerate(int);
+int            gmMain(int argc, char *argv[]);
+
+// Game machine input system callbacks
+void           gmiInit();
+void           gmiDestroy();
 
 // Game machine output
+extern GmState gmMachineState;
+extern int     gmFramerate;
+extern int     gmAvgFramePeriod;
+
 // To be implemented by the caller
-GmState gmMachineState;
-int gmFramerate;
-extern int gmAvgFramePeriod;
-extern Boolean gmOnInit() ;
-extern Boolean gmOnIterate() ;
-extern Boolean gmOnFrame() ;
-extern void    gmOnQuit() ;
+extern Boolean gmOnInit();
+extern Boolean gmOnIterate();
+extern Boolean gmOnFrame();
+extern void    gmOnQuit();
 
 #endif

@@ -23,6 +23,18 @@ void gmDelay(Int32 d) {
     usleep(d * 1000);
 }
 
+// Initialize the gamemachine
+void gmiInit() {
+    // DirectFB initialization is typically handled by the display system
+    // This stub can be extended if needed for DirectFB-specific initialization
+}
+
+// Cleanup the gamemachine
+void gmiDestroy() {
+    // DirectFB cleanup is typically handled by the display system
+    // This stub can be extended if needed for DirectFB-specific cleanup
+}
+
 int gmPollEvents() {
   int rc = 0;
   return rc;

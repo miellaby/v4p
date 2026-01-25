@@ -13,5 +13,5 @@ libv4pserial.a: v4pserial.o
 	$(AR) $(ARFLAGS) $@ $?
 
 v4pserial_testu: libv4pserial.a $(TOP)/libv4p.a $(TOP)/extra/gamemachine/libgm.a 
-	$(CC) $(CPPFLAGS) -o $@ \
-	  -L$(TOP)/extra/gamemachine -lv4p -lgm -lv4pserial 
+	$(CC) -o $@ \
+	  -L$(TOP)/extra/gamemachine -lv4p -lgm -lv4pserial $(CPPFLAGS)

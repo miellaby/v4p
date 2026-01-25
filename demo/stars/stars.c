@@ -8,29 +8,30 @@
 PolygonP pCol;
 PolygonP pColMatrix[STRESS_AMOUNT][STRESS_AMOUNT];
 
-int iu = 0;
-int riu = 0;
-int diu = STRESS_AMOUNT/1;
-int liu  = 3;
+int      iu  = 0;
+int      riu = 0;
+int      diu = STRESS_AMOUNT / 1;
+int      liu = 3;
 
-Boolean gmOnInit() {
+Boolean  gmOnInit() {
   int j, k;
-  v4pDisplayInit(1, 1);
+  v4pDisplayInit(1, 0);
   v4pInit();
   v4pSetBGColor(black);
 
   pCol = v4pPolygonNew(absolute, red, 0);
   v4pPolygonDecodeSVGPath(pCol, "M 478.1117,4.99999  L 490.52087,43.198877 L 530.68482,43.196598 L 498.19016,66.802524 \
           L 510.60367,105.00001 L 478.1117,81.390382 L 445.61972,105.00001 L 458.03324,66.80253 \
-          L 425.53858,43.196598 L 465.70253,43.198877 L 478.1117,4.99999 z", 1200);
-  //v4pPolygonDecodeSVGPath(pCol, "m277,318l-10,-69l-18,-58l-17,-36l-19,-25l14,-7l30,30l26,49l21,65l18,53l-45,-2z\
-  //     m-95.5,-194l-37.5,16l-40,40l-31,61l3,-69l34,-57l63,-15l23,6l-14.5,18z\
-  //     m-9.5,-40l-46,-9l-60,9l-40,26l-22,27l16,-48l57,-35l59,0l51,17l15,21l-30,-8z\
-  //     m46,7l8,-46l26,-32l32,-8l41,11l25,38l0,28l-30,-27l-32,-8l-42,13l-12,38l-16,-7z\
-  //     m31,20l39,-17l51,9l42,44l10,55l-41,-58l-35,-28l-40,-7l-26,2z",
-  //     200);
+          L 425.53858,43.196598 L 465.70253,43.198877 L 478.1117,4.99999 z",
+                           1200);
+  // v4pPolygonDecodeSVGPath(pCol, "m277,318l-10,-69l-18,-58l-17,-36l-19,-25l14,-7l30,30l26,49l21,65l18,53l-45,-2z\
+  //      m-95.5,-194l-37.5,16l-40,40l-31,61l3,-69l34,-57l63,-15l23,6l-14.5,18z\
+  //      m-9.5,-40l-46,-9l-60,9l-40,26l-22,27l16,-48l57,-35l59,0l51,17l15,21l-30,-8z\
+  //      m46,7l8,-46l26,-32l32,-8l41,11l25,38l0,28l-30,-27l-32,-8l-42,13l-12,38l-16,-7z\
+  //      m31,20l39,-17l51,9l42,44l10,55l-41,-58l-35,-28l-40,-7l-26,2z",
+  //      200);
   //			     v4pPolygonAddJump(pCol);
-  v4pPolygonTransform(pCol, -200, -300, 0, 0); // x-=400
+  v4pPolygonTransform(pCol, -200, -300, 0, 0);  // x-=400
 
   // v4pPolygonDecodePoints(pCol, "4e05 5a2b 822b 6242 6e69 4e51 2d69 3a42 192b 412b", 700);
   // Path extracted from http://upload.wikimedia.org/wikipedia/commons/4/4e/3_stars.svg
@@ -42,46 +43,47 @@ Boolean gmOnInit() {
   //                       78 5  90 43  130 43  98 66  110 105  78 81  45 105  58 66  25 43  65 43  78 5
   //         => 4e05 5a2b 822b 6242 6e69 4e51 2d69 3a42 192b 412b 4e05
   // The last point is useless in v4p
-  v4pPolygonTransform(pCol, -83, - 7, 0, 0);
-  for (j= 0; j < STRESS_AMOUNT; j++) {
+  v4pPolygonTransform(pCol, -83, -7, 0, 0);
+  for (j = 0; j < STRESS_AMOUNT; j++) {
     for (k = 0; k < STRESS_AMOUNT; k++) {
       pColMatrix[j][k] = v4pAddClone(pCol);
-          v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (1 + k - STRESS_AMOUNT/2) / 2, v4pDisplayWidth * (1 + j - STRESS_AMOUNT/2), (j * k) / 2 + riu, 1 + k % 12);
-          v4pPolygonSetColor(pColMatrix[j][k],1 + (j * k) % 100);
+      v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (1 + k - STRESS_AMOUNT / 2) / 2, v4pDisplayWidth * (1 + j - STRESS_AMOUNT / 2), (j * k) / 2 + riu, 1 + k % 12);
+      v4pPolygonSetColor(pColMatrix[j][k], 1 + (j * k) % 100);
     }
   }
   return success;
 }
 
 Boolean gmOnIterate() {
-	int i = iu, j, k;
-	if (diu>0 && i >100 * STRESS_AMOUNT) diu=-diu;
-	if (diu<0 && i + diu < -100) {
-	  diu=-diu;
-	  liu--;
-	}
-    v4pSetView(-v4pDisplayWidth * i / 256, -v4pDisplayHeight * i / 256, v4pDisplayWidth + v4pDisplayWidth * i / 256, v4pDisplayHeight + v4pDisplayHeight * i / 256);
+  int i = iu, j, k;
+  if (diu > 0 && i > 100 * STRESS_AMOUNT)
+    diu = -diu;
+  if (diu < 0 && i + diu < -100) {
+    diu = -diu;
+    liu--;
+  }
+  v4pSetView(-v4pDisplayWidth * i / 256, -v4pDisplayHeight * i / 256, v4pDisplayWidth + v4pDisplayWidth * i / 256, v4pDisplayHeight + v4pDisplayHeight * i / 256);
 
-    if (!(liu & 1))
-      for (j= 0; j < STRESS_AMOUNT; j++) {
-        for (k = 0; k < STRESS_AMOUNT; k++) {
-          v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (1 + k - STRESS_AMOUNT/2) / 2, v4pDisplayWidth * (1 + j - STRESS_AMOUNT/2), (j * k) / 2 + riu, 1 + k % 12);
-        }
+  if (!(liu & 1))
+    for (j = 0; j < STRESS_AMOUNT; j++) {
+      for (k = 0; k < STRESS_AMOUNT; k++) {
+        v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (1 + k - STRESS_AMOUNT / 2) / 2, v4pDisplayWidth * (1 + j - STRESS_AMOUNT / 2), (j * k) / 2 + riu, 1 + k % 12);
       }
-  riu+=STRESS_AMOUNT/6;
-  iu+=diu;
+    }
+  riu += STRESS_AMOUNT / 6;
+  iu += diu;
   return (liu < 0);
 }
 
 Boolean gmOnFrame() {
-   v4pRender();
-   return success;
+  v4pRender();
+  return success;
 }
 
 void gmOnQuit() {
- v4pDisplayQuit();
+  v4pDisplayQuit();
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   return gmMain(argc, argv);
 }

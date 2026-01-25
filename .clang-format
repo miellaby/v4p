@@ -1,0 +1,102 @@
+# V4P C Code Formatting Style
+# Matches the existing codebase conventions
+
+BasedOnStyle: LLVM
+IndentWidth: 2
+TabWidth: 2
+UseTab: Never
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterFunction: false
+  AfterClass: false
+  AfterControlStatement: false
+  AfterEnum: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterExternBlock: false
+  BeforeCatch: false
+  BeforeElse: false
+  IndentBraces: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortBlocksOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+
+IndentCaseLabels: true
+IndentCaseBlocks: true
+IndentAccessModifiers: false
+IndentGotoLabels: true
+IndentPPDirectives: BeforeHash
+IndentExternBlock: NoIndent
+IndentRequires: false
+
+KeepEmptyLinesAtTheStartOfBlocks: false
+NamespaceIndentation: None
+ObjCBlockIndentation: 2
+ObjCSpaceAfterProperty: false
+ObjCSpaceBeforeProtocolList: true
+
+PenaltyBreakBeforeFirstCallParameter: 19
+PenaltyBreakComment: 300
+PenaltyBreakFirstLessLess: 120
+PenaltyBreakString: 1000
+PenaltyBreakTemplateDeclaration: 10
+PenaltyExcessCharacter: 1000000
+PenaltyReturnTypeOnItsOwnLine: 200
+PenaltyIndentedWhitespace: 0
+
+PointerAlignment: Right
+ReferenceAlignment: Right
+
+SpaceAfterCStyleCast: false
+SpaceAfterTemplateKeyword: true
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeInheritanceColon: true
+SpaceBeforeParens: ControlStatements
+SpaceBeforeRangeBasedForLoopColon: true
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 2
+SpacesInAngles: false
+SpacesInContainerLiterals: true
+SpacesInCStyleCastParentheses: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+SpaceBeforeSquareBrackets: false
+
+Standard: Cpp11
+DerivePointerAlignment: false
+PackConstructorInitializers: Never
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
+
+AllowAllArgumentsOnNextLine: true
+AllowAllParametersOfDeclarationOnNextLine: true
+
+AlignConsecutiveMacros: AcrossEmptyLinesAndComments
+AlignConsecutiveAssignments: AcrossEmptyLinesAndComments
+AlignConsecutiveDeclarations: AcrossEmptyLinesAndComments
+AlignEscapedNewlines: Right
+AlignOperands: Align
+AlignTrailingComments: true
+
+BinPackArguments: true
+BinPackParameters: true
+
+ColumnLimit: 0
+CommentPragmas: '^ IWYU pragma:'
+CompactNamespaces: false
+ConstructorInitializerIndentWidth: 2
+ContinuationIndentWidth: 2
+FixNamespaceComments: true
+MaxEmptyLinesToKeep: 1
+
+SortIncludes: Never
+SortUsingDeclarations: true
+
+# V4P specific adjustments
+SpaceAfterLogicalNot: false

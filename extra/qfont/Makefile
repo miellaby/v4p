@@ -13,5 +13,5 @@ endif
 
 
 qfont: qfont.o $(TOP)/libv4p.a $(TOP)/extra/gamemachine/libgm.a 
-	$(CC) $(CPPFLAGS) -o $@ qfont.o \
-	  -L$(TOP)/extra/gamemachine -lv4p -lgm 
+	$(CC) -o $@ qfont.o \
+	  -L$(TOP)/extra/gamemachine -lv4p -lgm $(CPPFLAGS)

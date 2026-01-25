@@ -2,82 +2,84 @@
 #include "gamemachine.h"
 #include "v4p_ll.h"
 #include "v4pi.h"
-// gmi
-Int32 gmGetTicks();
-Int32 gmDelay();
-int gmPollEvents();
+#include "gmi.h"
 
 // The machine states holds basic up-to-date data
 GmState gmMachineState;
 
-//framerate stuff
-#define DEFAULT_FRAMERATE 300
-#define MAX_PERIOD (5 * 60000)
-#define MAX_SKIP 5
-int     gmFramerate = DEFAULT_FRAMERATE;
-int     gmAvgFramePeriod = 1000 / DEFAULT_FRAMERATE;
-static  int gmPeriod = 1000 / DEFAULT_FRAMERATE; // private
+// framerate stuff
+#define DEFAULT_FRAMERATE 60
+#define MAX_PERIOD        (5 * 60000)
+#define MAX_SKIP          5
+int        gmFramerate      = DEFAULT_FRAMERATE;
+int        gmAvgFramePeriod = 1000 / DEFAULT_FRAMERATE;
+static int gmPeriod         = 1000 / DEFAULT_FRAMERATE;  // private
 
 // change the framerate
-int gmSetFramerate(int new) {
+int        gmSetFramerate(int new) {
   gmFramerate = new;
-  gmPeriod = (new > 0 ? 1000 / gmFramerate : MAX_PERIOD);
-	return (new);
+  gmPeriod    = (new > 0 ? 1000 / gmFramerate : MAX_PERIOD);
+  return (new);
 }
 
 // Machine main function
-int gmMain(int argc, char* argv[])
-{
-    Boolean rc = 0;
-    Int32 excess, beforeTime, overSleepTime, afterTime,
-       timeDiff, sleepTime, repeat;
+int gmMain(int argc, char *argv[]) {
+  Boolean rc = 0;
+  Int32   excess, beforeTime, overSleepTime, afterTime,
+    timeDiff, sleepTime, repeat;
 
-    // reset machine state
-    gmMachineState.buttons[0] = 0;
+  // reset machine state
+  gmMachineState.buttons[0] = 0;
 
-    // Init call-back
-    if (gmOnInit())
-      return failure;
+  // Initialize
+  gmiInit();
 
+  // Init call-back
+  if (gmOnInit())
+    return failure;
+
+  afterTime = gmGetTicks();
+  sleepTime = 0;
+  excess    = 0;
+  while (!rc) {  // main machine loop
+    // w/ clever hackery to handle properly performance drops
+    beforeTime    = gmGetTicks();
+    overSleepTime = (beforeTime - afterTime) - sleepTime;
+
+    // poll user events
+    rc |= gmPollEvents();
+    // process scene iteration
+    rc |= gmOnIterate();
+    // render a frame
+    rc |= gmOnFrame();
+
+    // maximize frame rates and detect performance drops
     afterTime = gmGetTicks();
-    sleepTime = 0;
-    excess = 0;
-    while (!rc)  { //main machine loop
-      // w/ clever hackery to handle properly performance drops
-      beforeTime = gmGetTicks();
-      overSleepTime = (beforeTime - afterTime) - sleepTime;
-
-      // poll user events
-      rc |= gmPollEvents();
-      // process scene iteration
-      rc |= gmOnIterate();
-      // render a frame
-      rc |= gmOnFrame();
-
-      // maximize frame rates and detect performance drops
-      afterTime = gmGetTicks();
-      timeDiff = afterTime - beforeTime;
-      sleepTime = (gmPeriod - timeDiff) - overSleepTime;
-      if (sleepTime <= 0) {
-        excess -= sleepTime;
-        sleepTime = 2;
-      }
-      gmAvgFramePeriod = (3 * gmAvgFramePeriod + timeDiff + sleepTime + overSleepTime) / 4;
-      gmDelay(sleepTime);
-
-      // when framerate is low, one repeats non-display steps
-      repeat=MAX_SKIP; // max repeat
-      while (repeat-- && excess > gmPeriod) {
-        rc |= gmPollEvents();
-        rc |= gmOnIterate();
-        excess -= gmPeriod;
-      }
-      if (excess > gmPeriod) // max repeat reached
-        excess = gmPeriod;
+    timeDiff  = afterTime - beforeTime;
+    sleepTime = (gmPeriod - timeDiff) - overSleepTime;
+    if (sleepTime <= 0) {
+      excess -= sleepTime;
+      sleepTime = 2;
     }
+    gmAvgFramePeriod = (3 * gmAvgFramePeriod + timeDiff + sleepTime + overSleepTime) / 4;
+    gmDelay(sleepTime);
 
-    // we're done.
-    gmOnQuit();
+    // when framerate is low, one repeats non-display steps
+    repeat = MAX_SKIP;  // max repeat
+    while (repeat-- && excess > gmPeriod) {
+      rc |= gmPollEvents();
+      rc |= gmOnIterate();
+      excess -= gmPeriod;
+    }
+    if (excess > gmPeriod)  // max repeat reached
+      excess = gmPeriod;
+  }
 
-    return success;
+  // we're done.
+  gmOnQuit();
+
+  // Cleanup
+  gmiDestroy();
+
+  return success;
 }
