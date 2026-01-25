@@ -62,16 +62,6 @@ static void            init_input_devices() {
   }
 }
 
-// Initialize the gamemachine input system
-void gmiInit() {
-  init_input_devices();
-}
-
-// Cleanup the gamemachine input system
-void gmiDestroy() {
-  cleanup_input_devices();
-}
-
 // Cleanup input devices
 static void cleanup_input_devices() {
   if (mouse_fd >= 0)
@@ -169,4 +159,14 @@ int gmPollEvents() {
   rc = read_keyboard_event();
 
   return rc;
+}
+
+// Initialize the gamemachine input system
+void gmiInit() {
+  init_input_devices();
+}
+
+// Cleanup the gamemachine input system
+void gmiDestroy() {
+  cleanup_input_devices();
 }
