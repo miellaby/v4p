@@ -12,6 +12,6 @@ testu:
 endif
 
 
-qfont: qfont.o $(TOP)/libv4p.a $(TOP)/extra/game_engine/libgm.a 
+qfont: qfont.o $(TOP)/libv4p.a $(TOP)/extra/game_engine/libg4p.a 
 	$(CC) -o $@ qfont.o \
-	  -L$(TOP)/extra/game_engine -lv4p -lgm $(CPPFLAGS)
+	  -L$(TOP)/extra/game_engine -lv4p -lg4p $(CPPFLAGS)

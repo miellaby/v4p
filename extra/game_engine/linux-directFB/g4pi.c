@@ -9,7 +9,7 @@
 
 static Int32 SC_CLK_TCK = 0;
 
-Int32 gmGetTicks() {
+Int32 g4pGetTicks() {
 	
 	static struct tms tmsBuffer;
 	clock_t t = times(&tmsBuffer);
@@ -19,23 +19,23 @@ Int32 gmGetTicks() {
 }
 
 // pause execution
-void gmDelay(Int32 d) {
+void g4pDelay(Int32 d) {
     usleep(d * 1000);
 }
 
 // Initialize the game engine
-void gmiInit() {
+void g4piInit() {
     // DirectFB initialization is typically handled by the display system
     // This stub can be extended if needed for DirectFB-specific initialization
 }
 
 // Cleanup the game engine
-void gmiDestroy() {
+void g4piDestroy() {
     // DirectFB cleanup is typically handled by the display system
     // This stub can be extended if needed for DirectFB-specific cleanup
 }
 
-int gmPollEvents() {
+int g4pPollEvents() {
   int rc = 0;
   return rc;
 }

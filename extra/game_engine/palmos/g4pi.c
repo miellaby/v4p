@@ -20,10 +20,10 @@ typedef struct {
     UInt16 cat;
 } PalmDBType;
 char StopEvent=0,EditAutoDraw=1;
-#define GmF_top 0
-#define GmF_left 0
-#define GmF_width 160
-#define GmF_height 160
+#define G4pF_top 0
+#define G4pF_left 0
+#define G4pF_width 160
+#define G4pF_height 160
 register void *reg_a4 asm("%a4");
 #define CALLBACK_PROLOGUE void *save_a4 = reg_a4; asm("move.l %%a5,%%a4; sub.l #edata,%%a4" : :);
 #define CALLBACK_EPILOGUE reg_a4 = save_a4;
@@ -56,35 +56,35 @@ void Application_ProcessMessages(int ticks)
      } while(TimGetTicks()<until);
 }
 
-EVENT GM_OnStart(EventPtr event) ;
-EVENT GM_OnTerminate(EventPtr event) ;
-FormPtr GmF;
-EVENT GmF_OnOpen(EventPtr event) ;
-EVENT GmF_OnPenDownXY(UInt16 X,UInt16 Y) ;
-EVENT GmF_OnPenUpXY(UInt16 X,UInt16 Y) ;
-EVENT GmF_OnPenMoveXY(UInt16 X,UInt16 Y) ;
+EVENT G4p_OnStart(EventPtr event) ;
+EVENT G4p_OnTerminate(EventPtr event) ;
+FormPtr G4pF;
+EVENT G4pF_OnOpen(EventPtr event) ;
+EVENT G4pF_OnPenDownXY(UInt16 X,UInt16 Y) ;
+EVENT G4pF_OnPenUpXY(UInt16 X,UInt16 Y) ;
+EVENT G4pF_OnPenMoveXY(UInt16 X,UInt16 Y) ;
 Err StartApplication(void)
 {
-  GM_OnStart(NULL);
-    FrmGotoForm(_GmF);
+  G4p_OnStart(NULL);
+    FrmGotoForm(_G4pF);
     return 0;
 }
 
 void StopApplication(void)
 {
     if (EditAutoDraw == EditAutoDraw) {} 
-           GM_OnTerminate(NULL);
+           G4p_OnTerminate(NULL);
 	FrmSaveAllForms();
 	FrmCloseAllForms();
 }
 
 
-Boolean GmF_EventHandler(EventPtr event)
+Boolean G4pF_EventHandler(EventPtr event)
 {
     Boolean handled = false;
     CALLBACK_PROLOGUE
     __evt=event;
-    GmF=FrmGetFormPtr(_GmF);
+    G4pF=FrmGetFormPtr(_G4pF);
     switch(event->eType) {
 
         case ctlSelectEvent:
@@ -92,19 +92,19 @@ Boolean GmF_EventHandler(EventPtr event)
         case ctlRepeatEvent:
             break;
         case penDownEvent:
-           GmF_OnPenDownXY(event->screenX,event->screenY);
+           G4pF_OnPenDownXY(event->screenX,event->screenY);
             break;
         case penUpEvent:
-           GmF_OnPenUpXY(event->screenX,event->screenY);
+           G4pF_OnPenUpXY(event->screenX,event->screenY);
             break;
         case frmUpdateEvent:
-              FrmHandleEvent(GmF,event);
+              FrmHandleEvent(G4pF,event);
                handled=true;
             break;
         case penMoveEvent:
         {
            RectangleType __bounds;
-           GmF_OnPenMoveXY(event->screenX,event->screenY);
+           G4pF_OnPenMoveXY(event->screenX,event->screenY);
             break;
         }
         case tblSelectEvent:
@@ -120,8 +120,8 @@ Boolean GmF_EventHandler(EventPtr event)
         case sclExitEvent:
             break;
         case frmOpenEvent:
-           FrmDrawForm(GmF);
-           GmF_OnOpen(event);
+           FrmDrawForm(G4pF);
+           G4pF_OnOpen(event);
            handled = true;
            break;
         case frmSaveEvent:
@@ -149,8 +149,8 @@ Boolean Application_EventHandler(EventPtr event)
                          
            switch(formId) {
                         
-               case _GmF:
-                   FrmSetEventHandler(frm, GmF_EventHandler);
+               case _G4pF:
+                   FrmSetEventHandler(frm, G4pF_EventHandler);
                    break;
                 
            }
@@ -197,51 +197,51 @@ UInt32 PilotMain(UInt16 launchCode, MemPtr cmdPBP, UInt16 launchFlags)
 
 void applicativeLoop(UInt16 almProcCmd, SysAlarmTriggeredParamType *paramP) 
 { 
-  gmOnInit();
-  while (!(StopEvent || gmOnIterate())) {
+  g4pOnInit();
+  while (!(StopEvent || g4pOnIterate())) {
     Application_ProcessMessages(5);
   }
-  gmOnQuit();
+  g4pOnQuit();
 }
 Boolean startApplicativeLoop() {
    AlmSetProcAlarm(applicativeLoop,0,TimGetSeconds()+1);
    return success ;
 }
-EVENT GmF_OnOpen(EventPtr event)
+EVENT G4pF_OnOpen(EventPtr event)
 {
    startApplicativeLoop();
    return true;
 }
 
-EVENT GM_OnStart(EventPtr event)
+EVENT G4p_OnStart(EventPtr event)
 {
   SetScreenMode(8);
   return false;
 }
 
-EVENT GM_OnTerminate(EventPtr event)
+EVENT G4p_OnTerminate(EventPtr event)
 {
   WinScreenMode(winScreenModeSetToDefaults,NULL,NULL,NULL,NULL);
    return false;
 }
-EVENT GmF_OnPenDownXY(UInt16 X,UInt16 Y)
+EVENT G4pF_OnPenDownXY(UInt16 X,UInt16 Y)
 {
-   gmState->buttons[0]=true;
-   gmState->xpen=X-10;
-   gmState->ypen=Y-10;
+   g4pState->buttons[0]=true;
+   g4pState->xpen=X-10;
+   g4pState->ypen=Y-10;
    return false;
 }
 
-EVENT GmF_OnPenUpXY(UInt16 X,UInt16 Y)
+EVENT G4pF_OnPenUpXY(UInt16 X,UInt16 Y)
 {
-  gmState->buttons[0]=false;
+  g4pState->buttons[0]=false;
   return false;
 }
 
-EVENT GmF_OnPenMoveXY(UInt16 X,UInt16 Y)
+EVENT G4pF_OnPenMoveXY(UInt16 X,UInt16 Y)
 {
-   gmState->xpen=X-10;
-   gmState->ypen=Y-10;
+   g4pState->xpen=X-10;
+   g4pState->ypen=Y-10;
    return false;
 }
 

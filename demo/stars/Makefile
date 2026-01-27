@@ -2,7 +2,7 @@ TOP=../..
 EXES=stars
 include $(TOP)/rules.mak
 CPPFLAGS+= -I$(TOP)/extra/game_engine -I$(TOP)/extra/v4pserial
-stars: stars.o libv4p.a $(TOP)/extra/game_engine/libgm.a $(TOP)/extra/v4pserial/libv4pserial.a
+stars: stars.o libv4p.a $(TOP)/extra/game_engine/libg4p.a $(TOP)/extra/v4pserial/libv4pserial.a
 	$(CC) -o $@ stars.o \
-	  -L$(TOP)/extra/game_engine -L$(TOP)/extra/v4pserial -lv4p -lv4pserial -lgm \
+	  -L$(TOP)/extra/game_engine -L$(TOP)/extra/v4pserial -lv4p -lv4pserial -lg4p \
 	   $(CPPFLAGS)

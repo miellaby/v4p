@@ -10,7 +10,7 @@ int      iu  = 0;
 int      diu = STRESS_AMOUNT;
 int      liu = 3;
 
-Boolean  gmOnInit() {
+Boolean  g4pOnInit() {
   int j, k;
 
   v4pDisplayInit(1, 0);
@@ -29,7 +29,7 @@ Boolean  gmOnInit() {
   return success;
 }
 
-Boolean gmOnIterate() {
+Boolean g4pOnIterate() {
   int i = iu, j, k;
   if (diu > 0 && i > 128 * STRESS_AMOUNT)
     diu = -diu;
@@ -49,15 +49,15 @@ Boolean gmOnIterate() {
   return (liu < 0);
 }
 
-Boolean gmOnFrame() {
+Boolean g4pOnFrame() {
   v4pRender();
   return success;
 }
 
-void gmOnQuit() {
+void g4pOnQuit() {
   v4pDisplayQuit();
 }
 
 int main(int argc, char **argv) {
-  return gmMain(argc, argv);
+  return g4pMain(argc, argv);
 }

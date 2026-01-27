@@ -9,7 +9,7 @@
 PolygonP box_matrix[GRID_SIZE][GRID_SIZE];
 int frame_counter = 0;
 
-Boolean gmOnInit() {
+Boolean g4pOnInit() {
   int i, j;
   v4pDisplayInit(1, 0);  // Normal quality, windowed
   v4pInit();
@@ -32,7 +32,7 @@ Boolean gmOnInit() {
 
 int frame_count = 0;
 
-Boolean gmOnIterate() {
+Boolean g4pOnIterate() {
   int i, j;
   int zoom_factor;
   
@@ -57,14 +57,14 @@ Boolean gmOnIterate() {
   return success;  // Keep running indefinitely
 }
 
-Boolean gmOnFrame() {
+Boolean g4pOnFrame() {
   return v4pRender();
 }
 
-void gmOnQuit() {
+void g4pOnQuit() {
   // Cleanup if needed
 }
 
 int main(int argc, char **argv) {
-  return gmMain(argc, argv);
+  return g4pMain(argc, argv);
 }

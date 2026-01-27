@@ -77,7 +77,7 @@ typedef enum { idle,
 int       spotNb;
 GuiStatus guiStatus;
 
-Boolean   gmOnInit() {
+Boolean   g4pOnInit() {
   v4pDisplayInit(quality, fullscreen);
   v4pInit();
   v4pSetBGColor(green);
@@ -135,7 +135,7 @@ Coord align(Coord x) {
     return ((x - stepGrid / 2) / stepGrid) * stepGrid;
 }
 
-Boolean gmOnIterate() {
+Boolean g4pOnIterate() {
   Coord stepGrid0, stepGridPrec,
     xs, ys;
   ILayer z0, precZ;
@@ -143,31 +143,31 @@ Boolean gmOnIterate() {
 
   if (true) {
     // v4pSetView(xvu,yvu,xvu+lvu,yvu+lvu);
-    if (gmState.buttons[0]) {
+    if (g4pState.buttons[0]) {
       if (pen1) {
-        gmState.xpen = (2 * gmState.xpen + xpen1) / 3;
-        gmState.ypen = (2 * gmState.ypen + ypen1) / 3;
+        g4pState.xpen = (2 * g4pState.xpen + xpen1) / 3;
+        g4pState.ypen = (2 * g4pState.ypen + ypen1) / 3;
       }
-      xpen1 = gmState.xpen;
-      ypen1 = gmState.ypen;
+      xpen1 = g4pState.xpen;
+      ypen1 = g4pState.ypen;
 
       int x, y;
-      v4pViewToAbsolute(gmState.xpen, gmState.ypen, &x, &y);
+      v4pViewToAbsolute(g4pState.xpen, g4pState.ypen, &x, &y);
       xs = align(x);
       ys = align(y);
 
       if (guiStatus == push) {  // bar move
         if (sel == bGrid) {
           stepGridPrec = stepGrid;
-          stepGrid     = 1 << ((iabs(gmState.ypen - ypen0) / 4) % 4);
+          stepGrid     = 1 << ((iabs(g4pState.ypen - ypen0) / 4) % 4);
           if (stepGrid != stepGridPrec)
             v4pPolygonTransform(pSelGrid, stepGrid - stepGridPrec, stepGrid - stepGridPrec, 0, 0, 256, 256);
         } else if (sel == bCol) {
-          nextColor = (((iabs(gmState.ypen - ypen0) + iabs(gmState.xpen - xpen0))) + currentColor) % 255;
+          nextColor = (((iabs(g4pState.ypen - ypen0) + iabs(g4pState.xpen - xpen0))) + currentColor) % 255;
           v4pPolygonSetColor(pSelCol, nextColor);
         } else if (sel == bLayer) {
           precZ    = currentZ;
-          currentZ = (z0 + (iabs(gmState.ypen - ypen0) / 4)) % 15;
+          currentZ = (z0 + (iabs(g4pState.ypen - ypen0) / 4)) % 15;
           if (precZ != currentZ)
             v4pPolygonTransform(pSelLayer, 0, (precZ - currentZ) * 2, 0, 0, 256, 256);
         }
@@ -177,9 +177,9 @@ Boolean gmOnIterate() {
             v4pDel(brush);
             brush = NULL;
           } else {
-            v4pPolygonTransform(brush, gmState.xpen - xpen0, gmState.ypen - ypen0, 0, 0, 256, 256);
-            xpen0 = gmState.xpen;
-            ypen0 = gmState.ypen;
+            v4pPolygonTransform(brush, g4pState.xpen - xpen0, g4pState.ypen - ypen0, 0, 0, 256, 256);
+            xpen0 = g4pState.xpen;
+            ypen0 = g4pState.ypen;
           }
         }
         if (sel == bAddition) {
@@ -224,16 +224,16 @@ Boolean gmOnIterate() {
             ypen0 = ys;
           } else {
             v4pSetView(
-              align(xvu + gmState.xpen - xpen0),
-              align(yvu + gmState.ypen - ypen0),
-              align(xvu + gmState.xpen - xpen0) + v4pDisplayWidth,
-              align(yvu + gmState.ypen - ypen0) + v4pDisplayHeight);
+              align(xvu + g4pState.xpen - xpen0),
+              align(yvu + g4pState.ypen - ypen0),
+              align(xvu + g4pState.xpen - xpen0) + v4pDisplayWidth,
+              align(yvu + g4pState.ypen - ypen0) + v4pDisplayHeight);
           }
         }
       } else {                                                                              // pen down
-        if (gmState.xpen > v4pDisplayWidth - 10 && gmState.ypen < yButton) {  // bar pen down
+        if (g4pState.xpen > v4pDisplayWidth - 10 && g4pState.ypen < yButton) {  // bar pen down
           selPrec = sel;
-          ajusteSel(gmState.ypen / 10);
+          ajusteSel(g4pState.ypen / 10);
           if (selPrec == bAddition) {
             if (currentPolygon && spotNb <= 2)
               v4pDel(currentPolygon);
@@ -248,8 +248,8 @@ Boolean gmOnIterate() {
           focus          = NULL;
           currentPolygon = NULL;
           currentPoint   = NULL;
-          xpen0             = gmState.xpen;
-          ypen0             = gmState.ypen;
+          xpen0             = g4pState.xpen;
+          ypen0             = g4pState.ypen;
           if (sel == bCol) {
             v4pPolygonEnable(pCol);
           } else if (sel == bScroll) {
@@ -259,7 +259,7 @@ Boolean gmOnIterate() {
           } else if (sel == bGrid) {
             v4pPolygonEnable(pGrid);
             stepGrid0 = stepGrid;
-            ypen0        = 4 * (gmState.ypen - floorLog2(stepGrid));
+            ypen0        = 4 * (g4pState.ypen - floorLog2(stepGrid));
           }
           guiStatus = push;
         } else {  // screen pen down
@@ -275,10 +275,10 @@ Boolean gmOnIterate() {
             }
           }
           brush = v4pAddNew(relative, black, 15);
-          v4pPolygonRect(brush, gmState.xpen - 1, gmState.ypen - 1, gmState.xpen + 1, gmState.ypen + 1);
+          v4pPolygonRect(brush, g4pState.xpen - 1, g4pState.ypen - 1, g4pState.xpen + 1, g4pState.ypen + 1);
           v4pPolygonConcrete(brush, 2);
-          xpen0        = gmState.xpen;
-          ypen0        = gmState.ypen;
+          xpen0        = g4pState.xpen;
+          ypen0        = g4pState.ypen;
           guiStatus = edit;
         }  // tap ecran
       }  // pen down
@@ -304,8 +304,8 @@ Boolean gmOnIterate() {
           focus        = NULL;
           currentPoint = NULL;
         } else if (sel == bScroll && !focus) {
-          xvu = align(xvu + (gmState.xpen - xpen0));
-          yvu = align(yvu + (gmState.ypen - ypen0));
+          xvu = align(xvu + (g4pState.xpen - xpen0));
+          yvu = align(yvu + (g4pState.ypen - ypen0));
           v4pSetView(xvu, yvu, xvu + v4pDisplayWidth, yvu + v4pDisplayHeight);
         }
         if (brush) {
@@ -315,17 +315,17 @@ Boolean gmOnIterate() {
       }  // pen up ecran;
       guiStatus = idle;
     }  // no pen
-    pen1 = gmState.buttons[0];
+    pen1 = g4pState.buttons[0];
   }  // buffer
   return success;
 }
 
-Boolean gmOnFrame() {
+Boolean g4pOnFrame() {
   v4pRender();
   return success;
 }
 
-void gmOnQuit() {
+void g4pOnQuit() {
   v4pDisplayQuit();
 }
 
@@ -374,5 +374,5 @@ int main(int argc, char **argv) {
     return 0;
   }
 
-  return gmMain(argc, argv);
+  return g4pMain(argc, argv);
 }

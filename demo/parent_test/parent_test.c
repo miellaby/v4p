@@ -9,7 +9,7 @@
 PolygonP original_box;
 PolygonP box_matrix[GRID_SIZE][GRID_SIZE];
 
-Boolean gmOnInit() {
+Boolean g4pOnInit() {
   int j, k;
   Coord x, y;
   
@@ -41,7 +41,7 @@ Boolean gmOnInit() {
 
 int frame_count = 0;
 
-Boolean gmOnIterate() {
+Boolean g4pOnIterate() {
   int i = frame_count++;
   int j, k;
   
@@ -60,15 +60,15 @@ Boolean gmOnIterate() {
   return success;
 }
 
-Boolean gmOnFrame() {
+Boolean g4pOnFrame() {
   v4pRender();
   return success;
 }
 
-void gmOnQuit() {
+void g4pOnQuit() {
   // Cleanup if needed
 }
 
 int main(int argc, char **argv) {
-  return gmMain(argc, argv);
+  return g4pMain(argc, argv);
 }

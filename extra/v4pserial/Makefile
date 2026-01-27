@@ -12,6 +12,6 @@ endif
 libv4pserial.a: v4pserial.o
 	$(AR) $(ARFLAGS) $@ $?
 
-v4pserial_testu: libv4pserial.a $(TOP)/libv4p.a $(TOP)/extra/game_engine/libgm.a 
+v4pserial_testu: libv4pserial.a $(TOP)/libv4p.a $(TOP)/extra/game_engine/libg4p.a 
 	$(CC) -o $@ \
-	  -L$(TOP)/extra/game_engine -lv4p -lgm -lv4pserial $(CPPFLAGS)
+	  -L$(TOP)/extra/game_engine -lv4p -lg4p -lv4pserial $(CPPFLAGS)

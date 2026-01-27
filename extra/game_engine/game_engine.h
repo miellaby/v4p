@@ -1,34 +1,34 @@
-#ifndef GAME_ENGINE_H
-#define GAME_ENGINE_H
+#ifndef GAME_4_POCKET_H
+#define GAME_4_POCKET_H
 #include "v4p_ll.h"
 
 /*****************************************
  * Game Engine State
  ****************************************/
 
-typedef struct gmState_s {
+typedef struct g4pState_s {
   Boolean buttons[8];
   Coord   xpen, ypen;
   UInt16  key;
-} GmState;
+} G4pState;
 
-// Game engine entry points
-int            gmSetFramerate(int);
-int            gmMain(int argc, char *argv[]);
+// Game 4 Pocket entry points
+int            g4pSetFramerate(int);
+int            g4pMain(int argc, char *argv[]);
 
-// Game engine input system callbacks
-void           gmiInit();
-void           gmiDestroy();
+// Game 4 Pocket input system callbacks
+void           g4piInit();
+void           g4piDestroy();
 
-// Game engine output
-extern GmState gmState;
-extern int     gmFramerate;
-extern int     gmAvgFramePeriod;
+// Game 4 Pocket output
+extern G4pState g4pState;
+extern int     g4pFramerate;
+extern int     g4pAvgFramePeriod;
 
 // To be implemented by the caller
-extern Boolean gmOnInit();
-extern Boolean gmOnIterate();
-extern Boolean gmOnFrame();
-extern void    gmOnQuit();
+extern Boolean g4pOnInit();
+extern Boolean g4pOnIterate();
+extern Boolean g4pOnFrame();
+extern void    g4pOnQuit();
 
 #endif

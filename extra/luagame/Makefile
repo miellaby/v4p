@@ -10,4 +10,4 @@ luagame: luagame.o $(TOP)/bindings/lua/v4p4lua.o
 	$(CC) -o $@ \
 	-L$(TOP)/extra/game_engine \
 	$(TOP)/bindings/lua/v4p4lua.o \
-	-llua5.1 luagame.o -lv4p -lgm $(CPPFLAGS) 
+	-llua5.1 luagame.o -lv4p -lg4p $(CPPFLAGS) 

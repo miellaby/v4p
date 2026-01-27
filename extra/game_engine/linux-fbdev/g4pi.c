@@ -9,7 +9,7 @@
 #include <errno.h>
 #include <limits.h>
 #include "game_engine.h"
-#include "gmi.h"
+#include "g4pi.h"
 
 // Global variables for input handling
 static int             mouse_fd    = -1;
@@ -72,7 +72,7 @@ static void cleanup_input_devices() {
 }
 
 // get ticks in milliseconds
-Int32 gmGetTicks() {
+Int32 g4pGetTicks() {
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);
 
@@ -101,7 +101,7 @@ Int32 gmGetTicks() {
 }
 
 // pause execution for milliseconds
-void gmDelay(Int32 d) {
+void g4pDelay(Int32 d) {
   if (d <= 0)
     return;
   struct timespec req;
@@ -121,13 +121,13 @@ static void read_mouse_event() {
   while (read(mouse_fd, &ev, sizeof(struct input_event)) == sizeof(struct input_event)) {
     if (ev.type == EV_REL) {
       if (ev.code == REL_X) {
-        gmState.xpen += ev.value;
+        g4pState.xpen += ev.value;
       } else if (ev.code == REL_Y) {
-        gmState.ypen += ev.value;
+        g4pState.ypen += ev.value;
       }
     } else if (ev.type == EV_KEY) {
       if (ev.code == BTN_LEFT) {
-        gmState.buttons[0] = (ev.value == 1);
+        g4pState.buttons[0] = (ev.value == 1);
       }
     }
   }
@@ -149,7 +149,7 @@ static int read_keyboard_event() {
 }
 
 // poll user events
-int gmPollEvents() {
+int g4pPollEvents() {
   int rc = 0;  // return code
 
   // Read mouse events
@@ -162,11 +162,11 @@ int gmPollEvents() {
 }
 
 // Initialize the game engine input system
-void gmiInit() {
+void g4piInit() {
   init_input_devices();
 }
 
 // Cleanup the game engine input system
-void gmiDestroy() {
+void g4piDestroy() {
   cleanup_input_devices();
 }

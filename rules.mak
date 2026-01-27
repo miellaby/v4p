@@ -33,7 +33,6 @@ CCFLAGS_linux_sdl= -lSDL
 # XLIB
 CCFLAGS_linux_xlib= -lX11
 
-
 # directFB
 CCFLAGS_linux_directFB= -I/usr/include/directfb -ldirectfb
 
@@ -51,26 +50,8 @@ ARFLAGS=$(ARFLAGS_$(TARGET)) $(ARFLAGS_$(TARGET)_$(MODE))
 
 all: $(LIBS) $(EXES)
 
-extra: all $(EXTRAS:=.extra)
-
-extraclean: $(EXTRAS:=.extraclean)
-
-%.extra:
-	$(MAKE) -C extra/$(@:.extra=)
-
-%.extraclean:
-	$(MAKE) -C extra/$(@:.extraclean=) clean
-
-
-demo: extra $(DEMOS:=.demo)
-
-democlean: $(DEMOS:=.democlean)
-
-%.demo:
-	$(MAKE) -C demo/$(@:.demo=)
-
-%.democlean:
-	$(MAKE) -C demo/$(@:.democlean=) clean
+clean:
+	-rm *.o $(LIBS) $(EXES)
 
 install: $(LIBS) $(EXES)
 ifneq ($(LIBS),)   
@@ -86,9 +67,4 @@ ifneq ($(PUBLIC_HEADERS),)
 	cp $(PUBLIC_HEADERS) $(PREFIX)/include/$(PROJECT)/
 endif
 
-clean: extraclean democlean
-	-rm *.o $(LIBS) $(EXES)
-
-pkg: clean
-	find -name .svn -prune -o -name '*~' -exec rm {} \;
 VPATH=./$(TARGET)-$(BACKEND):.:$(TOP)/$(TARGET)-$(BACKEND):$(TOP)

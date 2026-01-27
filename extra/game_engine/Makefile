@@ -1,6 +1,6 @@
 TOP=../..
-LIBS=libgm.a
+LIBS=libg4p.a
 include $(TOP)/rules.mak
-libgm.a : game_engine.o gmi.o
+libg4p.a : game_engine.o g4pi.o
 	$(AR) $(ARFLAGS) $@ $?
 

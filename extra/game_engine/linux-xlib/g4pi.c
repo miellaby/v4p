@@ -3,12 +3,12 @@
 #include <sys/times.h>
 #include <X11/Xlib.h>
 #include "game_engine.h"
-#include "gmi.h"
+#include "g4pi.h"
 #include "_v4pi.h"
 
 #define CLOCKS_PER_MSEC (CLOCKS_PER_SEC / 1000);
 
-Int32 gmGetTicks() {
+Int32 g4pGetTicks() {
   static struct tms buf;
   static int        clk_ticks = 0;
   if (!clk_ticks) {
@@ -23,23 +23,23 @@ Int32 gmGetTicks() {
 }
 
 // pause execution
-void gmDelay(Int32 d) {
+void g4pDelay(Int32 d) {
   usleep(d * 1000);
 }
 
 // Initialize the game engine
-void gmiInit() {
+void g4piInit() {
   // Xlib initialization is typically handled by the display system
   // This stub can be extended if needed for Xlib-specific initialization
 }
 
 // Cleanup the game engine
-void gmiDestroy() {
+void g4piDestroy() {
   // Xlib cleanup is typically handled by the display system
   // This stub can be extended if needed for Xlib-specific cleanup
 }
 
-int gmPollEvents() {
+int g4pPollEvents() {
   int    rc = 0;
   XEvent report;
   // retrieve one event, returns if none
@@ -52,9 +52,9 @@ int gmPollEvents() {
       while (XCheckTypedEvent(currentDisplay, Expose, &report))
         ;
 
-      // one operate Expose events only when gmFramerate == 0
-      if (gmFramerate == 0)
-        rc |= gmOnFrame();
+      // one operate Expose events only when g4pFramerate == 0
+      if (g4pFramerate == 0)
+        rc |= g4pOnFrame();
       break;
 
     case ConfigureNotify:
@@ -64,11 +64,11 @@ int gmPollEvents() {
       break;
 
     case ButtonPress:
-      gmState.buttons[0] = 1;
+      g4pState.buttons[0] = 1;
       break;
 
     case ButtonRelease:
-      gmState.buttons[0] = 0;
+      g4pState.buttons[0] = 0;
       break;
 
     case MotionNotify:
@@ -84,8 +84,8 @@ int gmPollEvents() {
                            &root, &child, &root_x, &root_y,
                            &pos_x, &pos_y, &keys_buttons))
           break;
-        gmState.xpen = pos_x;
-        gmState.ypen = pos_y;
+        g4pState.xpen = pos_x;
+        g4pState.ypen = pos_y;
         break;
       }
     case KeyPress:

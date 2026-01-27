@@ -2,85 +2,85 @@
 #include "game_engine.h"
 #include "v4p_ll.h"
 #include "v4pi.h"
-#include "gmi.h"
+#include "g4pi.h"
 
-// The engine states holds basic up-to-date data
-GmState gmState;
+// The game 4 pocket states holds basic up-to-date data
+G4pState g4pState;
 
 // framerate stuff
 #define DEFAULT_FRAMERATE 60
 #define MAX_PERIOD        (5 * 60000)
 #define MAX_SKIP          5
-int        gmFramerate      = DEFAULT_FRAMERATE;
-int        gmAvgFramePeriod = 1000 / DEFAULT_FRAMERATE;
-static int gmPeriod         = 1000 / DEFAULT_FRAMERATE;  // private
+int        g4pFramerate      = DEFAULT_FRAMERATE;
+int        g4pAvgFramePeriod = 1000 / DEFAULT_FRAMERATE;
+static int g4pPeriod         = 1000 / DEFAULT_FRAMERATE;  // private
 
 // change the framerate
-int        gmSetFramerate(int new) {
-  gmFramerate = new;
-  gmPeriod    = (new > 0 ? 1000 / gmFramerate : MAX_PERIOD);
+int        g4pSetFramerate(int new) {
+  g4pFramerate = new;
+  g4pPeriod    = (new > 0 ? 1000 / g4pFramerate : MAX_PERIOD);
   return (new);
 }
 
-// Engine main function
-int gmMain(int argc, char *argv[]) {
+// Game 4 Pocket main function
+int g4pMain(int argc, char *argv[]) {
   Boolean rc = 0;
   Int32   excess, beforeTime, overSleepTime, afterTime,
     timeDiff, sleepTime, repeat;
 
-  // reset engine state
-  gmState.buttons[0] = 0;
-  gmState.key = 0;
+  // reset game 4 pocket state
+  g4pState.buttons[0] = 0;
+  g4pState.key = 0;
 
   // Initialize
-  gmiInit();
+  g4piInit();
 
   // Init call-back
-  if (gmOnInit())
+  if (g4pOnInit())
     return failure;
 
-  afterTime = gmGetTicks();
+  afterTime = g4pGetTicks();
   sleepTime = 0;
   excess    = 0;
-  while (!rc) {  // main engine loop
+  while (!rc) {  // main game 4 pocket loop
     // w/ clever hackery to handle properly performance drops
-    beforeTime    = gmGetTicks();
+    beforeTime    = g4pGetTicks();
     overSleepTime = (beforeTime - afterTime) - sleepTime;
 
     // poll user events
-    rc |= gmPollEvents();
+    rc |= g4pPollEvents();
     // process scene iteration
-    rc |= gmOnIterate();
+    rc |= g4pOnIterate();
     // render a frame
-    rc |= gmOnFrame();
+    rc |= g4pOnFrame();
 
     // maximize frame rates and detect performance drops
-    afterTime = gmGetTicks();
+    afterTime = g4pGetTicks();
     timeDiff  = afterTime - beforeTime;
-    sleepTime = (gmPeriod - timeDiff) - overSleepTime;
+    sleepTime = (g4pPeriod - timeDiff) - overSleepTime;
     if (sleepTime <= 0) {
       excess -= sleepTime;
       sleepTime = 2;
     }
-    gmAvgFramePeriod = (3 * gmAvgFramePeriod + timeDiff + sleepTime + overSleepTime) / 4;
-    gmDelay(sleepTime);
+    g4pAvgFramePeriod = (3 * g4pAvgFramePeriod + timeDiff + sleepTime + overSleepTime) / 4;
+    g4pDelay(sleepTime);
 
     // when framerate is low, one repeats non-display steps
     repeat = MAX_SKIP;  // max repeat
-    while (repeat-- && excess > gmPeriod) {
-      rc |= gmPollEvents();
-      rc |= gmOnIterate();
-      excess -= gmPeriod;
+    while (repeat-- && excess > g4pPeriod) {
+      rc |= g4pPollEvents();
+      rc |= g4pOnIterate();
+      excess -= g4pPeriod;
     }
-    if (excess > gmPeriod)  // max repeat reached
-      excess = gmPeriod;
+    if (excess > g4pPeriod)  // max repeat reached
+      excess = g4pPeriod;
   }
 
   // we're done.
-  gmOnQuit();
+  g4pOnQuit();
 
   // Cleanup
-  gmiDestroy();
+  g4piDestroy();
 
   return success;
 }

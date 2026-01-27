@@ -15,28 +15,28 @@ static int argc;
 static char** argv;
 
 // BEGIN Functions exposed to Lua ====================================
-static int l_gmGetFramerate(lua_State* luaVM) {
-   lua_Number fr = gmFramerate;
+static int l_g4pGetFramerate(lua_State* luaVM) {
+   lua_Number fr = g4pFramerate;
    lua_pushnumber(luaVM, fr); // return value
    return 1; // 1 return value
 }
 
-static int l_gmSetFramerate(lua_State* luaVM) {
+static int l_g4pSetFramerate(lua_State* luaVM) {
    int fr = (int)luaL_checknumber(luaVM, 1);
-   gmSetFramerate(fr);
+   g4pSetFramerate(fr);
    return 0; // no return value
 }
 
-static int l_gmMain(lua_State* luaVM) {
-   lua_Number rc = gmMain(argc, argv);
+static int l_g4pMain(lua_State* luaVM) {
+   lua_Number rc = g4pMain(argc, argv);
    lua_pushnumber(luaVM, rc); // return value
    return 1; // 1 return value
 }
 // END Functions exposed to Lua ======================================
 
-Boolean gmOnInit() {
-    // Call to Lua gmOnInit
-    if (luaL_dostring(luaVM, "return gmOnInit()"))  {
+Boolean g4pOnInit() {
+    // Call to Lua g4pOnInit
+    if (luaL_dostring(luaVM, "return g4pOnInit()"))  {
       fprintf(stderr, "lua script error\n");
       return 1;
 	}
@@ -47,16 +47,16 @@ Boolean gmOnInit() {
     return rc;
 }
 
-Boolean gmOnIterate() {
-    // transmit gmState to LUA in a dumb way
+Boolean g4pOnIterate() {
+    // transmit g4pState to LUA in a dumb way
 	static char buffer[500];
-    snprintf(buffer, 500, "gmState.buttons={%d,%d,%d,%d,%d,%d,%d,%d}; gmState.xpen=%d; gmState.ypen=%d;",
-        gmState.buttons[0], gmState.buttons[1], gmState.buttons[2], gmState.buttons[3], gmState.buttons[4],
-        gmState.buttons[5], gmState.buttons[6], gmState.buttons[7], gmState.xpen, gmState.ypen);
+    snprintf(buffer, 500, "g4pState.buttons={%d,%d,%d,%d,%d,%d,%d,%d}; g4pState.xpen=%d; g4pState.ypen=%d;",
+        g4pState.buttons[0], g4pState.buttons[1], g4pState.buttons[2], g4pState.buttons[3], g4pState.buttons[4],
+        g4pState.buttons[5], g4pState.buttons[6], g4pState.buttons[7], g4pState.xpen, g4pState.ypen);
     luaL_dostring(luaVM, buffer);
 
-	// Call to Lua gmOnIterate
-    if (luaL_dostring(luaVM, "return gmOnIterate()")) {
+	// Call to Lua g4pOnIterate
+    if (luaL_dostring(luaVM, "return g4pOnIterate()")) {
       fprintf(stderr, "lua script error\n");
       return 1;
 	}
@@ -65,9 +65,9 @@ Boolean gmOnIterate() {
     return rc;
 }
 
-Boolean gmOnFrame() {
-   // Call to Lua gmOnFrame
-    if (luaL_dostring(luaVM, "return gmOnFrame()"))  {
+Boolean g4pOnFrame() {
+   // Call to Lua g4pOnFrame
+    if (luaL_dostring(luaVM, "return g4pOnFrame()"))  {
       fprintf(stderr, "lua script error\n");
       return 1;
 	}
@@ -76,9 +76,9 @@ Boolean gmOnFrame() {
     return rc;
 }
 
-void gmOnQuit() {
-   // Call to Lua gmOnQuit
-    luaL_dostring(luaVM, "gmOnQuit();");
+void g4pOnQuit() {
+   // Call to Lua g4pOnQuit
+    luaL_dostring(luaVM, "g4pOnQuit();");
 }
 
 int main(int _argc, char** _argv) {
@@ -87,9 +87,9 @@ int main(int _argc, char** _argv) {
    
    int i;
    
-   // gmlogic.lua file
-   char* gameEngineLogicLuaFile = getenv("GMLOGIC");
-   if (!gameEngineLogicLuaFile) gameEngineLogicLuaFile = "./gmlogic.lua";
+   // g4plogic.lua file
+   char* gameEngineLogicLuaFile = getenv("G4PLOGIC");
+   if (!gameEngineLogicLuaFile) gameEngineLogicLuaFile = "./g4plogic.lua";
 
    // Init Lua VM
    luaVM = luaL_newstate();
@@ -119,10 +119,10 @@ int main(int _argc, char** _argv) {
    luaopen_v4p(luaVM);
    
    // register 'Game Engine' API
-   lua_register(luaVM, "gmGetFramerate", l_gmGetFramerate);
-   lua_register(luaVM, "gmSetFramerate", l_gmSetFramerate);
-   lua_register(luaVM, "gmMain", l_gmMain);
-   luaL_dostring(luaVM, "gmState={buttons={0,0,0,0,0,0,0,0},xpen=0,ypen=0};");
+   lua_register(luaVM, "g4pGetFramerate", l_g4pGetFramerate);
+   lua_register(luaVM, "g4pSetFramerate", l_g4pSetFramerate);
+   lua_register(luaVM, "g4pMain", l_g4pMain);
+   luaL_dostring(luaVM, "g4pState={buttons={0,0,0,0,0,0,0,0},xpen=0,ypen=0};");
 
    // load exe arguments
    lua_newtable(luaVM);
@@ -131,7 +131,7 @@ int main(int _argc, char** _argv) {
      lua_pushstring(luaVM, argv[i]);
      lua_rawset(luaVM, -3);
    }
-   lua_setglobal(luaVM, "gmArg");
+   lua_setglobal(luaVM, "g4pArg");
 
    // go!
    luaL_dofile(luaVM, gameEngineLogicLuaFile);
