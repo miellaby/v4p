@@ -54,6 +54,7 @@ typedef struct polygon_s {
   ICollide     i;                       // collide layer index (i may be != z)
   PolygonP     sub1;                    //  subs list
   PolygonP     next;                    // subs list link
+  PolygonP     parent;                  // parent polygon reference (for clones)
   Coord        minx, maxx, miny, maxy;  // minimal surrounding rectangle
   Coord        minyv, maxyv;            // vertical boundaries in view coordinates
   List         ActiveEdge1;             // ActiveEdges list
@@ -574,7 +575,21 @@ PolygonP v4pPolygonTransformClone(PolygonP p, PolygonP c, Coord dx, Coord dy, in
 
 // transform a polygon
 PolygonP v4pPolygonTransform(PolygonP p, Coord dx, Coord dy, int angle, ILayer dz) {
+  // If this polygon has a parent, use parent-aware transform
+  if (p->parent) {
+    return v4pPolygonTransformUsingParent(p, dx, dy, angle, dz);
+  }
+  // Otherwise, use the original behavior (transform in place)
   return v4pPolygonTransformClone(p, p, dx, dy, angle, dz);
+}
+
+// transform a clone using its parent reference
+PolygonP v4pPolygonTransformUsingParent(PolygonP c, Coord dx, Coord dy, int angle, ILayer dz) {
+  if (c && c->parent) {
+    return v4pPolygonTransformClone(c->parent, c, dx, dy, angle, dz);
+  }
+  // If no parent, fall back to regular transform
+  return v4pPolygonTransform(c, dx, dy, angle, dz);
 }
 
 // called by v4pPolygonClone
@@ -585,6 +600,11 @@ PolygonP v4pRecPolygonClone(Boolean estSub, PolygonP p) {
   for (s = p->point1; s; s = s->next)
     v4pPolygonAddPoint(c, s->x, s->y);
 
+  // Set parent reference for clones (but not for sub-polygons)
+  if (!estSub) {
+    c->parent = p;
+  }
+
   if (estSub && p->next)
     c->next = v4pRecPolygonClone(true, p->next);
   if (p->sub1)
@@ -593,7 +613,7 @@ PolygonP v4pRecPolygonClone(Boolean estSub, PolygonP p) {
   return c;
 }
 
-// clone a polygon (including its descendants)
+// clone a polygon (including its descendants) with parent reference
 PolygonP v4pPolygonClone(PolygonP p) {
   return v4pRecPolygonClone(false, p);
 }

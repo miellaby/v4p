@@ -117,6 +117,7 @@ PolygonProps       v4pPolygonDisable(PolygonP p);
 // transformation
 PolygonP           v4pPolygonTransformClone(PolygonP p, PolygonP c, Coord dx, Coord dy, int angle, ILayer dz);
 PolygonP           v4pPolygonTransform(PolygonP p, Coord dx, Coord dy, int angle, ILayer dz);
+PolygonP           v4pPolygonTransformUsingParent(PolygonP c, Coord dx, Coord dy, int angle, ILayer dz);
 
 // helpers & combo
 PolygonP           v4pPolygonRect(PolygonP p, Coord x0, Coord y0, Coord x1, Coord y1);
