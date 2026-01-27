@@ -8,3 +8,6 @@ demo/*/*
 !demo/*/*.h
 !demo/*/Makefile
 !demo/*/README*
+
+# Ignore compiled executables
+extra/luagame/luagame
