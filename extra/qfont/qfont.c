@@ -103,7 +103,7 @@ PolygonP qfontDefinePolygonFromString(char* s, PolygonP poly,
 
 #ifdef TESTU_QFONT
 #include <stdio.h>
-#include "gamemachine.h"
+#include "game_engine.h"
 
 #define STRESS_AMOUNT 100
 PolygonP pCol;

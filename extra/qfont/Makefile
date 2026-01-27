@@ -1,7 +1,7 @@
 TOP=../..
 LIBS=qfont.o
 include $(TOP)/rules.mak
-CPPFLAGS+= -I$(TOP)/extra/gamemachine
+CPPFLAGS+= -I$(TOP)/extra/game_engine
 
 ifeq ($(MODE),testu)
 CPPFLAGS+= -DTESTU_QFONT
@@ -12,6 +12,6 @@ testu:
 endif
 
 
-qfont: qfont.o $(TOP)/libv4p.a $(TOP)/extra/gamemachine/libgm.a 
+qfont: qfont.o $(TOP)/libv4p.a $(TOP)/extra/game_engine/libgm.a 
 	$(CC) -o $@ qfont.o \
-	  -L$(TOP)/extra/gamemachine -lv4p -lgm $(CPPFLAGS)
+	  -L$(TOP)/extra/game_engine -lv4p -lgm $(CPPFLAGS)

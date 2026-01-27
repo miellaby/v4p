@@ -1,13 +1,13 @@
 TOP=../..
 EXES=luagame
 include $(TOP)/rules.mak
-CPPFLAGS+= -I/usr/include/lua5.1 -I$(TOP)/extra/gamemachine
+CPPFLAGS+= -I/usr/include/lua5.1 -I$(TOP)/extra/game_engine
 
 $(TOP)/bindings/lua/v4p4lua.o:
 	$(MAKE) -C $(TOP) lua
 
 luagame: luagame.o $(TOP)/bindings/lua/v4p4lua.o
 	$(CC) -o $@ \
-	-L$(TOP)/extra/gamemachine \
+	-L$(TOP)/extra/game_engine \
 	$(TOP)/bindings/lua/v4p4lua.o \
 	-llua5.1 luagame.o -lv4p -lgm $(CPPFLAGS) 

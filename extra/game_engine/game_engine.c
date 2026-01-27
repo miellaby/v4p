@@ -1,11 +1,11 @@
 #include <stdio.h>
-#include "gamemachine.h"
+#include "game_engine.h"
 #include "v4p_ll.h"
 #include "v4pi.h"
 #include "gmi.h"
 
-// The machine states holds basic up-to-date data
-GmState gmMachineState;
+// The engine states holds basic up-to-date data
+GmState gmState;
 
 // framerate stuff
 #define DEFAULT_FRAMERATE 60
@@ -22,15 +22,15 @@ int        gmSetFramerate(int new) {
   return (new);
 }
 
-// Machine main function
+// Engine main function
 int gmMain(int argc, char *argv[]) {
   Boolean rc = 0;
   Int32   excess, beforeTime, overSleepTime, afterTime,
     timeDiff, sleepTime, repeat;
 
-  // reset machine state
-  gmMachineState.buttons[0] = 0;
-  gmMachineState.key = 0;
+  // reset engine state
+  gmState.buttons[0] = 0;
+  gmState.key = 0;
 
   // Initialize
   gmiInit();
@@ -42,7 +42,7 @@ int gmMain(int argc, char *argv[]) {
   afterTime = gmGetTicks();
   sleepTime = 0;
   excess    = 0;
-  while (!rc) {  // main machine loop
+  while (!rc) {  // main engine loop
     // w/ clever hackery to handle properly performance drops
     beforeTime    = gmGetTicks();
     overSleepTime = (beforeTime - afterTime) - sleepTime;

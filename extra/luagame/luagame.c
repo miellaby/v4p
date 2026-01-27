@@ -3,7 +3,7 @@
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
-#include "gamemachine.h"
+#include "game_engine.h"
 #include "v4p.h"
 #include "v4pi.h"
 // V4P->lua bindings
@@ -50,9 +50,9 @@ Boolean gmOnInit() {
 Boolean gmOnIterate() {
     // transmit gmState to LUA in a dumb way
 	static char buffer[500];
-    snprintf(buffer, 500, "gmMachineState.buttons={%d,%d,%d,%d,%d,%d,%d,%d}; gmState.xpen=%d; gmState.ypen=%d;",
-        gmMachineState.buttons[0], gmMachineState.buttons[1], gmMachineState.buttons[2], gmMachineState.buttons[3], gmMachineState.buttons[4],
-        gmMachineState.buttons[5], gmMachineState.buttons[6], gmMachineState.buttons[7], gmMachineState.xpen, gmMachineState.ypen);
+    snprintf(buffer, 500, "gmState.buttons={%d,%d,%d,%d,%d,%d,%d,%d}; gmState.xpen=%d; gmState.ypen=%d;",
+        gmState.buttons[0], gmState.buttons[1], gmState.buttons[2], gmState.buttons[3], gmState.buttons[4],
+        gmState.buttons[5], gmState.buttons[6], gmState.buttons[7], gmState.xpen, gmState.ypen);
     luaL_dostring(luaVM, buffer);
 
 	// Call to Lua gmOnIterate
@@ -88,8 +88,8 @@ int main(int _argc, char** _argv) {
    int i;
    
    // gmlogic.lua file
-   char* gameMachineLogicLuaFile = getenv("GMLOGIC");
-   if (!gameMachineLogicLuaFile) gameMachineLogicLuaFile = "./gmlogic.lua";
+   char* gameEngineLogicLuaFile = getenv("GMLOGIC");
+   if (!gameEngineLogicLuaFile) gameEngineLogicLuaFile = "./gmlogic.lua";
 
    // Init Lua VM
    luaVM = luaL_newstate();
@@ -118,7 +118,7 @@ int main(int _argc, char** _argv) {
    // initialize v4p API
    luaopen_v4p(luaVM);
    
-   // register 'GameMachine' API
+   // register 'Game Engine' API
    lua_register(luaVM, "gmGetFramerate", l_gmGetFramerate);
    lua_register(luaVM, "gmSetFramerate", l_gmSetFramerate);
    lua_register(luaVM, "gmMain", l_gmMain);
@@ -134,7 +134,7 @@ int main(int _argc, char** _argv) {
    lua_setglobal(luaVM, "gmArg");
 
    // go!
-   luaL_dofile(luaVM, gameMachineLogicLuaFile);
+   luaL_dofile(luaVM, gameEngineLogicLuaFile);
 
    // bye
    lua_close(luaVM);

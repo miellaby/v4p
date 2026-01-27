@@ -1,9 +1,9 @@
-#ifndef GAMEMACHINE_H
-#define GAMEMACHINE_H
+#ifndef GAME_ENGINE_H
+#define GAME_ENGINE_H
 #include "v4p_ll.h"
 
 /*****************************************
- * Game Machine State
+ * Game Engine State
  ****************************************/
 
 typedef struct gmState_s {
@@ -12,16 +12,16 @@ typedef struct gmState_s {
   UInt16  key;
 } GmState;
 
-// Game machine entry points
+// Game engine entry points
 int            gmSetFramerate(int);
 int            gmMain(int argc, char *argv[]);
 
-// Game machine input system callbacks
+// Game engine input system callbacks
 void           gmiInit();
 void           gmiDestroy();
 
-// Game machine output
-extern GmState gmMachineState;
+// Game engine output
+extern GmState gmState;
 extern int     gmFramerate;
 extern int     gmAvgFramePeriod;
 

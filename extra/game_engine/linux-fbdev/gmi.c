@@ -8,7 +8,7 @@
 #include <sys/time.h>
 #include <errno.h>
 #include <limits.h>
-#include "gamemachine.h"
+#include "game_engine.h"
 #include "gmi.h"
 
 // Global variables for input handling
@@ -121,13 +121,13 @@ static void read_mouse_event() {
   while (read(mouse_fd, &ev, sizeof(struct input_event)) == sizeof(struct input_event)) {
     if (ev.type == EV_REL) {
       if (ev.code == REL_X) {
-        gmMachineState.xpen += ev.value;
+        gmState.xpen += ev.value;
       } else if (ev.code == REL_Y) {
-        gmMachineState.ypen += ev.value;
+        gmState.ypen += ev.value;
       }
     } else if (ev.type == EV_KEY) {
       if (ev.code == BTN_LEFT) {
-        gmMachineState.buttons[0] = (ev.value == 1);
+        gmState.buttons[0] = (ev.value == 1);
       }
     }
   }
@@ -161,12 +161,12 @@ int gmPollEvents() {
   return rc;
 }
 
-// Initialize the gamemachine input system
+// Initialize the game engine input system
 void gmiInit() {
   init_input_devices();
 }
 
-// Cleanup the gamemachine input system
+// Cleanup the game engine input system
 void gmiDestroy() {
   cleanup_input_devices();
 }

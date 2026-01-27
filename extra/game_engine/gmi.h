@@ -3,13 +3,13 @@
 #include "v4p_ll.h"
 
 /*
- * Game Machine Implementation
+ * Game Engine Implementation
  */
 
-// Initialize the gamemachine backend
+// Initialize the game engine backend
 void  gmiInit();
 
-// Cleanup the gamemachine backend
+// Cleanup the game engine backend
 void  gmiDestroy();
 
 // get ticks in milliseconds

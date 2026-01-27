@@ -1,6 +1,6 @@
 TOP=.
 LIBS=libv4p.a
-EXTRAS = v4pserial qfont gamemachine luagame
+EXTRAS = v4pserial qfont game_engine luagame
 DEMOS = square ved stars parent_test zoom_test
 include $(TOP)/rules.mak
 #BACKEND=xlib
@@ -10,7 +10,7 @@ libv4p.a: quickheap.o quicktable.o sortable.o lowmath.o v4p.o v4pi.o
 libv4pserial.a: v4pserial.o
 	$(AR) $(ARFLAGS) $@ $?
 
-libgm.a: gamemachine.o
+libgm.a: game_engine.o
 	$(AR) $(ARFLAGS) $@ $?
 
 

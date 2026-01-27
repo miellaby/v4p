@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/times.h>
-#include "gamemachine.h"
+#include "game_engine.h"
 #include "_v4pi.h"
 
 // get ticks
@@ -23,13 +23,13 @@ void gmDelay(Int32 d) {
     usleep(d * 1000);
 }
 
-// Initialize the gamemachine
+// Initialize the game engine
 void gmiInit() {
     // DirectFB initialization is typically handled by the display system
     // This stub can be extended if needed for DirectFB-specific initialization
 }
 
-// Cleanup the gamemachine
+// Cleanup the game engine
 void gmiDestroy() {
     // DirectFB cleanup is typically handled by the display system
     // This stub can be extended if needed for DirectFB-specific cleanup

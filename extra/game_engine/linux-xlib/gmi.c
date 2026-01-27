@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <sys/times.h>
 #include <X11/Xlib.h>
-#include "gamemachine.h"
+#include "game_engine.h"
 #include "gmi.h"
 #include "_v4pi.h"
 
@@ -27,13 +27,13 @@ void gmDelay(Int32 d) {
   usleep(d * 1000);
 }
 
-// Initialize the gamemachine
+// Initialize the game engine
 void gmiInit() {
   // Xlib initialization is typically handled by the display system
   // This stub can be extended if needed for Xlib-specific initialization
 }
 
-// Cleanup the gamemachine
+// Cleanup the game engine
 void gmiDestroy() {
   // Xlib cleanup is typically handled by the display system
   // This stub can be extended if needed for Xlib-specific cleanup
@@ -64,11 +64,11 @@ int gmPollEvents() {
       break;
 
     case ButtonPress:
-      gmMachineState.buttons[0] = 1;
+      gmState.buttons[0] = 1;
       break;
 
     case ButtonRelease:
-      gmMachineState.buttons[0] = 0;
+      gmState.buttons[0] = 0;
       break;
 
     case MotionNotify:
@@ -84,8 +84,8 @@ int gmPollEvents() {
                            &root, &child, &root_x, &root_y,
                            &pos_x, &pos_y, &keys_buttons))
           break;
-        gmMachineState.xpen = pos_x;
-        gmMachineState.ypen = pos_y;
+        gmState.xpen = pos_x;
+        gmState.ypen = pos_y;
         break;
       }
     case KeyPress:

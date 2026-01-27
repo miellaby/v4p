@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "gamemachine.h"
+#include "game_engine.h"
 #include "SDL/SDL.h"
 #include "gmi.h"
 
@@ -13,13 +13,13 @@ void gmDelay(Int32 d) {
   SDL_Delay(d);
 }
 
-// Initialize the gamemachine
+// Initialize the game engine
 void gmiInit() {
   // SDL initialization is typically handled by the main application
   // This stub can be extended if needed for SDL-specific initialization
 }
 
-// Cleanup the gamemachine
+// Cleanup the game engine
 void gmiDestroy() {
   // SDL cleanup is typically handled by the main application
   // This stub can be extended if needed for SDL-specific cleanup
@@ -42,20 +42,20 @@ int gmPollEvents() {
           SDLKey keypressed = event.key.keysym.sym;
           if (keypressed == SDLK_ESCAPE)
             rc = 1;
-          gmMachineState.key = (Uint16)keypressed;
+          gmState.key = (Uint16)keypressed;
           break;
         }
       case SDL_MOUSEBUTTONDOWN:
-        gmMachineState.buttons[0] = 1;
+        gmState.buttons[0] = 1;
         break;
 
       case SDL_MOUSEBUTTONUP:
-        gmMachineState.buttons[0] = 0;
+        gmState.buttons[0] = 0;
         break;
 
       case SDL_MOUSEMOTION:
-        gmMachineState.xpen = event.motion.x;
-        gmMachineState.ypen = event.motion.y;
+        gmState.xpen = event.motion.x;
+        gmState.ypen = event.motion.y;
         break;
     }  // switch
   }  // loop

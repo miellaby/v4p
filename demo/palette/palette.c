@@ -1,4 +1,4 @@
-#include "gamemachine.h"
+#include "game_engine.h"
 #include "v4p.h"
 #include "v4pi.h"
 
@@ -37,9 +37,9 @@ Boolean gmOnIterate() {
   int i;
   
   // Check for mouse interaction - select color based on mouse position
-  if (gmMachineState.buttons[0]) { // Mouse button pressed
-    int mouse_x = gmMachineState.xpen;
-    int mouse_y = gmMachineState.ypen;
+  if (gmState.buttons[0]) { // Mouse button pressed
+    int mouse_x = gmState.xpen;
+    int mouse_y = gmState.ypen;
     
     // Calculate which color box the mouse is over
     int col = mouse_x / (COLOR_BOX_SIZE + SPACING);

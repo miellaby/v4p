@@ -1,7 +1,7 @@
 #include <unistd.h>
 #include <vga.h>
 #include <sys/times.h>
-#include "gamemachine.h"
+#include "game_engine.h"
 #include "gmi.h"
 
 #ifdef TESTU_GM_LINUX_SVGA
@@ -27,13 +27,13 @@ void gmDelay(Int32 d) {
   usleep(d * 1000);
 }
 
-// Initialize the gamemachine
+// Initialize the game engine
 void gmiInit() {
   // SVGA initialization is typically handled by the display system
   // This stub can be extended if needed for SVGA-specific initialization
 }
 
-// Cleanup the gamemachine
+// Cleanup the game engine
 void gmiDestroy() {
   // SVGA cleanup is typically handled by the display system
   // This stub can be extended if needed for SVGA-specific cleanup
@@ -70,7 +70,7 @@ int gmPollEvents() {
 
 #ifdef TESTU_GM_LINUX_SVGA
   #include <stdio.h>
-  #include "gamemachine.h"
+  #include "game_engine.h"
 Boolean gmOnInit() {
   return success;
 }
