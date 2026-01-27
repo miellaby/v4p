@@ -119,6 +119,10 @@ PolygonP           v4pPolygonTransformClone(PolygonP p, PolygonP c, Coord dx, Co
 PolygonP           v4pPolygonTransform(PolygonP p, Coord dx, Coord dy, int angle, ILayer dz);
 PolygonP           v4pPolygonTransformUsingParent(PolygonP c, Coord dx, Coord dy, int angle, ILayer dz);
 
+// anchor point management
+PolygonP           v4pPolygonSetAnchorToCenter(PolygonP p);
+PolygonP           v4pPolygonSetAnchor(PolygonP p, Coord x, Coord y);
+
 // helpers & combo
 PolygonP           v4pPolygonRect(PolygonP p, Coord x0, Coord y0, Coord x1, Coord y1);
 PolygonP           v4pSceneAddNew(V4pSceneP, PolygonProps t, Color col, ILayer pz);

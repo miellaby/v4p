@@ -20,6 +20,7 @@ Boolean gmOnInit() {
   // Create original box
   original_box = v4pPolygonNew(absolute, red, 5);
   v4pPolygonRect(original_box, 0, 0, BOX_SIZE, BOX_SIZE);
+  v4pPolygonSetAnchorToCenter(original_box); // Set anchor to center for rotation
   
   // Create grid of clones using parent-aware methods (now default)
   for (j = 0; j < GRID_SIZE; j++) {

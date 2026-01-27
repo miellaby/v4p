@@ -55,6 +55,7 @@ typedef struct polygon_s {
   PolygonP     sub1;                    //  subs list
   PolygonP     next;                    // subs list link
   PolygonP     parent;                  // parent polygon reference (for clones)
+  Coord        anchor_x, anchor_y;      // rotation anchor point (default: center)
   Coord        minx, maxx, miny, maxy;  // minimal surrounding rectangle
   Coord        minyv, maxyv;            // vertical boundaries in view coordinates
   List         ActiveEdge1;             // ActiveEdges list
@@ -235,6 +236,9 @@ PolygonP v4pPolygonNew(PolygonProps t, Color col, ILayer z) {
   p->point1      = NULL;
   p->sub1        = NULL;
   p->next        = NULL;
+  p->parent      = NULL;  // No parent by default
+  p->anchor_x    = 0;     // Default anchor at origin
+  p->anchor_y    = 0;
   p->miny        = JUMPCOORD;  // miny = too much => boundaries to be computed
   p->ActiveEdge1 = NULL;
   return p;
@@ -532,22 +536,31 @@ PolygonP v4pPolygonDelActiveEdges(PolygonP p) {
 }
 
 // called by v4pPolygonTransformClone()
-PolygonP v4pRecPolygonTransformClone(Boolean estSub, PolygonP p, PolygonP c, Coord dx, Coord dy, ILayer dz) {
+PolygonP v4pRecPolygonTransformClone(Boolean estSub, PolygonP p, PolygonP c, Coord dx, Coord dy, int angle, ILayer dz, Coord anchor_x, Coord anchor_y) {
   PointP sp, sc;
-  Coord  x, y, x2, y2;
+  Coord  x, y, x2, y2, tx, ty;
+  
   c->miny = JUMPCOORD;  // invalidate computed boundaries
   c->z    = c->z + dz;
   sp      = p->point1;
   sc      = c->point1;
+  
+  computeCosSin(angle);
+  
   while (sp) {
     x = sp->x;
     y = sp->y;
     if ((x & y) != JUMPCOORD) {
-      straighten(x, y, &x2, &y2);
-      x2 += dx;
-      y2 += dy;
-      sc->x = x2;
-      sc->y = y2;
+      // Translate point relative to anchor
+      tx = x - anchor_x;
+      ty = y - anchor_y;
+      
+      // Apply rotation
+      straighten(tx, ty, &x2, &y2);
+      
+      // Translate back and apply position delta
+      sc->x = x2 + anchor_x + dx;
+      sc->y = y2 + anchor_y + dy;
     } else {
       sc->x = JUMPCOORD;
       sc->y = JUMPCOORD;
@@ -557,20 +570,22 @@ PolygonP v4pRecPolygonTransformClone(Boolean estSub, PolygonP p, PolygonP c, Coo
   }
   v4pPolygonChanged(c);
   if (estSub && p->next)
-    v4pRecPolygonTransformClone(true, p->next, c->next, dx, dy, dz);
+    v4pRecPolygonTransformClone(true, p->next, c->next, dx, dy, angle, dz, anchor_x, anchor_y);
   if (p->sub1)
-    v4pRecPolygonTransformClone(true, p->sub1, c->sub1, dx, dy, dz);
+    v4pRecPolygonTransformClone(true, p->sub1, c->sub1, dx, dy, angle, dz, anchor_x, anchor_y);
   return c;
 }
 
 // transform a clone c of a polygon p so that points(c) = transfo(points(p),delta-x/y, turn-angle)
 PolygonP v4pPolygonTransformClone(PolygonP p, PolygonP c, Coord dx, Coord dy, int angle, ILayer dz) {
-  computeCosSin(angle);
   /* a voir: ratiox et ratioy :
        cosa:=(cosa*ratiox) shr 7;
        sina:=(sina*ratioy) shr 7;
    */
-  return v4pRecPolygonTransformClone(false, p, c, dx, dy, dz);
+  // Use the clone's anchor point for the entire transformation tree
+  Coord anchor_x = c->anchor_x;
+  Coord anchor_y = c->anchor_y;
+  return v4pRecPolygonTransformClone(false, p, c, dx, dy, angle, dz, anchor_x, anchor_y);
 }
 
 // transform a polygon
@@ -627,6 +642,26 @@ PolygonP v4pSceneAddClone(V4pSceneP s, PolygonP p) {
 
 PolygonP v4pAddClone(PolygonP p) {
   return v4pSceneAddClone(v4p->scene, p);
+}
+
+// Forward declaration for anchor functions
+PolygonP v4pPolygonComputeLimits(PolygonP p);
+
+// set polygon anchor point to its center
+PolygonP v4pPolygonSetAnchorToCenter(PolygonP p) {
+  if (p->miny == JUMPCOORD) {
+    v4pPolygonComputeLimits(p);
+  }
+  p->anchor_x = (p->minx + p->maxx) / 2;
+  p->anchor_y = (p->miny + p->maxy) / 2;
+  return p;
+}
+
+// set polygon anchor point manually
+PolygonP v4pPolygonSetAnchor(PolygonP p, Coord x, Coord y) {
+  p->anchor_x = x;
+  p->anchor_y = y;
+  return p;
 }
 
 // compute the minimal rectangle surrounding a polygon
