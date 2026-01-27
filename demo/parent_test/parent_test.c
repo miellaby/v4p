@@ -53,7 +53,7 @@ Boolean gmOnIterate() {
                                     k * SPACING, 
                                     j * SPACING + (i / 4) % 20,
                                     (j * k * 2) + (i / 8),
-                                    0);
+                                    0, 256, 256);
     }
   }
   

@@ -26,7 +26,7 @@ Boolean gmOnInit() {
     y = (i / COLORS_PER_ROW) * (COLOR_BOX_SIZE + SPACING);
 
     color_boxes[i] = v4pAddClone(box);
-    v4pPolygonTransformClone(box, color_boxes[i], x, y, 0, 0);
+    v4pPolygonTransformClone(box, color_boxes[i], x, y, 0, 0, 256, 256);
     v4pPolygonSetColor(color_boxes[i], i);
   }
   
@@ -56,7 +56,7 @@ Boolean gmOnIterate() {
     for (i = 0; i < 256; i++) {
       x = (i % COLORS_PER_ROW) * (COLOR_BOX_SIZE + SPACING);
       y = (i / COLORS_PER_ROW) * (COLOR_BOX_SIZE + SPACING);
-      v4pPolygonTransformClone(box, color_boxes[i], x, y, (i == current_color ? 5 : 0), 0);
+      v4pPolygonTransformClone(box, color_boxes[i], x, y, (i == current_color ? 5 : 0), 0, 256, 256);
     }
   }
 

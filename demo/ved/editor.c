@@ -65,7 +65,7 @@ int      addButton(Color col) {
 
 void ajusteSel(int s) {
   if (sel != s) {
-    v4pPolygonTransform(pSel, 0, (s - sel) * 10, 0, 0);
+    v4pPolygonTransform(pSel, 0, (s - sel) * 10, 0, 0, 256, 256);
     sel = s;
   }
 }
@@ -161,7 +161,7 @@ Boolean gmOnIterate() {
           stepGridPrec = stepGrid;
           stepGrid     = 1 << ((iabs(gmMachineState.ypen - ypen0) / 4) % 4);
           if (stepGrid != stepGridPrec)
-            v4pPolygonTransform(pSelGrid, stepGrid - stepGridPrec, stepGrid - stepGridPrec, 0, 0);
+            v4pPolygonTransform(pSelGrid, stepGrid - stepGridPrec, stepGrid - stepGridPrec, 0, 0, 256, 256);
         } else if (sel == bCol) {
           nextColor = (((iabs(gmMachineState.ypen - ypen0) + iabs(gmMachineState.xpen - xpen0))) + currentColor) % 255;
           v4pPolygonSetColor(pSelCol, nextColor);
@@ -169,7 +169,7 @@ Boolean gmOnIterate() {
           precZ    = currentZ;
           currentZ = (z0 + (iabs(gmMachineState.ypen - ypen0) / 4)) % 15;
           if (precZ != currentZ)
-            v4pPolygonTransform(pSelLayer, 0, (precZ - currentZ) * 2, 0, 0);
+            v4pPolygonTransform(pSelLayer, 0, (precZ - currentZ) * 2, 0, 0, 256, 256);
         }
       } else if (guiStatus == edit) {  // screen move
         if (brush) {
@@ -177,7 +177,7 @@ Boolean gmOnIterate() {
             v4pDel(brush);
             brush = NULL;
           } else {
-            v4pPolygonTransform(brush, gmMachineState.xpen - xpen0, gmMachineState.ypen - ypen0, 0, 0);
+            v4pPolygonTransform(brush, gmMachineState.xpen - xpen0, gmMachineState.ypen - ypen0, 0, 0, 256, 256);
             xpen0 = gmMachineState.xpen;
             ypen0 = gmMachineState.ypen;
           }
@@ -188,7 +188,7 @@ Boolean gmOnIterate() {
               v4pPolygonTransform(spots[spotNb],
                                   xs - currentPoint->x,
                                   ys - currentPoint->y,
-                                  0, 0);
+                                  0, 0, 256, 256);
             v4pPolygonMovePoint(currentPolygon, currentPoint, xs, ys);
           }
         } else if (sel == bGrid && currentPoint) {
@@ -219,7 +219,7 @@ Boolean gmOnIterate() {
             focus = collides[2].poly;
         } else if (sel == bScroll) {  // scroll fond
           if (focus) {
-            v4pPolygonTransform(focus, xs - xpen0, ys - ypen0, 0, 0);
+            v4pPolygonTransform(focus, xs - xpen0, ys - ypen0, 0, 0, 256, 256);
             xpen0 = xs;
             ypen0 = ys;
           } else {
@@ -300,7 +300,7 @@ Boolean gmOnIterate() {
           if (sel == bDel)
             v4pDel(focus);
           if (sel == bLayer)
-            v4pPolygonTransform(focus, 0, 0, 0, currentZ - v4pPolygonGetZ(focus));
+            v4pPolygonTransform(focus, 0, 0, 0, currentZ - v4pPolygonGetZ(focus), 256, 256);
           focus        = NULL;
           currentPoint = NULL;
         } else if (sel == bScroll && !focus) {

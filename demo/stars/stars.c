@@ -31,7 +31,7 @@ Boolean  gmOnInit() {
   //      m31,20l39,-17l51,9l42,44l10,55l-41,-58l-35,-28l-40,-7l-26,2z",
   //      200);
   //			     v4pPolygonAddJump(pCol);
-  v4pPolygonTransform(pCol, -200, -300, 0, 0);  // x-=400
+  v4pPolygonTransform(pCol, -200, -300, 0, 0, 256, 256);  // x-=400
 
   // v4pPolygonDecodePoints(pCol, "4e05 5a2b 822b 6242 6e69 4e51 2d69 3a42 192b 412b", 700);
   // Path extracted from http://upload.wikimedia.org/wikipedia/commons/4/4e/3_stars.svg
@@ -43,11 +43,11 @@ Boolean  gmOnInit() {
   //                       78 5  90 43  130 43  98 66  110 105  78 81  45 105  58 66  25 43  65 43  78 5
   //         => 4e05 5a2b 822b 6242 6e69 4e51 2d69 3a42 192b 412b 4e05
   // The last point is useless in v4p
-  v4pPolygonTransform(pCol, -83, -7, 0, 0);
+  v4pPolygonTransform(pCol, -83, -7, 0, 0, 256, 256);
   for (j = 0; j < STRESS_AMOUNT; j++) {
     for (k = 0; k < STRESS_AMOUNT; k++) {
       pColMatrix[j][k] = v4pAddClone(pCol);
-      v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (1 + k - STRESS_AMOUNT / 2) / 2, v4pDisplayWidth * (1 + j - STRESS_AMOUNT / 2), (j * k) / 2 + riu, 1 + k % 12);
+      v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (1 + k - STRESS_AMOUNT / 2) / 2, v4pDisplayWidth * (1 + j - STRESS_AMOUNT / 2), (j * k) / 2 + riu, 1 + k % 12, 256, 256);
       v4pPolygonSetColor(pColMatrix[j][k], 1 + (j * k) % 100);
     }
   }
@@ -67,7 +67,7 @@ Boolean gmOnIterate() {
   if (!(liu & 1))
     for (j = 0; j < STRESS_AMOUNT; j++) {
       for (k = 0; k < STRESS_AMOUNT; k++) {
-        v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (1 + k - STRESS_AMOUNT / 2) / 2, v4pDisplayWidth * (1 + j - STRESS_AMOUNT / 2), (j * k) / 2 + riu, 1 + k % 12);
+        v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (1 + k - STRESS_AMOUNT / 2) / 2, v4pDisplayWidth * (1 + j - STRESS_AMOUNT / 2), (j * k) / 2 + riu, 1 + k % 12, 256, 256);
       }
     }
   riu += STRESS_AMOUNT / 6;

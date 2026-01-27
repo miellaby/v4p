@@ -42,7 +42,7 @@ Boolean gmOnIterate() {
   if (liu & 1)
     for (j = 0; j < STRESS_AMOUNT; j++) {
       for (k = 0; k < STRESS_AMOUNT; k++) {
-        v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (1 + k - STRESS_AMOUNT / 2) / 2, v4pDisplayWidth * (1 + j - STRESS_AMOUNT / 2) / 2, (j * k) + i / 16, 0);
+        v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (1 + k - STRESS_AMOUNT / 2) / 2, v4pDisplayWidth * (1 + j - STRESS_AMOUNT / 2) / 2, (j * k) + i / 16, 0, 256, 256);
       }
     }
   iu += diu;

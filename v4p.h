@@ -115,9 +115,9 @@ PolygonProps       v4pPolygonEnable(PolygonP p);
 PolygonProps       v4pPolygonDisable(PolygonP p);
 
 // transformation
-PolygonP           v4pPolygonTransformClone(PolygonP p, PolygonP c, Coord dx, Coord dy, int angle, ILayer dz);
-PolygonP           v4pPolygonTransform(PolygonP p, Coord dx, Coord dy, int angle, ILayer dz);
-PolygonP           v4pPolygonTransformUsingParent(PolygonP c, Coord dx, Coord dy, int angle, ILayer dz);
+PolygonP           v4pPolygonTransformClone(PolygonP p, PolygonP c, Coord dx, Coord dy, int angle, ILayer dz, Coord zoom_x, Coord zoom_y);
+PolygonP           v4pPolygonTransform(PolygonP p, Coord dx, Coord dy, int angle, ILayer dz, Coord zoom_x, Coord zoom_y);
+PolygonP           v4pPolygonTransformUsingParent(PolygonP c, Coord dx, Coord dy, int angle, ILayer dz, Coord zoom_x, Coord zoom_y);
 
 // anchor point management
 PolygonP           v4pPolygonSetAnchorToCenter(PolygonP p);

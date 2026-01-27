@@ -536,7 +536,7 @@ PolygonP v4pPolygonDelActiveEdges(PolygonP p) {
 }
 
 // called by v4pPolygonTransformClone()
-PolygonP v4pRecPolygonTransformClone(Boolean estSub, PolygonP p, PolygonP c, Coord dx, Coord dy, int angle, ILayer dz, Coord anchor_x, Coord anchor_y) {
+PolygonP v4pRecPolygonTransformClone(Boolean estSub, PolygonP p, PolygonP c, Coord dx, Coord dy, int angle, ILayer dz, Coord anchor_x, Coord anchor_y, Coord zoom_x, Coord zoom_y) {
   PointP sp, sc;
   Coord  x, y, x2, y2, tx, ty;
   
@@ -558,6 +558,10 @@ PolygonP v4pRecPolygonTransformClone(Boolean estSub, PolygonP p, PolygonP c, Coo
       // Apply rotation
       straighten(tx, ty, &x2, &y2);
       
+      // Apply zoom/scaling
+      x2 = (x2 * zoom_x) >> 8;
+      y2 = (y2 * zoom_y) >> 8;
+      
       // Translate back and apply position delta
       sc->x = x2 + anchor_x + dx;
       sc->y = y2 + anchor_y + dy;
@@ -570,14 +574,14 @@ PolygonP v4pRecPolygonTransformClone(Boolean estSub, PolygonP p, PolygonP c, Coo
   }
   v4pPolygonChanged(c);
   if (estSub && p->next)
-    v4pRecPolygonTransformClone(true, p->next, c->next, dx, dy, angle, dz, anchor_x, anchor_y);
+    v4pRecPolygonTransformClone(true, p->next, c->next, dx, dy, angle, dz, anchor_x, anchor_y, zoom_x, zoom_y);
   if (p->sub1)
-    v4pRecPolygonTransformClone(true, p->sub1, c->sub1, dx, dy, angle, dz, anchor_x, anchor_y);
+    v4pRecPolygonTransformClone(true, p->sub1, c->sub1, dx, dy, angle, dz, anchor_x, anchor_y, zoom_x, zoom_y);
   return c;
 }
 
 // transform a clone c of a polygon p so that points(c) = transfo(points(p),delta-x/y, turn-angle)
-PolygonP v4pPolygonTransformClone(PolygonP p, PolygonP c, Coord dx, Coord dy, int angle, ILayer dz) {
+PolygonP v4pPolygonTransformClone(PolygonP p, PolygonP c, Coord dx, Coord dy, int angle, ILayer dz, Coord zoom_x, Coord zoom_y) {
   /* a voir: ratiox et ratioy :
        cosa:=(cosa*ratiox) shr 7;
        sina:=(sina*ratioy) shr 7;
@@ -585,26 +589,39 @@ PolygonP v4pPolygonTransformClone(PolygonP p, PolygonP c, Coord dx, Coord dy, in
   // Use the clone's anchor point for the entire transformation tree
   Coord anchor_x = c->anchor_x;
   Coord anchor_y = c->anchor_y;
-  return v4pRecPolygonTransformClone(false, p, c, dx, dy, angle, dz, anchor_x, anchor_y);
+  return v4pRecPolygonTransformClone(false, p, c, dx, dy, angle, dz, anchor_x, anchor_y, zoom_x, zoom_y);
 }
 
 // transform a polygon
-PolygonP v4pPolygonTransform(PolygonP p, Coord dx, Coord dy, int angle, ILayer dz) {
+PolygonP v4pPolygonTransform(PolygonP p, Coord dx, Coord dy, int angle, ILayer dz, Coord zoom_x, Coord zoom_y) {
   // If this polygon has a parent, use parent-aware transform
   if (p->parent) {
-    return v4pPolygonTransformUsingParent(p, dx, dy, angle, dz);
+    return v4pPolygonTransformUsingParent(p, dx, dy, angle, dz, zoom_x, zoom_y);
   }
   // Otherwise, use the original behavior (transform in place)
-  return v4pPolygonTransformClone(p, p, dx, dy, angle, dz);
+  return v4pPolygonTransformClone(p, p, dx, dy, angle, dz, zoom_x, zoom_y);
 }
 
 // transform a clone using its parent reference
-PolygonP v4pPolygonTransformUsingParent(PolygonP c, Coord dx, Coord dy, int angle, ILayer dz) {
+PolygonP v4pPolygonTransformUsingParent(PolygonP c, Coord dx, Coord dy, int angle, ILayer dz, Coord zoom_x, Coord zoom_y) {
   if (c && c->parent) {
-    return v4pPolygonTransformClone(c->parent, c, dx, dy, angle, dz);
+    return v4pPolygonTransformClone(c->parent, c, dx, dy, angle, dz, zoom_x, zoom_y);
   }
   // If no parent, fall back to regular transform
-  return v4pPolygonTransform(c, dx, dy, angle, dz);
+  return v4pPolygonTransform(c, dx, dy, angle, dz, zoom_x, zoom_y);
+}
+
+// Backward-compatible wrapper functions (zoom_x = 256, zoom_y = 256 = 1.0x scale)
+PolygonP v4pPolygonTransformCloneCompat(PolygonP p, PolygonP c, Coord dx, Coord dy, int angle, ILayer dz) {
+  return v4pPolygonTransformClone(p, c, dx, dy, angle, dz, 256, 256);
+}
+
+PolygonP v4pPolygonTransformCompat(PolygonP p, Coord dx, Coord dy, int angle, ILayer dz) {
+  return v4pPolygonTransform(p, dx, dy, angle, dz, 256, 256);
+}
+
+PolygonP v4pPolygonTransformUsingParentCompat(PolygonP c, Coord dx, Coord dy, int angle, ILayer dz) {
+  return v4pPolygonTransformUsingParent(c, dx, dy, angle, dz, 256, 256);
 }
 
 // called by v4pPolygonClone
@@ -618,6 +635,9 @@ PolygonP v4pRecPolygonClone(Boolean estSub, PolygonP p) {
   // Set parent reference for clones (but not for sub-polygons)
   if (!estSub) {
     c->parent = p;
+    // Also copy the anchor point from the parent
+    c->anchor_x = p->anchor_x;
+    c->anchor_y = p->anchor_y;
   }
 
   if (estSub && p->next)
