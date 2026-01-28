@@ -27,7 +27,7 @@ extern int     g4pAvgFramePeriod;
 
 // To be implemented by the caller
 extern Boolean g4pOnInit();
-extern Boolean g4pOnIterate();
+extern Boolean g4pOnTick(Int32 deltaTime);
 extern Boolean g4pOnFrame();
 extern void    g4pOnQuit();
 

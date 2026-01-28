@@ -33,7 +33,7 @@ Boolean g4pOnInit() {
   return success;
 }
 
-Boolean g4pOnIterate() {
+Boolean g4pOnTick(Int32 deltaTime) {
   int i;
   
   // Check for mouse interaction - select color based on mouse position

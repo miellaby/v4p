@@ -135,7 +135,7 @@ Coord align(Coord x) {
     return ((x - stepGrid / 2) / stepGrid) * stepGrid;
 }
 
-Boolean g4pOnIterate() {
+Boolean g4pOnTick(Int32 deltaTime) {
   Coord stepGrid0, stepGridPrec,
     xs, ys;
   ILayer z0, precZ;

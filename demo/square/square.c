@@ -29,8 +29,13 @@ Boolean  g4pOnInit() {
   return success;
 }
 
-Boolean g4pOnIterate() {
+Boolean g4pOnTick(Int32 deltaTime) {
   int i = iu, j, k;
+  
+  // Use deltaTime for time-based animation instead of frame-based
+  // Convert deltaTime from milliseconds to a reasonable animation speed
+  float timeFactor = deltaTime / 16.0f; // Normalize to ~60fps equivalent
+  
   if (diu > 0 && i > 128 * STRESS_AMOUNT)
     diu = -diu;
   if (diu < 0 && i + diu < -100) {
@@ -45,7 +50,9 @@ Boolean g4pOnIterate() {
         v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (1 + k - STRESS_AMOUNT / 2) / 2, v4pDisplayWidth * (1 + j - STRESS_AMOUNT / 2) / 2, (j * k) + i / 16, 0, 256, 256);
       }
     }
-  iu += diu;
+  
+  // Use time-based movement instead of frame-based
+  iu += diu * timeFactor;
   return (liu < 0);
 }
 

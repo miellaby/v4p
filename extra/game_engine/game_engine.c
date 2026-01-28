@@ -10,7 +10,7 @@ G4pState g4pState;
 // framerate stuff
 #define DEFAULT_FRAMERATE 60
 #define MAX_PERIOD        (5 * 60000)
-#define MAX_SKIP          5
+#define MAX_CATCHUP       5
 int        g4pFramerate      = DEFAULT_FRAMERATE;
 int        g4pAvgFramePeriod = 1000 / DEFAULT_FRAMERATE;
 static int g4pPeriod         = 1000 / DEFAULT_FRAMERATE;  // private
@@ -25,8 +25,9 @@ int        g4pSetFramerate(int new) {
 // Game 4 Pocket main function
 int g4pMain(int argc, char *argv[]) {
   Boolean rc = 0;
-  Int32   excess, beforeTime, overSleepTime, afterTime,
-    timeDiff, sleepTime, repeat;
+  Int32   beforeTime, afterTime, timeDiff, sleepTime, overSleepTime;
+  Int32   lastTickTime = 0;
+  Int32   deltaTime = 0;
 
   // reset game 4 pocket state
   g4pState.buttons[0] = 0;
@@ -39,41 +40,41 @@ int g4pMain(int argc, char *argv[]) {
   if (g4pOnInit())
     return failure;
 
-  afterTime = g4pGetTicks();
-  sleepTime = 0;
-  excess    = 0;
+  lastTickTime = g4pGetTicks();
   while (!rc) {  // main game 4 pocket loop
-    // w/ clever hackery to handle properly performance drops
-    beforeTime    = g4pGetTicks();
-    overSleepTime = (beforeTime - afterTime) - sleepTime;
+    // Get current time and calculate delta since last tick
+    beforeTime = g4pGetTicks();
+    deltaTime = beforeTime - lastTickTime;
+    lastTickTime = beforeTime;
+
+    // process late ticks with period = max period (up to 5 late ticks max)
+    int catchup = 0;
+    while (!rc && deltaTime > g4pPeriod && catchup++ < MAX_CATCHUP) {
+      rc |= g4pOnTick(g4pPeriod);
+      deltaTime -= g4pPeriod;
+    }
+
+    // process current tick with remaining elapsed time
+    if (!rc) {
+      rc |= g4pOnTick(deltaTime);
+      deltaTime = 0;
+    }
 
     // poll user events
     rc |= g4pPollEvents();
-    // process scene iteration
-    rc |= g4pOnIterate();
+    
     // render a frame
     rc |= g4pOnFrame();
 
-    // maximize frame rates and detect performance drops
+    // calculate sleep time to maintain target frame rate
     afterTime = g4pGetTicks();
     timeDiff  = afterTime - beforeTime;
-    sleepTime = (g4pPeriod - timeDiff) - overSleepTime;
-    if (sleepTime <= 0) {
-      excess -= sleepTime;
-      sleepTime = 2;
+    sleepTime = (g4pPeriod - timeDiff);
+    if (sleepTime <= 2) {
+      sleepTime = 2;  // minimum sleep to prevent busy waiting
     }
-    g4pAvgFramePeriod = (3 * g4pAvgFramePeriod + timeDiff + sleepTime + overSleepTime) / 4;
     g4pDelay(sleepTime);
-
-    // when framerate is low, one repeats non-display steps
-    repeat = MAX_SKIP;  // max repeat
-    while (repeat-- && excess > g4pPeriod) {
-      rc |= g4pPollEvents();
-      rc |= g4pOnIterate();
-      excess -= g4pPeriod;
-    }
-    if (excess > g4pPeriod)  // max repeat reached
-      excess = g4pPeriod;
+    g4pAvgFramePeriod = (3 * g4pAvgFramePeriod + timeDiff + sleepTime) / 4;
   }
 
   // we're done.

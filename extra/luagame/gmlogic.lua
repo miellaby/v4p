@@ -24,8 +24,12 @@ function gmOnInit()
   return false
 end
 
-function gmOnIterate()
+function gmOnTick(deltaTime)
   i = iu
+  
+  -- Use deltaTime for time-based animation
+  local timeFactor = deltaTime / 16.0  -- Normalize to ~60fps equivalent
+  
   if diu>0 and i>128 * STRESS_AMOUNT then diu=-diu end
   if diu<0 and i + diu < -100 then
      diu=-diu
@@ -43,8 +47,10 @@ function gmOnIterate()
         end
       end
   end
-  iu = iu + diu
-  angle = angle + STRESS_AMOUNT
+  
+  -- Use time-based movement
+  iu = iu + diu * timeFactor
+  angle = angle + STRESS_AMOUNT * timeFactor
   return (liu < 0)
 end
  

@@ -47,16 +47,16 @@ Boolean g4pOnInit() {
     return rc;
 }
 
-Boolean g4pOnIterate() {
+Boolean g4pOnTick(Int32 deltaTime) {
     // transmit g4pState to LUA in a dumb way
 	static char buffer[500];
-    snprintf(buffer, 500, "g4pState.buttons={%d,%d,%d,%d,%d,%d,%d,%d}; g4pState.xpen=%d; g4pState.ypen=%d;",
+    snprintf(buffer, 500, "g4pState.buttons={%d,%d,%d,%d,%d,%d,%d,%d}; g4pState.xpen=%d; g4pState.ypen=%d; g4pState.deltaTime=%d;",
         g4pState.buttons[0], g4pState.buttons[1], g4pState.buttons[2], g4pState.buttons[3], g4pState.buttons[4],
-        g4pState.buttons[5], g4pState.buttons[6], g4pState.buttons[7], g4pState.xpen, g4pState.ypen);
+        g4pState.buttons[5], g4pState.buttons[6], g4pState.buttons[7], g4pState.xpen, g4pState.ypen, deltaTime);
     luaL_dostring(luaVM, buffer);
 
-	// Call to Lua g4pOnIterate
-    if (luaL_dostring(luaVM, "return g4pOnIterate()")) {
+	// Call to Lua g4pOnTick
+    if (luaL_dostring(luaVM, "return g4pOnTick(g4pState.deltaTime)")) {
       fprintf(stderr, "lua script error\n");
       return 1;
 	}
@@ -122,7 +122,7 @@ int main(int _argc, char** _argv) {
    lua_register(luaVM, "g4pGetFramerate", l_g4pGetFramerate);
    lua_register(luaVM, "g4pSetFramerate", l_g4pSetFramerate);
    lua_register(luaVM, "g4pMain", l_g4pMain);
-   luaL_dostring(luaVM, "g4pState={buttons={0,0,0,0,0,0,0,0},xpen=0,ypen=0};");
+   luaL_dostring(luaVM, "g4pState={buttons={0,0,0,0,0,0,0,0},xpen=0,ypen=0,deltaTime=0};");
 
    // load exe arguments
    lua_newtable(luaVM);

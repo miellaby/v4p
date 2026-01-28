@@ -41,7 +41,7 @@ Boolean g4pOnInit() {
 
 int frame_count = 0;
 
-Boolean g4pOnIterate() {
+Boolean g4pOnTick(Int32 deltaTime) {
   int i = frame_count++;
   int j, k;
   
