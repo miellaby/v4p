@@ -344,15 +344,23 @@ V4pSceneP v4pSceneAdd(V4pSceneP s, PolygonP p) {
   return v4p->scene;
 }
 
+PolygonP v4pAdd(PolygonP p) {
+  return v4pSceneAdd(v4p->scene, p), p;
+}
+
 // remove a polygon from the scene
 V4pSceneP v4pSceneRemove(V4pSceneP s, PolygonP p) {
   v4pPolygonOutOfList(p, &(s->polygons));
-  return v4p->scene;
+  return s;
+}
+
+PolygonP v4pRemove(PolygonP p) {
+  return v4pSceneRemove(v4p->scene, p), p;
 }
 
 // combo PolygonDel+SceneRemove
 Boolean v4pSceneDel(V4pSceneP s, PolygonP p) {
-  return v4pSceneRemove(s, p) || v4pPolygonDel(p);
+  return v4pSceneRemove(s, p) && v4pPolygonDel(p);
 }
 
 Boolean v4pDel(PolygonP p) {

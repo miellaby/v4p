@@ -1,7 +1,7 @@
 TOP=.
 LIBS=libv4p.a
 EXTRAS = v4pserial qfont game_engine luagame
-DEMOS = square ved stars parent_test zoom_test
+DEMOS = square ved stars parent_test zoom_test nested_hexagon
 include $(TOP)/rules.mak
 #BACKEND=xlib
 

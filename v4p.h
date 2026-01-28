@@ -125,6 +125,8 @@ PolygonP           v4pPolygonSetAnchor(PolygonP p, Coord x, Coord y);
 
 // helpers & combo
 PolygonP           v4pPolygonRect(PolygonP p, Coord x0, Coord y0, Coord x1, Coord y1);
+PolygonP           v4pAdd(PolygonP p);
+PolygonP           v4pRemove(PolygonP);
 PolygonP           v4pSceneAddNew(V4pSceneP, PolygonProps t, Color col, ILayer pz);
 PolygonP           v4pSceneAddClone(V4pSceneP, PolygonP p);
 Boolean            v4pSceneDel(V4pSceneP, PolygonP p);

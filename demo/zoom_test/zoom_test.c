@@ -1,13 +1,13 @@
 #include "game_engine.h"
 #include "v4p.h"
 #include "v4pi.h"
+#include "lowmath.h" // For iabs() function
 
 #define BOX_SIZE 50
 #define SPACING 70
 #define GRID_SIZE 3
 
 PolygonP box_matrix[GRID_SIZE][GRID_SIZE];
-int frame_counter = 0;
 
 Boolean g4pOnInit() {
   int i, j;
@@ -30,27 +30,27 @@ Boolean g4pOnInit() {
   return success;  // Keep running indefinitely
 }
 
-int frame_count = 0;
+int elapsedTime = 0;
 
 Boolean g4pOnTick(Int32 deltaTime) {
   int i, j;
-  int zoom_factor;
-  
-  frame_count++;
-  
+
+  elapsedTime += deltaTime;
+
   // Apply different zoom levels to each box
   for (j = 0; j < GRID_SIZE; j++) {
     for (i = 0; i < GRID_SIZE; i++) {
-      // Calculate zoom factor based on position and time
-      zoom_factor = 128 + ((i + j + frame_count) % 256); // 0.5x to 2.0x zoom
-      
+      // Calculate zoom factor using triangle wave
+      int phase = (i + j + elapsedTime / 2) % 256; // 0 to 255
+      int zoom_factor = 128 + (255 - iabs(phase - 128));  // Creates triangle wave: 128->0->128
+
       // Transform clones with different zoom levels
       v4pPolygonTransform(box_matrix[j][i],
-                                    i * SPACING,
-                                    j * SPACING + 100,
-                                    (i * j * 2) + frame_count,
-                                    0,
-                                    zoom_factor, zoom_factor);
+                          i * SPACING,
+                          j * SPACING + 100,
+                          (i * j * 2) + elapsedTime / 2,
+                          0,
+                          zoom_factor, zoom_factor);
     }
   }
 
