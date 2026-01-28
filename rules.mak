@@ -2,7 +2,7 @@
 
 
 TARGETS = linux palmos
-BACKENDS = sdl xlib fbdev
+BACKENDS = sdl xlib fbdev drm
 MODES = normal debug testu
 
 MODE ?= normal
@@ -32,6 +32,9 @@ CCFLAGS_linux_sdl= -lSDL
 
 # XLIB
 CCFLAGS_linux_xlib= -lX11
+
+# DRM
+CCFLAGS_linux_drm= -I/usr/include/libdrm -ldrm
 
 
 ifneq ($(MODE),normal)
