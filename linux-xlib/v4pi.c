@@ -12,6 +12,16 @@
 #include "_v4pi.h"
 #include "lowmath.h"
 
+Display *currentDisplay;
+Window   currentWindow;
+int      currentScreen;
+GC       currentGC;
+// Pixmap    currentPixmap;
+int      currentDepth;
+XImage  *currentImage;
+char    *currentBuffer;
+
+
 /* A 256 color system palette inspired from old Palm Computing Devices.
 **
 */

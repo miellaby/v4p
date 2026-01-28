@@ -15,11 +15,11 @@ typedef struct v4pDisplay_s {
 } V4pDisplayS;
 
 
-Display*  currentDisplay;
-Window    currentWindow;
-int       currentScreen;
-GC        currentGC;
+extern Display*  currentDisplay;
+extern Window    currentWindow;
+extern int       currentScreen;
+extern GC        currentGC;
 // Pixmap    currentPixmap;
-int       currentDepth;
-XImage*   currentImage;
-char*     currentBuffer;
+extern int       currentDepth;
+extern XImage   *currentImage;
+extern char     *currentBuffer;
