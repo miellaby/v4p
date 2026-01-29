@@ -19,9 +19,10 @@
 // 225..229 = specials: light gray,marron,purple,green,cyan
 // 230..255 = unused (black)
 Color
-   gray=225, marron=226, purple=227, green=228, cyan=229,
-   black=215, red=125, blue=120, yellow=95, dark=217, oliver=58,
-   fluo=48;
+  gray   = 225,
+  marron = 226, purple = 227, green = 228, cyan = 229,
+  black = 215, red = 125, blue = 120, yellow = 95, dark = 217, oliver = 58,
+  fluo = 48, white = 0;
 Coord
    screenWidth=160, screenHeight=160, marginX=8, marginY=8,
    bytesBetweenLines=2*8, lineWidth = 160-2*8, lineNb = 160-2*8;

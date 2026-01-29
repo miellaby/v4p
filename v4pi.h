@@ -10,7 +10,7 @@
 extern const Color
    gray, marron, purple, green, cyan,
    black, red, blue, yellow, dark, oliver,
-   fluo;
+   fluo, white;
 
 typedef struct v4pDisplay_s* V4pDisplayP;
 

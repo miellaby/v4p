@@ -114,7 +114,7 @@ int diu = STRESS_AMOUNT;
 int liu  = 3;
 
 
-Boolean gmOnInit() {
+Boolean g4pOnInit() {
   int j, k;
 
   v4pDisplayInit(1, 0);
@@ -135,13 +135,13 @@ Boolean gmOnInit() {
   for (j= 0; j < STRESS_AMOUNT; j++) {
     for (k = 0; k < STRESS_AMOUNT; k++) {
       pColMatrix[j][k] = v4pAddClone(pCol);
-      v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (2 + 2 * k - STRESS_AMOUNT) / 2, v4pDisplayWidth * (1 + j - STRESS_AMOUNT/2)/2, 0, 10);
+      v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (2 + 2 * k - STRESS_AMOUNT) / 2, v4pDisplayWidth * (1 + j - STRESS_AMOUNT/2)/2, 0, 10, 256, 256);
     }
   }
   return success;
 }
 
-Boolean gmOnIterate() {
+Boolean g4pOnTick(Int32 deltaTime) {
 	int i = iu, j, k;
 	if (diu>0 && i >128 * STRESS_AMOUNT) diu=-diu;
 	if (diu<0 && i + diu < -100) {
@@ -153,7 +153,7 @@ Boolean gmOnIterate() {
     if (0) // dead code, not compatible with qfont because of lacking horizontal edges
       for (j= 0; j < STRESS_AMOUNT; j++) {
         for (k = 0; k < STRESS_AMOUNT; k++) {
-          v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (1 + 2 * k - STRESS_AMOUNT/2) / 2, v4pDisplayWidth * (1 + j - STRESS_AMOUNT/2)/2, (j * k) + i / 16, 0);
+          v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (1 + 2 * k - STRESS_AMOUNT/2) / 2, v4pDisplayWidth * (1 + j - STRESS_AMOUNT/2)/2, (j * k) + i / 16, 0, 256, 256);
         }
       }
 
@@ -161,18 +161,18 @@ Boolean gmOnIterate() {
   return (liu < 0);
 }
 
-Boolean gmOnFrame() {
+Boolean g4pOnFrame() {
   v4pRender();
   return success;
 }
 
-void gmOnQuit() {
-  printf("average %d\n", gmAvgFramePeriod);
+void g4pOnQuit() {
+  printf("average %d\n", g4pAvgFramePeriod);
   v4pDisplayQuit();
 }
 
 int main(int argc, char** argv) {
-  return gmMain(argc, argv);
+  return g4pMain(argc, argv);
 }
 
 #endif

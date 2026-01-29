@@ -5,27 +5,6 @@
 #define V4P_H
 #include "v4p_ll.h"
 
-/* Abbrevs
-** display size = rectangle lineNb*lineWidth
-** view = rectangular area defining what part of the scene to display
-** scene = a polygons list
-** Polygon = closed path of n points, with color and depth
-** Color = any data needed by the external drawing function
-** Point = x,y coordinates in scene referential
-** ActiveEdge : non horizontal edge inside view
-** sub : sub-polygon related to a parent polygon (rotation,moving,optimisation)
-** z = depth = layer #
-** XHeap : reserved memory for X
-** XP : X pointer
-** IX : X table indice
-** XCallBack : external function
-** opened polygon : polygon intersected by the scan-line : min(y(points)) < y < max(y(points))
-** to be opened polygon : y(scan-line) < min(y(points))
-** closed polygon : y(scan-line) > max(y(points))
-** Layer: polygons are ordered in 16 layers
-** Collide: polygons sharing collide bits generate colisions when overlaping
-*/
-
 typedef UInt16 ILayer;    // < 16
 typedef UInt16 ICollide;  // < 16
 
@@ -58,15 +37,15 @@ typedef struct point_s {
 
 #define JUMPCOORD ((Coord)~0)
 
-/******************************
+/*
  * Variables
- ******************************/
+ */
 extern V4pContextP v4pDefaultContext;  // default context (set once by v4pinit())
 extern V4pSceneP   v4pDefaultScene;    // default scene within default context (set once by v4pinit())
 
-/******************************
+/*
  * Functions
- ******************************/
+ */
 
 // v4p library fundamentals
 Boolean            v4pInit();
@@ -93,7 +72,8 @@ void               v4pViewToAbsolute(Coord x, Coord y, Coord *xa, Coord *ya);
 void               v4pAbsoluteToView(Coord x, Coord y, Coord *xa, Coord *ya);
 
 // v4p polygon
-PolygonP           v4pPolygonNew(PolygonProps t, Color col, ILayer pz);
+PolygonP           v4pPolygonNew(PolygonProps t, Color col, ILayer z);
+PolygonP           v4pDiskNew(PolygonProps t, Color col, ILayer z, Coord center_x, Coord center_y, Coord radius);
 PolygonP           v4pPolygonClone(PolygonP p);
 PolygonP           v4pPolygonConcrete(PolygonP p, ICollide i);
 PolygonP           v4pPolygonIntoList(PolygonP p, PolygonP *list);
@@ -108,6 +88,7 @@ PointP             v4pPolygonAddPoint(PolygonP p, Coord x, Coord y);
 PointP             v4pPolygonAddJump(PolygonP p);
 PointP             v4pPolygonMovePoint(PolygonP p, PointP s, Coord x, Coord y);
 Color              v4pPolygonSetColor(PolygonP p, Color c);
+Coord              v4pPolygonSetRadius(PolygonP p, Coord radius);
 PointP             v4pPolygonGetPoints(PolygonP p);
 ILayer             v4pPolygonGetZ(PolygonP p);
 Color              v4pPolygonGetColor(PolygonP p);
@@ -117,7 +98,6 @@ PolygonProps       v4pPolygonDisable(PolygonP p);
 // transformation
 PolygonP           v4pPolygonTransformClone(PolygonP p, PolygonP c, Coord dx, Coord dy, int angle, ILayer dz, Coord zoom_x, Coord zoom_y);
 PolygonP           v4pPolygonTransform(PolygonP p, Coord dx, Coord dy, int angle, ILayer dz, Coord zoom_x, Coord zoom_y);
-PolygonP           v4pPolygonTransformUsingParent(PolygonP c, Coord dx, Coord dy, int angle, ILayer dz, Coord zoom_x, Coord zoom_y);
 
 // anchor point management
 PolygonP           v4pPolygonSetAnchorToCenter(PolygonP p);
@@ -127,10 +107,11 @@ PolygonP           v4pPolygonSetAnchor(PolygonP p, Coord x, Coord y);
 PolygonP           v4pPolygonRect(PolygonP p, Coord x0, Coord y0, Coord x1, Coord y1);
 PolygonP           v4pAdd(PolygonP p);
 PolygonP           v4pRemove(PolygonP);
-PolygonP           v4pSceneAddNew(V4pSceneP, PolygonProps t, Color col, ILayer pz);
+PolygonP           v4pSceneAddNewPoly(V4pSceneP, PolygonProps t, Color col, ILayer z);
+PolygonP           v4pSceneAddNewDisk(V4pSceneP, PolygonProps t, Color col, ILayer z, Coord center_x, Coord center_y, Coord radius);
 PolygonP           v4pSceneAddClone(V4pSceneP, PolygonP p);
 Boolean            v4pSceneDel(V4pSceneP, PolygonP p);
-PolygonP           v4pAddNew(PolygonProps t, Color col, ILayer pz);
+PolygonP           v4pAddNew(PolygonProps t, Color col, ILayer z);
 PolygonP           v4pAddClone(PolygonP p);
 Boolean            v4pDel(PolygonP p);
 

@@ -85,9 +85,10 @@ static int
 
 // Some constants linking to basic colors;
 const Color
-   gray=225, marron=226, purple=227, green=228, cyan=229,
-   black=215, red=125, blue=95, yellow=120, dark=217, oliver=58,
-   fluo=48;
+  gray   = 225,
+  marron = 226, purple = 227, green = 228, cyan = 229,
+  black = 215, red = 125, blue = 95, yellow = 120, dark = 217, oliver = 58,
+  fluo = 48, white = 0;
 
 // Default window/screen width & heigth
 const Coord defaultScreenWidth = 640, defaultScreenHeight = 480;
