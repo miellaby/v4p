@@ -3,16 +3,17 @@
 #include "v4p.h"
 #include "v4pi.h"
 #include "qfont.h"
+#include "lowmath.h"
 
-#define STRESS_AMOUNT 100
+#define STRESS_AMOUNT 10
 PolygonP pCol;
-PolygonP pColMatrix[STRESS_AMOUNT][STRESS_AMOUNT];
+PolygonP pColMatrix[STRESS_AMOUNT * 2][STRESS_AMOUNT];
 
-int iu = 0;
-int diu = STRESS_AMOUNT;
-int liu  = 3;
+int      iu  = 0;
+int      diu = STRESS_AMOUNT;
+int      liu = 3;
 
-Boolean g4pOnInit() {
+Boolean  g4pOnInit() {
   int j, k;
 
   v4pDisplayInit(1, 0);
@@ -21,42 +22,34 @@ Boolean g4pOnInit() {
   v4pSetBGColor(blue);
 
   pCol = v4pPolygonNew(absolute, red, 10);
-  qfontDefinePolygonFromString("HELLO", pCol,
-    -v4pDisplayWidth / 4, -v4pDisplayWidth / 16,
-     v4pDisplayWidth / 8, v4pDisplayWidth / 8,
-     5);
-  qfontDefinePolygonFromString("WORLD", pCol,
-    -v4pDisplayWidth / 4, v4pDisplayWidth / 16 + 5,
-     v4pDisplayWidth / 8, v4pDisplayWidth / 8,
-     5);
+  qfontDefinePolygonFromString("PORTEZ CE VIEUX WHISKY AU JUGE BLOND QUI FUME", pCol,
+                               -v4pDisplayWidth / 2, -v4pDisplayWidth / 32,
+                               v4pDisplayWidth / 16, v4pDisplayWidth / 16,
+                               12);
+  qfontDefinePolygonFromString("THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG", pCol,
+                               -v4pDisplayWidth / 2, v4pDisplayWidth / 32 + 12,
+                               v4pDisplayWidth / 16, v4pDisplayWidth / 16,
+                               12);
 
-  for (j= 0; j < STRESS_AMOUNT; j++) {
+  for (j = 0; j < STRESS_AMOUNT * 2; j++) {
     for (k = 0; k < STRESS_AMOUNT; k++) {
       pColMatrix[j][k] = v4pAddClone(pCol);
-      v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (2 + 2 * k - STRESS_AMOUNT) / 2, v4pDisplayWidth * (1 + j - STRESS_AMOUNT/2)/2, 0, 10, 256, 256);
+      v4pPolygonTransformClone(pCol, pColMatrix[j][k],
+        v4pDisplayWidth * (2 + 2 * k - STRESS_AMOUNT) * 2,
+         v4pDisplayHeight * (1 + j - STRESS_AMOUNT / 2) / 3, 0, 10, 256, 256);
     }
   }
   return success;
 }
 
+int elapsedTime = 0;
+
 Boolean g4pOnTick(Int32 deltaTime) {
-	int i = iu, j, k;
-	if (diu>0 && i >128 * STRESS_AMOUNT) diu=-diu;
-	if (diu<0 && i + diu < -100) {
-	  diu=-diu;
-	  liu--;
-	}
-    v4pSetView(-v4pDisplayWidth * i / 256, -v4pDisplayHeight * i / 256, v4pDisplayWidth + v4pDisplayWidth * i / 256, v4pDisplayHeight + v4pDisplayHeight * i / 256);
-
-    if (0) // dead code, not compatible with qfont because of lacking horizontal edges
-      for (j= 0; j < STRESS_AMOUNT; j++) {
-        for (k = 0; k < STRESS_AMOUNT; k++) {
-          v4pPolygonTransformClone(pCol, pColMatrix[j][k], v4pDisplayWidth * (1 + 2 * k - STRESS_AMOUNT/2) / 2, v4pDisplayWidth * (1 + j - STRESS_AMOUNT/2)/2, (j * k) + i / 16, 0, 256, 256);
-        }
-      }
-
-  iu+=diu;
-  return (liu < 0);
+  elapsedTime += deltaTime;
+  int scale = (129 - iabs(elapsedTime % 256 - 128) + (3 * elapsedTime / 2) % 64000) / 64;
+  v4pSetView(-v4pDisplayWidth * scale / 256, -v4pDisplayHeight * scale / 256,
+             v4pDisplayWidth + v4pDisplayWidth * scale / 256, v4pDisplayHeight + v4pDisplayHeight * scale / 256);
+  return success;
 }
 
 Boolean g4pOnFrame() {
@@ -69,6 +62,6 @@ void g4pOnQuit() {
   v4pDisplayQuit();
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   return g4pMain(argc, argv);
 }
