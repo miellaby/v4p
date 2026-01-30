@@ -50,6 +50,7 @@
 #include "quicktable.h"
 #include "v4pi.h"
 #include <stdio.h>
+#include "assert.h"
 
 #define YHASH_SIZE 512
 #define YHASH_MASK 511
@@ -337,6 +338,7 @@ int v4p_destroy(PolygonP p) {
 
 // Add a polygon to a list linked by the 'next' pointer
 PolygonP v4p_intoList(PolygonP p, PolygonP* list) {
+    assert(*list != p);
     p->next = *list;
     *list = p;
     return p;
@@ -425,13 +427,9 @@ PolygonP v4p_remove(PolygonP p) {
     return v4p_sceneRemove(v4p->scene, p), p;
 }
 
-// combo PolygonDel+SceneRemove
-Boolean v4p_sceneDel(V4pSceneP s, PolygonP p) {
-    return v4p_sceneRemove(s, p) && v4p_destroy(p);
-}
-
+// combo remove+destroy from scence
 Boolean v4p_destroyFromScene(PolygonP p) {
-    return v4p_sceneDel(v4p->scene, p);
+    return v4p_sceneRemove(v4p->scene, p) && v4p_destroy(p);
 }
 
 // combo PolygonAddSub+PolygonNew
@@ -1110,8 +1108,9 @@ void v4p_buildOpenableAELists(PolygonP polygonChain) {
             l = ListNext(l);
         }
 
-        if (p->sub1)
+        if (p->sub1) {
             v4p_buildOpenableAELists(p->sub1);
+        }
     }
 }
 

@@ -136,9 +136,9 @@ PolygonP v4p_sceneAddNewDisk(V4pSceneP,
                              Coord center_y,
                              Coord radius);
 PolygonP v4p_sceneAddClone(V4pSceneP, PolygonP p);
-Boolean v4p_sceneDel(V4pSceneP, PolygonP p);
 PolygonP v4p_addNew(PolygonProps t, Color col, ILayer z);
 PolygonP v4p_addClone(PolygonP p);
 Boolean v4p_destroy(PolygonP p);
+Boolean v4p_destroyFromScene(PolygonP p);
 
 #endif

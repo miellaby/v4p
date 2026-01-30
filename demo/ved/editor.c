@@ -241,12 +241,12 @@ Boolean g4pOnTick(Int32 deltaTime) {
                     ajusteSel(g4pState.ypen / 10);
                     if (selPrec == bAddition) {
                         if (currentPolygon && spotNb <= 2)
-                            v4p_destroy(currentPolygon);
+                            v4p_destroyFromScene(currentPolygon);
 
                         while (spotNb) {
                             spotNb--;
                             if (spotNb < 64)
-                                v4p_destroy(spots[spotNb]);
+                                v4p_destroyFromScene(spots[spotNb]);
                         }
                     }
                     spotNb = 0;
@@ -307,7 +307,7 @@ Boolean g4pOnTick(Int32 deltaTime) {
                     if (sel == bCol)
                         v4p_setColor(focus, currentColor);
                     if (sel == bDel)
-                        v4p_destroy(focus);
+                        v4p_destroyFromScene(focus);
                     if (sel == bLayer)
                         v4p_transform(focus, 0, 0, 0, currentZ - v4p_getZ(focus), 256, 256);
                     focus = NULL;
@@ -318,7 +318,7 @@ Boolean g4pOnTick(Int32 deltaTime) {
                     v4p_setView(xvu, yvu, xvu + v4pDisplayWidth, yvu + v4pDisplayHeight);
                 }
                 if (brush) {
-                    v4p_destroy(brush);
+                    v4p_destroyFromScene(brush);
                     brush = NULL;
                 }
             }  // pen up ecran;
