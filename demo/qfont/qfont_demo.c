@@ -6,8 +6,8 @@
 #include "lowmath.h"
 
 #define STRESS_AMOUNT 10
-PolygonP pCol;
-PolygonP pColMatrix[STRESS_AMOUNT * 2][STRESS_AMOUNT];
+V4pPolygonP pCol;
+V4pPolygonP pColMatrix[STRESS_AMOUNT * 2][STRESS_AMOUNT];
 
 int iu = 0;
 int diu = STRESS_AMOUNT;
@@ -19,9 +19,9 @@ Boolean g4pOnInit() {
     v4pDisplayInit(1, 0);
     v4p_init();
 
-    v4p_setBGColor(blue);
+    v4p_setBGColor(V4P_BLUE);
 
-    pCol = v4p_new(absolute, red, 10);
+    pCol = v4p_new(V4P_ABSOLUTE, V4P_RED, 10);
     qfontDefinePolygonFromString("PORTEZ CE VIEUX WHISKY AU JUGE BLOND QUI FUME",
                                  pCol,
                                  -v4pDisplayWidth / 2,

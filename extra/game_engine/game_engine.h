@@ -8,7 +8,7 @@
 
 typedef struct g4pState_s {
     Boolean buttons[8];
-    Coord xpen, ypen;
+    V4pCoord xpen, ypen;
     UInt16 key;
 } G4pState;
 

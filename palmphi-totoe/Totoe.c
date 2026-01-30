@@ -192,7 +192,7 @@ UInt32 PilotMain(UInt16 launchCode, MemPtr cmdPBP, UInt16 launchFlags) {
 
 Boolean pen = false;
 #line 2 "TotoF.c"
-Coord xpen, ypen;
+V4pCoord xpen, ypen;
 #line 3 "TotoF.c"
 extern Boolean initApp();
 #line 4 "TotoF.c"
@@ -323,7 +323,7 @@ EVENT TotoF_OnPenMoveXY(UInt16 X, UInt16 Y)
 #line 4 "editor.c"
 extern Boolean pen;
 #line 5 "editor.c"
-extern Coord xpen, ypen;
+extern V4pCoord xpen, ypen;
 #line 6 "editor.c"
 
 #line 7 "editor.c"
@@ -331,15 +331,15 @@ int i, j, k, dist, mindist;
 #line 8 "editor.c"
 
 #line 9 "editor.c"
-ILayer z;
+V4pLayer z;
 #line 10 "editor.c"
 
 #line 11 "editor.c"
-PolygonP scene;
+V4pPolygonP scene;
 #line 12 "editor.c"
 
 #line 13 "editor.c"
-Coord x, y, xvu, yvu, lvu,
+V4pCoord x, y, xvu, yvu, lvu,
 #line 14 "editor.c"
     xpen1, ypen1, yButton = 1,
 #line 15 "editor.c"
@@ -347,7 +347,7 @@ Coord x, y, xvu, yvu, lvu,
 #line 16 "editor.c"
 
 #line 17 "editor.c"
-PolygonP spots[64];
+V4pPolygonP spots[64];
 #line 18 "editor.c"
 
 #line 19 "editor.c"
@@ -363,7 +363,7 @@ int bAddition, bDel, bLayer,
 #line 24 "editor.c"
 
 #line 25 "editor.c"
-PolygonP
+V4pPolygonP
 #line 26 "editor.c"
     pSel,
 #line 27 "editor.c"
@@ -377,25 +377,25 @@ PolygonP
 #line 31 "editor.c"
 
 #line 32 "editor.c"
-PointP currentPoint, s;
+V4pPointP currentPoint, s;
 #line 33 "editor.c"
 
 #line 34 "editor.c"
-ILayer currentZ;
+V4pLayer currentZ;
 #line 35 "editor.c"
 
 #line 36 "editor.c"
-Color currentColor, nextColor;
+V4pColor currentColor, nextColor;
 #line 37 "editor.c"
 
 #line 38 "editor.c"
-PolygonP buttons[16];
+V4pPolygonP buttons[16];
 #line 39 "editor.c"
 
 #line 40 "editor.c"
-int addButton(Color col) {
+int addButton(V4pColor col) {
 #line 41 "editor.c"
-    PolygonP button = v4pListAddPolygon(&scene, relative, col, 14);
+    V4pPolygonP button = v4pListAddPolygon(&scene, V4P_RELATIVE, col, 14);
 #line 42 "editor.c"
     buttons[iButton] = button;
 #line 43 "editor.c"
@@ -463,15 +463,15 @@ Boolean initApp() {
 #line 74 "editor.c"
     stepGrid = 8;
 #line 75 "editor.c"
-    bAddition = addButton(red);
+    bAddition = addButton(V4P_RED);
 #line 76 "editor.c"
     bDel = addButton(gray);
 #line 77 "editor.c"
-    bLayer = addButton(blue);
+    bLayer = addButton(V4P_BLUE);
 #line 78 "editor.c"
     bScroll = addButton(yellow);
 #line 79 "editor.c"
-    bCol = addButton(black);
+    bCol = addButton(V4P_BLACK);
 #line 80 "editor.c"
     bGrid = addButton(cyan);
 #line 81 "editor.c"
@@ -479,7 +479,7 @@ Boolean initApp() {
 #line 82 "editor.c"
     sel = 0;
 #line 83 "editor.c"
-    currentColor = black;
+    currentColor = V4P_BLACK;
 #line 84 "editor.c"
     currentZ = 7;
 #line 85 "editor.c"
@@ -487,17 +487,17 @@ Boolean initApp() {
 #line 86 "editor.c"
 
 #line 87 "editor.c"
-    pSel = v4pListAddPolygon(&scene, relative, black, 13);
+    pSel = v4pListAddPolygon(&scene, V4P_RELATIVE, V4P_BLACK, 13);
 #line 88 "editor.c"
     v4p_rect(pSel, lineWidth - 11, 0, lineWidth, 11);
 #line 89 "editor.c"
 
 #line 90 "editor.c"
-    pCol = v4pListAddPolygon(&scene, relative, black, 14);
+    pCol = v4pListAddPolygon(&scene, V4P_RELATIVE, V4P_BLACK, 14);
 #line 91 "editor.c"
     v4p_rect(pCol, -xvu - 20, -yvu - 20, -xvu + 20, -yvu + 20);
 #line 92 "editor.c"
-    pSelCol = v4p_addNewSub(pCol, relative, black, 15);
+    pSelCol = v4p_addNewSub(pCol, V4P_RELATIVE, V4P_BLACK, 15);
 #line 93 "editor.c"
     v4p_rect(pSelCol, -xvu - 18, -yvu - 18, -xvu + 18, -yvu + 18);
 #line 94 "editor.c"
@@ -505,11 +505,11 @@ Boolean initApp() {
 #line 95 "editor.c"
 
 #line 96 "editor.c"
-    pLayer = v4pListAddPolygon(&scene, relative, black, 14);
+    pLayer = v4pListAddPolygon(&scene, V4P_RELATIVE, V4P_BLACK, 14);
 #line 97 "editor.c"
     v4p_rect(pLayer, -xvu - 3, -yvu - 17, -xvu + 3, -yvu + 17);
 #line 98 "editor.c"
-    pSelLayer = v4p_addNewSub(pLayer, relative, red, 15);
+    pSelLayer = v4p_addNewSub(pLayer, V4P_RELATIVE, V4P_RED, 15);
 #line 99 "editor.c"
     v4p_rect(pSelLayer, -xvu - 2, -yvu - 1, -xvu + 2, -yvu + 1);
 #line 100 "editor.c"
@@ -517,11 +517,11 @@ Boolean initApp() {
 #line 101 "editor.c"
 
 #line 102 "editor.c"
-    pGrid = v4pListAddPolygon(&scene, relative, black, 14);
+    pGrid = v4pListAddPolygon(&scene, V4P_RELATIVE, V4P_BLACK, 14);
 #line 103 "editor.c"
     v4p_rect(pGrid, -xvu - 9, -yvu - 9, -xvu + 9, -yvu + 9);
 #line 104 "editor.c"
-    pSelGrid = v4p_addNewSub(pGrid, relative, red, 15);
+    pSelGrid = v4p_addNewSub(pGrid, V4P_RELATIVE, V4P_RED, 15);
 #line 105 "editor.c"
     v4p_rect(pSelGrid, -xvu - 2, -yvu - 2, -xvu + 2, -yvu + 2);
 #line 106 "editor.c"
@@ -535,7 +535,7 @@ Boolean initApp() {
 #line 110 "editor.c"
 
 #line 111 "editor.c"
-Coord align(Coord x) {
+V4pCoord align(V4pCoord x) {
 #line 112 "editor.c"
     if (stepGrid <= 1)
 #line 113 "editor.c"
@@ -555,7 +555,7 @@ Coord align(Coord x) {
 #line 120 "editor.c"
 Boolean iterateApp() {
 #line 121 "editor.c"
-    Coord stepGrid0, stepGridPrec,
+    V4pCoord stepGrid0, stepGridPrec,
 #line 122 "editor.c"
         xs, ys,
 #line 123 "editor.c"
@@ -563,7 +563,7 @@ Boolean iterateApp() {
 #line 124 "editor.c"
         t1, t2;
 #line 125 "editor.c"
-    ILayer z0, precZ;
+    V4pLayer z0, precZ;
 #line 126 "editor.c"
     int selPrec;
 #line 127 "editor.c"
@@ -826,7 +826,7 @@ Boolean iterateApp() {
                         if (spotNb == 0) {
 #line 249 "editor.c"
                             currentPolygon
-                                = v4pListAddPolygon(&scene, standard, currentColor, currentZ);
+                                = v4pListAddPolygon(&scene, V4P_STANDARD, currentColor, currentZ);
 #line 250 "editor.c"
                             v4p_concrete(currentPolygon, 0);
 #line 251 "editor.c"
@@ -836,7 +836,7 @@ Boolean iterateApp() {
 #line 253 "editor.c"
                         if (spotNb < 64) {
 #line 254 "editor.c"
-                            spots[spotNb] = v4pListAddPolygon(&scene, standard, currentColor, 14);
+                            spots[spotNb] = v4pListAddPolygon(&scene, V4P_STANDARD, currentColor, 14);
 #line 255 "editor.c"
                             v4p_rect(spots[spotNb], xs - 1, ys - 1, xs + 1, ys + 1);
 #line 256 "editor.c"
@@ -844,7 +844,7 @@ Boolean iterateApp() {
 #line 257 "editor.c"
                     }
 #line 258 "editor.c"
-                    brush = v4pListAddPolygon(&scene, relative, black, 15);
+                    brush = v4pListAddPolygon(&scene, V4P_RELATIVE, V4P_BLACK, 15);
 #line 259 "editor.c"
                     v4p_rect(brush, xpen - 1, ypen - 1, xpen + 1, ypen + 1);
 #line 260 "editor.c"

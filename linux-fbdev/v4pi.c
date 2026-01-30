@@ -24,12 +24,12 @@ static struct fb_cmap palette;
 static void init_palette() {
     palette.start = 0;
     palette.len = 256;
-    palette.red = malloc(256 * sizeof(__u16));
-    palette.green = malloc(256 * sizeof(__u16));
-    palette.blue = malloc(256 * sizeof(__u16));
+    palette.V4P_RED = malloc(256 * sizeof(__u16));
+    palette.V4P_GREEN = malloc(256 * sizeof(__u16));
+    palette.V4P_BLUE = malloc(256 * sizeof(__u16));
     palette.transp = malloc(256 * sizeof(__u16));
 
-    if (! palette.red || ! palette.green || ! palette.blue || ! palette.transp) {
+    if (! palette.V4P_RED || ! palette.V4P_GREEN || ! palette.V4P_BLUE || ! palette.transp) {
         fprintf(stderr, "Failed to allocate palette memory\n");
         exit(1);
     }
@@ -101,30 +101,30 @@ static void init_palette() {
             { 0, 0, 0, 0 },       { 0, 0, 0, 0 },       { 0, 0, 0, 0 },       { 0, 0, 0, 0 } };
 
     for (int i = 0; i < 256; i++) {
-        palette.red[i] = (colors[i][0] << 8) | colors[i][0];
-        palette.green[i] = (colors[i][1] << 8) | colors[i][1];
-        palette.blue[i] = (colors[i][2] << 8) | colors[i][2];
+        palette.V4P_RED[i] = (colors[i][0] << 8) | colors[i][0];
+        palette.V4P_GREEN[i] = (colors[i][1] << 8) | colors[i][1];
+        palette.V4P_BLUE[i] = (colors[i][2] << 8) | colors[i][2];
         palette.transp[i] = (colors[i][3] << 8) | colors[i][3];
     }
 }
 
 static void cleanup_palette() {
-    if (palette.red)
-        free(palette.red);
-    if (palette.green)
-        free(palette.green);
-    if (palette.blue)
-        free(palette.blue);
+    if (palette.V4P_RED)
+        free(palette.V4P_RED);
+    if (palette.V4P_GREEN)
+        free(palette.V4P_GREEN);
+    if (palette.V4P_BLUE)
+        free(palette.V4P_BLUE);
     if (palette.transp)
         free(palette.transp);
 }
 
 // Some constants linking to basic colors;
-const Color gray = 225, maroon = 226, purple = 227, green = 228, cyan = 229, black = 215, red = 125,
-            blue = 95, yellow = 120, dark = 217, olive = 58, fluo = 48;
+const V4pColor V4P_GRAY = 225, V4P_MAROON = 226, V4P_PURPLE = 227, V4P_GREEN = 228, V4P_CYAN = 229, V4P_BLACK = 215, V4P_RED = 125,
+            V4P_BLUE = 95, V4P_YELLOW = 120, V4P_DARK = 217, V4P_OLIVE = 58, V4P_FLUO = 48;
 
 // Default window/screen width & heigth
-const Coord defaultScreenWidth = 640, defaultScreenHeight = 480;
+const V4pCoord V4P_DEFAULT_SCREEN_WIDTH = 640, V4P_DEFAULT_SCREEN_HEIGHT = 480;
 
 // A display context
 typedef struct v4pDisplay_s {
@@ -145,8 +145,8 @@ V4pDisplayP v4pDisplayDefaultContext = &v4pDisplayDefaultContextS;
 
 // Variables hosting current context and related properties
 V4pDisplayP v4pDisplayContext = &v4pDisplayDefaultContextS;
-Coord v4pDisplayWidth;
-Coord v4pDisplayHeight;
+V4pCoord v4pDisplayWidth;
+V4pCoord v4pDisplayHeight;
 // private properties of current context
 static unsigned char* currentBuffer;
 static int iBuffer;
@@ -155,10 +155,10 @@ static int iBuffer;
  * Collide computing stuff
  */
 typedef struct collide_s {
-    Coord x;
-    Coord y;
+    V4pCoord x;
+    V4pCoord y;
     UInt16 q;
-    PolygonP poly;
+    V4pPolygonP poly;
 } Collide;
 
 Collide collides[16];
@@ -191,13 +191,13 @@ Boolean v4pi_error(char* formatString, ...) {
 }
 
 // record collides
-Boolean v4pi_collide(ICollide i1,
-                     ICollide i2,
-                     Coord py,
-                     Coord x1,
-                     Coord x2,
-                     PolygonP p1,
-                     PolygonP p2) {
+Boolean v4pi_collide(V4pCollide i1,
+                     V4pCollide i2,
+                     V4pCoord py,
+                     V4pCoord x1,
+                     V4pCoord x2,
+                     V4pPolygonP p1,
+                     V4pPolygonP p2) {
     int l, dx, dy;
     l = x2 - x1;
     dx = x1 * l + (l + 1) * l / 2;
@@ -259,7 +259,7 @@ Boolean v4pi_end() {
 }
 
 // Draw an horizontal video slice with color 'c'
-Boolean v4pi_slice(Coord y, Coord x0, Coord x1, Color c) {
+Boolean v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
     int l = x1 - x0;
     if (l <= 0)
         return success;
@@ -273,9 +273,9 @@ Boolean v4pi_slice(Coord y, Coord x0, Coord x1, Color c) {
     } else {
         // For higher bit depths, convert the 8-bit palette index to RGB
         // Extract RGB values from our palette
-        unsigned char red_val = (palette.red[c] >> 8) & 0xFF;
-        unsigned char green_val = (palette.green[c] >> 8) & 0xFF;
-        unsigned char blue_val = (palette.blue[c] >> 8) & 0xFF;
+        unsigned char red_val = (palette.V4P_RED[c] >> 8) & 0xFF;
+        unsigned char green_val = (palette.V4P_GREEN[c] >> 8) & 0xFF;
+        unsigned char blue_val = (palette.V4P_BLUE[c] >> 8) & 0xFF;
 
         unsigned char* dest = &currentBuffer[location];
         for (int x = 0; x < l; x++) {

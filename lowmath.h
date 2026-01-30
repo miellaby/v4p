@@ -27,24 +27,24 @@ Boolean computeCosSin(UInt16 angle);
 #define ilimit(A, B, C) ((A) < (B) ? (B) : ((A) > (C) ? (C) : (A)))
 
 // rotate (x,y) vector according to current transformation
-void straighten(Coord x, Coord y, Coord* xn, Coord* yn);
+void straighten(V4pCoord x, V4pCoord y, V4pCoord* xn, V4pCoord* yn);
 
 // Jim Henry's isqrt
 UInt16 isqrt(UInt16 v);
 
 // compute the angle of (0-0)->(x,y) vector
-UInt16 iatan(Coord x, Coord y);
+UInt16 iatan(V4pCoord x, V4pCoord y);
 
 // compute the angle of (x1,y1)->(x2,y2) vector
-UInt16 iatan2p(Coord x1, Coord y1, Coord x0, Coord y0);
+UInt16 iatan2p(V4pCoord x1, V4pCoord y1, V4pCoord x0, V4pCoord y0);
 
 // compare two angle in do-what-I-mean way
 int angleCmp(UInt16 a1, UInt16 a0);
 
 // compute approximative length of (0,0)-(x,y)
-Coord gaugeDist(Coord x, Coord y);
+V4pCoord gaugeDist(V4pCoord x, V4pCoord y);
 
 // absolute
-Coord iabs(Coord x);
+V4pCoord iabs(V4pCoord x);
 
 #endif

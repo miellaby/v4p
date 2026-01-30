@@ -14,25 +14,25 @@
 // R : 0  18  36  54  72  90
 // G : 0   1   2   3  4    5
 // e.g  12+54+5 = $99 B + $66 R +$0 G
-// 216..224 = gray 22 44 55 77 88 aa bb dd
-// 225..229 = specials: light gray,maroon,purple,green,cyan
-// 230..255 = unused (black)
-Color gray = 225, maroon = 226, purple = 227, green = 228, cyan = 229, black = 215, red = 125,
-      blue = 120, yellow = 95, dark = 217, olive = 58, fluo = 48, white = 0;
-Coord screenWidth = 160, screenHeight = 160, marginX = 8, marginY = 8, bytesBetweenLines = 2 * 8,
+// 216..224 = V4P_GRAY 22 44 55 77 88 aa bb dd
+// 225..229 = specials: light V4P_GRAY,V4P_MAROON,V4P_PURPLE,V4P_GREEN,V4P_CYAN
+// 230..255 = unused (V4P_BLACK)
+V4pColor V4P_GRAY = 225, V4P_MAROON = 226, V4P_PURPLE = 227, V4P_GREEN = 228, V4P_CYAN = 229, V4P_BLACK = 215, V4P_RED = 125,
+      V4P_BLUE = 120, V4P_YELLOW = 95, V4P_DARK = 217, V4P_OLIVE = 58, V4P_FLUO = 48, V4P_WHITE = 0;
+V4pCoord screenWidth = 160, screenHeight = 160, marginX = 8, marginY = 8, bytesBetweenLines = 2 * 8,
       lineWidth = 160 - 2 * 8, lineNb = 160 - 2 * 8;
 
-Color bgColor = 0;
+V4pColor bgColor = 0;
 
 static char* buffer = NULL;
 
 static int iBuffer;
 
 typedef struct collide_s {
-    Coord x;
-    Coord y;
+    V4pCoord x;
+    V4pCoord y;
     UInt16 q;
-    PolygonP poly;
+    V4pPolygonP poly;
 } Collide;
 
 Collide collides[16];
@@ -55,11 +55,11 @@ Boolean v4pi_error(char* formatString, ...) {
     WinDrawChars(text, StrLen(text), 0, 0);
 }
 
-Boolean v4pi_collide(ICollide i1,
-                     ICollide i2,
-                     Coord py,
-                     Coord x1,
-                     Coord x2,
+Boolean v4pi_collide(V4pCollide i1,
+                     V4pCollide i2,
+                     V4pCoord py,
+                     V4pCoord x1,
+                     V4pCoord x2,
                      PolygonP p1,
                      PolygonP p2) {
     int l, dx, dy;
@@ -149,7 +149,7 @@ static void myMemSet(UInt8* pdst, UInt32 numBytes, UInt8 value) {
     }
 }
 
-Boolean v4pi_slice(Coord y, Coord x0, Coord x1, Color c) {
+Boolean v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
     int l;
     if (x1 <= x0)
         return success;
@@ -165,11 +165,11 @@ Boolean v4pi_slice(Coord y, Coord x0, Coord x1, Color c) {
 }
 
 extern int v4p_parseHexDigit(char c);
-PolygonP v4pDecodePolygon(char* s) {
-    ILayer z;
-    PolygonProps t;
-    Color col;
-    PolygonP p;
+V4pPolygonP v4pDecodePolygon(char* s) {
+    V4pLayer z;
+    V4pProps t;
+    V4pColor col;
+    V4pPolygonP p;
     int i = 0;
     if (strlen(s) < 6)
         return NULL;
@@ -182,7 +182,7 @@ PolygonP v4pDecodePolygon(char* s) {
     return v4pPolygonDecodePoints(p, s + 6);
 }
 
-char* v4pEncodePolygon(PolygonP p) {
+char* v4pEncodePolygon(V4pPolygonP p) {
     const char* t = "0123456789ABCDEF";
     UInt16 i, v;
     char *s, *ss, *sss;
@@ -216,7 +216,7 @@ char* v4pEncodePolygon(PolygonP p) {
     }
 }
 
-Boolean v4pDisplayInit(int quality, Color background) {
+Boolean v4pDisplayInit(int quality, V4pColor background) {
     bgColor = background;
     buffer = BmpGetBits(WinGetBitmap(WinGetDisplayWindow()));
 }

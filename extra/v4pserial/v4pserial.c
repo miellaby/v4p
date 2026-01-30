@@ -8,7 +8,7 @@
 extern int v4p_parseHexDigit(char c);
 
 // add points to a polygon with coordinates decoded from a c-string
-PolygonP v4pPolygonDecodePoints(PolygonP p, char* s, int scale) {
+V4pPolygonP v4pPolygonDecodePoints(V4pPolygonP p, char* s, int scale) {
     int j;
     long xs, ys, xs1, ys1;
     Boolean sep, psep;
@@ -48,17 +48,17 @@ PolygonP v4pPolygonDecodePoints(PolygonP p, char* s, int scale) {
 }
 
 // create a polygon by adding all points encoded in a c-string
-PolygonP v4pQuickPolygon(PolygonProps t, Color col, ILayer z, char* s, int scale) {
+V4pPolygonP v4pQuickPolygon(V4pProps t, V4pColor col, V4pLayer z, char* s, int scale) {
     return v4pPolygonDecodePoints(v4p_new(t, col, z), s, scale);
 }
 
 // encode every point of a polygon into a single c-string
-char* v4pPolygonEncodePoints(PolygonP p, int scale) {
+char* v4pPolygonEncodePoints(V4pPolygonP p, int scale) {
     static char* t = "0123456789ABCDEF";
     char* s;
-    PointP s1, m, pm;
+    V4pPointP s1, m, pm;
     int i, l;
-    Coord v;
+    V4pCoord v;
 
     s = (char*) malloc(32 * sizeof(char));
     l = 0;
@@ -96,11 +96,11 @@ char* v4pPolygonEncodePoints(PolygonP p, int scale) {
     return s;
 }
 
-PolygonP v4pDecodePolygon(char* s, int scale) {
-    ILayer z;
-    PolygonProps t;
-    Color col;
-    PolygonP p;
+V4pPolygonP v4pDecodePolygon(char* s, int scale) {
+    V4pLayer z;
+    V4pProps t;
+    V4pColor col;
+    V4pPolygonP p;
     int i = 0;
     if (strlen(s) < 6)
         return NULL;
@@ -113,7 +113,7 @@ PolygonP v4pDecodePolygon(char* s, int scale) {
     return v4pPolygonDecodePoints(p, s + 6, scale);
 }
 
-char* v4pEncodePolygon(PolygonP p, int scale) {
+char* v4pEncodePolygon(V4pPolygonP p, int scale) {
     const char* t = "0123456789ABCDEF";
     UInt16 i, v;
     char *s, *ss, *sss;
@@ -148,7 +148,7 @@ char* v4pEncodePolygon(PolygonP p, int scale) {
 }
 
 // add points to a polygon with coordinates decoded from a c-string
-PolygonP v4pPolygonDecodeSVGPath(PolygonP p, char* s, int scale) {
+V4pPolygonP v4pPolygonDecodeSVGPath(V4pPolygonP p, char* s, int scale) {
     int j;
     Boolean toBeClosed = false, knowFirstPoint = false, nextIsRelative = false;
     char c;

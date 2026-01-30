@@ -6,19 +6,19 @@
 #define CHAR_WIDTH 4
 #define CHAR_HEIGHT 5
 
-PolygonP qfontDefinePolygonFromChar(char c,
-                                    PolygonP poly,
-                                    Coord x,
-                                    Coord y,
-                                    Coord width,
-                                    Coord height);
+V4pPolygonP qfontDefinePolygonFromChar(char c,
+                                    V4pPolygonP poly,
+                                    V4pCoord x,
+                                    V4pCoord y,
+                                    V4pCoord width,
+                                    V4pCoord height);
 
-PolygonP qfontDefinePolygonFromString(char* s,
-                                      PolygonP poly,
-                                      Coord x,
-                                      Coord y,
-                                      Coord width,
-                                      Coord height,
-                                      Coord interleave);
+V4pPolygonP qfontDefinePolygonFromString(char* s,
+                                      V4pPolygonP poly,
+                                      V4pCoord x,
+                                      V4pCoord y,
+                                      V4pCoord width,
+                                      V4pCoord height,
+                                      V4pCoord interleave);
 
 #endif  // QFONT_H

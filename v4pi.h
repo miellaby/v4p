@@ -8,15 +8,15 @@
 #include "v4p.h"
 
 // External color constants
-extern const Color gray, maroon, purple, green, cyan;
-extern const Color black, red, blue, yellow, dark, olive;
-extern const Color fluo, white;
+extern const V4pColor V4P_GRAY, V4P_MAROON, V4P_PURPLE, V4P_GREEN, V4P_CYAN;
+extern const V4pColor V4P_BLACK, V4P_RED, V4P_BLUE, V4P_YELLOW, V4P_DARK, V4P_OLIVE;
+extern const V4pColor V4P_FLUO, V4P_WHITE;
 
 typedef struct v4pDisplay_s* V4pDisplayP;
 
 // External display context and dimensions
 extern V4pDisplayP v4pDisplayDefaultContext, v4pDisplayContext;
-extern Coord v4pDisplayWidth, v4pDisplayHeight;  // Current display size
+extern V4pCoord v4pDisplayWidth, v4pDisplayHeight;  // Current display size
 
 // Quality levels
 #define V4P_QUALITY_LOW 0
@@ -31,7 +31,7 @@ void v4pDisplayFreeContext(V4pDisplayP context);
 
 // Display rendering functions
 Boolean v4pi_start();
-Boolean v4pi_slice(Coord y, Coord x0, Coord x1, Color c);
+Boolean v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c);
 Boolean v4pi_end();
 
 // Debug and error functions
@@ -43,13 +43,13 @@ Boolean v4pi_end();
 Boolean v4pi_error(char* s, ...);
 
 // Collision detection
-Boolean v4pi_collide(ICollide i1,
-                     ICollide i2,
-                     Coord py,
-                     Coord x1,
-                     Coord x2,
-                     PolygonP p1,
-                     PolygonP p2);
+Boolean v4pi_collide(V4pCollide i1,
+                     V4pCollide i2,
+                     V4pCoord py,
+                     V4pCoord x1,
+                     V4pCoord x2,
+                     V4pPolygonP p1,
+                     V4pPolygonP p2);
 
 // Display cleanup
 void v4pDisplayQuit();

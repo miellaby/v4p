@@ -5,8 +5,8 @@
 #include "v4pserial.h"
 
 #define STRESS_AMOUNT 128
-PolygonP pCol;
-PolygonP pColMatrix[STRESS_AMOUNT][STRESS_AMOUNT];
+V4pPolygonP pCol;
+V4pPolygonP pColMatrix[STRESS_AMOUNT][STRESS_AMOUNT];
 
 int iu = 0;
 int riu = 0;
@@ -17,9 +17,9 @@ Boolean g4pOnInit() {
     int j, k;
     v4pDisplayInit(1, 0);
     v4p_init();
-    v4p_setBGColor(black);
+    v4p_setBGColor(V4P_BLACK);
 
-    pCol = v4p_new(absolute, red, 0);
+    pCol = v4p_new(V4P_ABSOLUTE, V4P_RED, 0);
     v4pPolygonDecodeSVGPath(pCol,
                             "M 478.1,5  L 490.5,43.2 L 530.7,43.2 L 498.2,66.8 \
           L 510.6,105 L 478.1,81.4 L 445.6,105 L 458,66.8 \

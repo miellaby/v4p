@@ -6,16 +6,16 @@
 #define SPACING 70
 #define GRID_SIZE 30
 #define DEPTH 6
-PolygonP circle_matrix[GRID_SIZE][GRID_SIZE];
+V4pPolygonP circle_matrix[GRID_SIZE][GRID_SIZE];
 
 Boolean g4pOnInit() {
     int i, j;
     v4pDisplayInit(1, 0);  // Normal quality, windowed
     v4p_init();
-    v4p_setBGColor(white);  // Black background
+    v4p_setBGColor(V4P_WHITE);  // Black background
 
     // Create a prototype
-    PolygonP original = v4p_newDisk(absolute, red, DEPTH, 0, 0, RADIUS);
+    V4pPolygonP original = v4p_newDisk(V4P_ABSOLUTE, V4P_RED, DEPTH, 0, 0, RADIUS);
 
     // Create a grid of clones
     for (j = 0; j < GRID_SIZE; j++) {

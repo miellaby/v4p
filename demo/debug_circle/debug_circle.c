@@ -8,12 +8,12 @@
 
 int main(int argc, char** argv) {
     printf("=== DEBUG CIRCLE TEST ===\n");
-    printf("Creating single red circle at center of screen\n");
+    printf("Creating single V4P_RED circle at center of screen\n");
 
     // Initialize v4p
     v4pDisplayInit(1, 0);  // Normal quality, windowed
     v4p_init();
-    v4p_setBGColor(white);
+    v4p_setBGColor(V4P_WHITE);
 
     // Set view to match screen size
     v4p_setView(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -26,11 +26,11 @@ int main(int argc, char** argv) {
     int radius = 100;
 
     printf("Creating circle at (%d, %d) with radius %d\n", center_x, center_y, radius);
-    PolygonP circle = v4p_newDisk(absolute, red, 0, center_x, center_y, radius);
+    V4pPolygonP circle = v4p_newDisk(V4P_ABSOLUTE, V4P_RED, 0, center_x, center_y, radius);
     printf("Circle created successfully\n");
 
     // Add to scene
-    v4p_sceneAddNewDisk(v4p_getScene(), absolute, red, 0, center_x, center_y, radius);
+    v4p_sceneAddNewDisk(v4p_getScene(), V4P_ABSOLUTE, V4P_RED, 0, center_x, center_y, radius);
 
     printf("Circle added to scene\n");
 

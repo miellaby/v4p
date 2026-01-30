@@ -6,18 +6,18 @@
 #define COLOR_BOX_SIZE 20
 #define SPACING 3
 
-PolygonP box;
-PolygonP color_boxes[256];
+V4pPolygonP box;
+V4pPolygonP color_boxes[256];
 int current_color = 0;
 
 Boolean g4pOnInit() {
     int i;
-    Coord x, y;
+    V4pCoord x, y;
 
     v4pDisplayInit(1, 0);  // Normal quality, windowed
     v4p_init();
-    v4p_setBGColor(black);  // Black background
-    box = v4p_new(absolute, i, 4);
+    v4p_setBGColor(V4P_BLACK);  // Black background
+    box = v4p_new(V4P_ABSOLUTE, i, 4);
     v4p_rect(box, 0, 0, COLOR_BOX_SIZE, COLOR_BOX_SIZE);
 
     // Create a polygon for each color in the palette
@@ -52,7 +52,7 @@ Boolean g4pOnTick(Int32 deltaTime) {
         }
 
         // Adjust polygons
-        Coord x, y;
+        V4pCoord x, y;
         for (i = 0; i < 256; i++) {
             x = (i % COLORS_PER_ROW) * (COLOR_BOX_SIZE + SPACING);
             y = (i / COLORS_PER_ROW) * (COLOR_BOX_SIZE + SPACING);

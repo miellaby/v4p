@@ -68,7 +68,7 @@ Boolean computeCosSin(UInt16 angle) {
     return success;
 }
 
-void straighten(Coord x, Coord y, Coord* xn, Coord* yn) {
+void straighten(V4pCoord x, V4pCoord y, V4pCoord* xn, V4pCoord* yn) {
     if (! lastAngle) {
         *xn = x;
         *yn = y;
@@ -97,9 +97,9 @@ static UInt16 tabAtanFloorLog2[8] = {
     64, 63, 60, 50, 37, 28, 19, 7
 };
 
-UInt16 iatan(Coord x, Coord y) {
+UInt16 iatan(V4pCoord x, V4pCoord y) {
     UInt16 m, a;
-    Coord t;
+    V4pCoord t;
     Boolean op1, op2, op3;
     if (y < 0) {  // y inverted
         y = -y;
@@ -141,7 +141,7 @@ UInt16 iatan(Coord x, Coord y) {
     return a;
 }
 
-UInt16 iatan2p(Coord x1, Coord y1, Coord x0, Coord y0) {
+UInt16 iatan2p(V4pCoord x1, V4pCoord y1, V4pCoord x0, V4pCoord y0) {
     return iatan(x1 - x0, y1 - y0);
 }
 
@@ -155,13 +155,13 @@ int angleCmp(UInt16 a1, UInt16 a0) {
         return (d & (UInt16) 0x1ff);
 }
 
-Coord iabs(Coord i) {
+V4pCoord iabs(V4pCoord i) {
     int const mask = i >> (sizeof(int) * 8 - 1);
     return (i + mask) ^ mask;
 }
 
 // distance estimation (inaccurate but quick)
-Coord gaugeDist(Coord x, Coord y) {
+V4pCoord gaugeDist(V4pCoord x, V4pCoord y) {
     if (x < 0)
         x = -x;
 

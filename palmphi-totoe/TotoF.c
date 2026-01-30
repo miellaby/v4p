@@ -1,5 +1,5 @@
 Boolean pen = false;
-Coord xpen, ypen;
+V4pCoord xpen, ypen;
 extern Boolean initApp();
 extern Boolean iterateApp();
 

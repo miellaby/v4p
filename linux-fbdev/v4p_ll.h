@@ -9,8 +9,8 @@ typedef uint32_t UInt32;
 typedef int16_t Int16;
 typedef int32_t Int32;
 
-typedef int32_t Coord;
-typedef uint8_t Color;
+typedef int32_t V4pCoord;
+typedef uint8_t V4pColor;
 typedef struct stuffing_s* Stuffing;
 
 #define true (Boolean) - 1

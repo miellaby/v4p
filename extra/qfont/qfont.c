@@ -63,16 +63,16 @@ static int ichar(char c) {
     return i;
 }
 
-PolygonP qfontDefinePolygonFromChar(char c,
-                                    PolygonP poly,
-                                    Coord x,
-                                    Coord y,
-                                    Coord width,
-                                    Coord height) {
+V4pPolygonP qfontDefinePolygonFromChar(char c,
+                                    V4pPolygonP poly,
+                                    V4pCoord x,
+                                    V4pCoord y,
+                                    V4pCoord width,
+                                    V4pCoord height) {
     int i, j, down, is;
     int ic = ichar(c);
     if (ic == -1)
-        return poly;  // white char, no edge
+        return poly;  // V4P_WHITE char, no edge
 
     v4p_addJump(poly);
     for (i = 0; i <= CHAR_WIDTH; i++) {
@@ -98,13 +98,13 @@ PolygonP qfontDefinePolygonFromChar(char c,
     return poly;
 }
 
-PolygonP qfontDefinePolygonFromString(char* s,
-                                      PolygonP poly,
-                                      Coord x,
-                                      Coord y,
-                                      Coord width,
-                                      Coord height,
-                                      Coord interleave) {
+V4pPolygonP qfontDefinePolygonFromString(char* s,
+                                      V4pPolygonP poly,
+                                      V4pCoord x,
+                                      V4pCoord y,
+                                      V4pCoord width,
+                                      V4pCoord height,
+                                      V4pCoord interleave) {
     char c;
     int i;
     for (i = 0; c = s[i]; i++) {

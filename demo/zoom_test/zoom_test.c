@@ -7,16 +7,16 @@
 #define SPACING 70
 #define GRID_SIZE 3
 
-PolygonP box_matrix[GRID_SIZE][GRID_SIZE];
+V4pPolygonP box_matrix[GRID_SIZE][GRID_SIZE];
 
 Boolean g4pOnInit() {
     int i, j;
     v4pDisplayInit(1, 0);  // Normal quality, windowed
     v4p_init();
-    v4p_setBGColor(black);  // Black background
+    v4p_setBGColor(V4P_BLACK);  // Black background
 
     // Create a base box
-    PolygonP original_box = v4p_new(absolute, red, 5);
+    V4pPolygonP original_box = v4p_new(V4P_ABSOLUTE, V4P_RED, 5);
     v4p_rect(original_box, 0, 0, BOX_SIZE, BOX_SIZE);
     v4p_setAnchorToCenter(original_box);
 

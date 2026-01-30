@@ -32,8 +32,8 @@ V4pDisplayP v4pDisplayDefaultContext = NULL;
 V4pDisplayP v4pDisplayContext = NULL;
 
 // Display dimensions
-Coord v4pDisplayWidth = 0;
-Coord v4pDisplayHeight = 0;
+V4pCoord v4pDisplayWidth = 0;
+V4pCoord v4pDisplayHeight = 0;
 
 // A 256 color system palette inspired from old Palm Computing Devices
 static struct s_color {
@@ -99,18 +99,18 @@ static struct s_color {
 };
 
 // Standard colors (V4P uses 8-bit color indices, not RGB values)
-const Color gray = 192;
-const Color maroon = 128;
-const Color purple = 129;
-const Color green = 32;
-const Color cyan = 255;
-const Color black = 0;
-const Color red = 1;
-const Color blue = 2;
-const Color yellow = 3;
-const Color dark = 128;
-const Color olive = 67;
-const Color fluo = 48;
+const V4pColor V4P_GRAY = 192;
+const V4pColor V4P_MAROON = 128;
+const V4pColor V4P_PURPLE = 129;
+const V4pColor V4P_GREEN = 32;
+const V4pColor V4P_CYAN = 255;
+const V4pColor V4P_BLACK = 0;
+const V4pColor V4P_RED = 1;
+const V4pColor V4P_BLUE = 2;
+const V4pColor V4P_YELLOW = 3;
+const V4pColor V4P_DARK = 128;
+const V4pColor V4P_OLIVE = 67;
+const V4pColor V4P_FLUO = 48;
 
 // Display context structure
 typedef struct v4pDisplay_s {
@@ -454,7 +454,7 @@ Boolean v4pi_start() {
     return true;
 }
 
-Boolean v4pi_slice(Coord y, Coord x0, Coord x1, Color c) {
+Boolean v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
     if (! v4pDisplayContext || ! v4pDisplayContext->framebuffer) {
         return false;
     }
@@ -488,13 +488,13 @@ Boolean v4pi_error(char* s, ...) {
     return false;
 }
 
-Boolean v4pi_collide(ICollide i1,
-                     ICollide i2,
-                     Coord py,
-                     Coord x1,
-                     Coord x2,
-                     PolygonP p1,
-                     PolygonP p2) {
+Boolean v4pi_collide(V4pCollide i1,
+                     V4pCollide i2,
+                     V4pCoord py,
+                     V4pCoord x1,
+                     V4pCoord x2,
+                     V4pPolygonP p1,
+                     V4pPolygonP p2) {
     // Stub implementation
     (void) i1;
     (void) i2;

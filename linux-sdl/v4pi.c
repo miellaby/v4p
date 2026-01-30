@@ -80,11 +80,11 @@ static SDL_Color palette[256]
         { 0, 0, 0, 0 },       { 0, 0, 0, 0 },       { 0, 0, 0, 0 },       { 0, 0, 0, 0 } };
 
 // Some constants linking to basic colors;
-const Color gray = 225, maroon = 226, purple = 227, green = 228, cyan = 229, black = 215, red = 125,
-            blue = 95, yellow = 120, dark = 217, olive = 58, fluo = 48, white = 0;
+const V4pColor V4P_GRAY = 225, V4P_MAROON = 226, V4P_PURPLE = 227, V4P_GREEN = 228, V4P_CYAN = 229, V4P_BLACK = 215, V4P_RED = 125,
+            V4P_BLUE = 95, V4P_YELLOW = 120, V4P_DARK = 217, V4P_OLIVE = 58, V4P_FLUO = 48, V4P_WHITE = 0;
 
 // Default window/screen width & heigth
-const Coord defaultScreenWidth = 640, defaultScreenHeight = 480;
+const V4pCoord V4P_DEFAULT_SCREEN_WIDTH = 640, V4P_DEFAULT_SCREEN_HEIGHT = 480;
 
 // A display context
 typedef struct v4pDisplay_s {
@@ -99,8 +99,8 @@ V4pDisplayP v4pDisplayDefaultContext = &v4pDisplayDefaultContextS;
 
 // Variables hosting current context and related properties
 V4pDisplayP v4pDisplayContext = &v4pDisplayDefaultContextS;
-Coord v4pDisplayWidth;
-Coord v4pDisplayHeight;
+V4pCoord v4pDisplayWidth;
+V4pCoord v4pDisplayHeight;
 // private properties of current context
 static Uint8* currentBuffer;
 static int iBuffer;
@@ -109,10 +109,10 @@ static int iBuffer;
  * Collide computing stuff
  */
 typedef struct collide_s {
-    Coord x;
-    Coord y;
+    V4pCoord x;
+    V4pCoord y;
     UInt16 q;
-    PolygonP poly;
+    V4pPolygonP poly;
 } Collide;
 
 Collide collides[16];
@@ -145,13 +145,13 @@ Boolean v4pi_error(char* formatString, ...) {
 }
 
 // record collides
-Boolean v4pi_collide(ICollide i1,
-                     ICollide i2,
-                     Coord py,
-                     Coord x1,
-                     Coord x2,
-                     PolygonP p1,
-                     PolygonP p2) {
+Boolean v4pi_collide(V4pCollide i1,
+                     V4pCollide i2,
+                     V4pCoord py,
+                     V4pCoord x1,
+                     V4pCoord x2,
+                     V4pPolygonP p1,
+                     V4pPolygonP p2) {
     int l, dx, dy;
     l = x2 - x1;
     dx = x1 * l + (l + 1) * l / 2;
@@ -223,7 +223,7 @@ Boolean v4pi_end() {
 }
 
 // Draw an horizontal video slice with color 'c'
-Boolean v4pi_slice(Coord y, Coord x0, Coord x1, Color c) {
+Boolean v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
     int l = x1 - x0;
     if (l <= 0)
         return success;
@@ -270,8 +270,8 @@ Boolean v4pDisplayInit(int quality, Boolean fullscreen) {
     // static SDL_VideoInfo* vi = SDL_GetVideoInfo();
 
     // Set up a suitable video mode depending on wanted quality
-    int screenWidth = defaultScreenWidth * 2 / (3 - quality);
-    int screenHeight = defaultScreenHeight * 2 / (3 - quality);
+    int screenWidth = V4P_DEFAULT_SCREEN_WIDTH * 2 / (3 - quality);
+    int screenHeight = V4P_DEFAULT_SCREEN_HEIGHT * 2 / (3 - quality);
     SDL_Surface* screen
         = SDL_SetVideoMode(screenWidth,
                            screenHeight,

@@ -22,7 +22,7 @@ typedef struct {
 } Star3D;
 
 Star3D stars[NUM_STARS];
-PolygonP starPolygons[NUM_STARS];
+V4pPolygonP starPolygons[NUM_STARS];
 
 // Initialize a star with random position
 void initStar(Star3D* star) {
@@ -37,11 +37,11 @@ void initStar(Star3D* star) {
     // Different colors for different star types
     int rnd = rand() % 10;
     if (rnd < 1) {
-        star->color = blue;  // Blue-white stars
+        star->color = V4P_BLUE;  // Blue-V4P_WHITE stars
     } else if (rnd < 3) {
-        star->color = yellow;  // Yellow stars
+        star->color = V4P_YELLOW;  // Yellow stars
     } else {
-        star->color = white;  // White stars
+        star->color = V4P_WHITE;  // White stars
     }
 }
 
@@ -55,10 +55,10 @@ void projectStar(Star3D* star, float* screenX, float* screenY, float* screenSize
 }
 
 // Create a star-shaped polygon
-PolygonP createStarPolygon() {
-    static PolygonP poly = NULL;
+V4pPolygonP createStarPolygon() {
+    static V4pPolygonP poly = NULL;
     if (poly == NULL) {
-        poly = v4p_new(absolute, white, 1);
+        poly = v4p_new(V4P_ABSOLUTE, V4P_WHITE, 1);
         v4pPolygonDecodeSVGPath(poly,
                                 "M 478.1,5  L 490.5,43.2 L 530.7,43.2 L 498.2,66.8 \
           L 510.6,105 L 478.1,81.4 L 445.6,105 L 458,66.8 \
@@ -83,7 +83,7 @@ Boolean g4pOnInit() {
                 -v4pDisplayHeight * 10,
                 v4pDisplayWidth * 10,
                 v4pDisplayHeight * 10);
-    v4p_setBGColor(black);
+    v4p_setBGColor(V4P_BLACK);
 
     // Initialize all stars
     for (i = 0; i < NUM_STARS; i++) {

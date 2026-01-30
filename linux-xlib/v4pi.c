@@ -101,11 +101,11 @@ static char* applicationName = "v4pX";
 static char* applicationClass = "V4pX";
 static char* fakeArgv[] = { "v4pX" };
 // Default window/screen width & heigth
-Coord defaultScreenWidth = 640, defaultScreenHeight = 480;
+V4pCoord V4P_DEFAULT_SCREEN_WIDTH = 640, V4P_DEFAULT_SCREEN_HEIGHT = 480;
 
 // Some constants linking to basic colors;
-const Color gray = 225, maroon = 226, purple = 227, green = 228, cyan = 229, black = 215, red = 125,
-            blue = 95, yellow = 120, dark = 217, olive = 58, fluo = 48;
+const V4pColor V4P_GRAY = 225, V4P_MAROON = 226, V4P_PURPLE = 227, V4P_GREEN = 228, V4P_CYAN = 229, V4P_BLACK = 215, V4P_RED = 125,
+            V4P_BLUE = 95, V4P_YELLOW = 120, V4P_DARK = 217, V4P_OLIVE = 58, V4P_FLUO = 48;
 
 // Global variable hosting the default V4P contex
 V4pDisplayS v4pDisplayDefaultContextS;
@@ -113,8 +113,8 @@ V4pDisplayP v4pDisplayDefaultContext = &v4pDisplayDefaultContextS;
 
 // Variables hosting current context and related properties
 V4pDisplayP v4pDisplayContext = &v4pDisplayDefaultContextS;
-Coord v4pDisplayWidth;
-Coord v4pDisplayHeight;
+V4pCoord v4pDisplayWidth;
+V4pCoord v4pDisplayHeight;
 
 // private properties of current context
 static const int borderWidth = 1;
@@ -127,10 +127,10 @@ static XGCValues values;
  * Collide computing stuff
  */
 typedef struct collide_s {
-    Coord x;
-    Coord y;
+    V4pCoord x;
+    V4pCoord y;
     UInt16 q;
-    PolygonP poly;
+    V4pPolygonP poly;
 } Collide;
 
 Collide collides[16];
@@ -175,13 +175,13 @@ Boolean v4pi_error(char* formatString, ...) {
 }
 
 // record collides
-Boolean v4pi_collide(ICollide i1,
-                     ICollide i2,
-                     Coord py,
-                     Coord x1,
-                     Coord x2,
-                     PolygonP p1,
-                     PolygonP p2) {
+Boolean v4pi_collide(V4pCollide i1,
+                     V4pCollide i2,
+                     V4pCoord py,
+                     V4pCoord x1,
+                     V4pCoord x2,
+                     V4pPolygonP p1,
+                     V4pPolygonP p2) {
     int l, dx, dy;
     l = x2 - x1;
     dx = x1 * l + (l + 1) * l / 2;
@@ -254,7 +254,7 @@ Boolean v4pi_end() {
 }
 
 // Draw an horizontal video slice with color 'c'
-Boolean v4pi_slice(Coord y, Coord x0, Coord x1, Color c) {
+Boolean v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
     int l = x1 - x0;
     if (l <= 0)
         return success;
@@ -391,30 +391,30 @@ Boolean v4pDisplayInit(int quality, Boolean fullscreen) {
     v4pDisplayDefaultContextS.s = s;
 
     /* Get screen size from display structure macro */
-    defaultScreenWidth = DisplayWidth(d, s);
-    defaultScreenHeight = DisplayHeight(d, s);
-    int winWidth = defaultScreenWidth * 2 / (3 - quality);
-    int winHeight = defaultScreenHeight * 2 / (3 - quality);
+    V4P_DEFAULT_SCREEN_WIDTH = DisplayWidth(d, s);
+    V4P_DEFAULT_SCREEN_HEIGHT = DisplayHeight(d, s);
+    int winWidth = V4P_DEFAULT_SCREEN_WIDTH * 2 / (3 - quality);
+    int winHeight = V4P_DEFAULT_SCREEN_HEIGHT * 2 / (3 - quality);
 
     rc |= createWindow(v4pDisplayDefaultContext, winWidth, winHeight);
 
     XColor c;
     int i, rcx;
     for (i = 0; i < 256; i++) {
-        c.red = (unsigned short) palette[i].r << 8;
-        c.green = (unsigned short) palette[i].g << 8;
-        c.blue = (unsigned short) palette[i].b << 8;
-        // v4pi_debug ("color allocation %02X %02X %02X %08lX\n", (int)c.red,
-        // (int)c.green, (int)c.blue, (unsigned long)c.pixel);
+        c.V4P_RED = (unsigned short) palette[i].r << 8;
+        c.V4P_GREEN = (unsigned short) palette[i].g << 8;
+        c.V4P_BLUE = (unsigned short) palette[i].b << 8;
+        // v4pi_debug ("color allocation %02X %02X %02X %08lX\n", (int)c.V4P_RED,
+        // (int)c.V4P_GREEN, (int)c.V4P_BLUE, (unsigned long)c.pixel);
         if (! (rcx = XAllocColor(d, cmap, &c))) {
             v4pi_error("Can't allocate color\n");
             exit(EXIT_FAILURE);
         }
-        // v4pi_debug ("color allocation %02X %02X %02X %08lX\n", (int)c.red,
-        // (int)c.green, (int)c.blue, (unsigned long)c.pixel);
+        // v4pi_debug ("color allocation %02X %02X %02X %08lX\n", (int)c.V4P_RED,
+        // (int)c.V4P_GREEN, (int)c.V4P_BLUE, (unsigned long)c.pixel);
         xPixelsTab[i] = c.pixel;
-        // printf("%d %02X %02X %02X %08lX\n", rcx, (int)c.red, (int)c.green,
-        // (int)c.blue, (unsigned long)c.pixel);
+        // printf("%d %02X %02X %02X %08lX\n", rcx, (int)c.V4P_RED, (int)c.V4P_GREEN,
+        // (int)c.V4P_BLUE, (unsigned long)c.pixel);
     }
 
     v4pi_setContext(v4pDisplayDefaultContext);

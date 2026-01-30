@@ -5,37 +5,37 @@
 #define V4P_H
 #include "v4p_ll.h"
 
-typedef UInt16 ILayer;  // < 16
-typedef UInt16 ICollide;  // < 16
+typedef UInt16 V4pLayer;  // < 16
+typedef UInt16 V4pCollide;  // < 16
 
-typedef UInt16 Flags;
-typedef Flags PolygonProps;
-#define standard (PolygonProps) 0
-#define complement (PolygonProps) 1  // substracte/add a region to parent
-#define invisible (PolygonProps) 2  // invisibles help to gather polygons
-#define translucent (PolygonProps) 4  // to be done
-#define absolute (PolygonProps) 0
-#define relative (PolygonProps) 16  // view (not scene) related coordinates
-#define V4P_DISABLED (Flags) 32  // wont be displayed for now
-#define V4P_IN_DISABLED (Flags) 64  // ancester disabled
-#define V4P_CHANGED (Flags) 128  // definition changed since last rendering
+typedef UInt16 V4pFlag;
+#define V4P_STANDARD (V4pFlag) 0
+#define V4P_COMPLEMENT (V4pFlag) 1  // substracte/add a region to parent
+#define V4P_UNVISIBLE (V4pFlag) 2  // invisibles help to gather polygons
+#define V4P_TRANSLUCENT (V4pFlag) 4  // to be done
+#define V4P_ABSOLUTE (V4pFlag) 0
+#define V4P_RELATIVE (V4pFlag) 16  // view (not scene) related coordinates
+#define V4P_DISABLED (V4pFlag) 32  // wont be displayed for now
+#define V4P_IN_DISABLED (V4pFlag) 64  // ancester disabled
+#define V4P_CHANGED (V4pFlag) 128  // definition changed since last rendering
 
-typedef struct point_s* PointP;
-typedef struct polygon_s* PolygonP;
-typedef struct activeEdge_s* ActiveEdgeP;
-typedef struct v4pContext_s* V4pContextP;
+typedef V4pFlag V4pProps;
 
-typedef struct scene_s {
+typedef struct v4p_point_s* V4pPointP;
+typedef struct v4p_polygon_s* V4pPolygonP;
+typedef struct v4p_context_s* V4pContextP;
+
+typedef struct v4p_scene_s {
     char* label;
-    PolygonP polygons;
+    V4pPolygonP polygons;
 } V4pScene, *V4pSceneP;
 
-typedef struct point_s {
-    Coord x, y;
-    PointP next;
-} Point;
+typedef struct v4p_point_s {
+    V4pCoord x, y;
+    V4pPointP next;
+} V4pPoint;
 
-#define JUMPCOORD ((Coord) ~0)
+#define V4P_NIL ((V4pCoord) ~0)
 
 /**
  * Variables
@@ -50,95 +50,95 @@ extern V4pSceneP v4p_defaultScene;  // Default scene within default context (set
 
 // v4p library fundamentals
 Boolean v4p_init();
-void v4p_setContext(V4pContextP);  // note there is a default context
+void v4p_setContext(V4pContextP);  // change the (default) context
 Boolean v4p_render();
 void v4p_quit();
 
 // v4p context
 V4pContextP v4p_contextNew();
 void v4p_contextFree(V4pContextP);
-Color v4p_setBGColor(Color bg);
-Boolean v4p_setView(Coord x0, Coord y0, Coord x1, Coord y1);
+V4pColor v4p_setBGColor(V4pColor bg);
+Boolean v4p_setView(V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1);
 void v4p_setScene(V4pSceneP s);
 V4pSceneP v4p_getScene();
 
 // v4p scene
 V4pSceneP v4p_sceneNew();
 void v4p_sceneFree(V4pSceneP);
-V4pSceneP v4p_sceneAdd(V4pSceneP, PolygonP);
-V4pSceneP v4p_sceneRemove(V4pSceneP, PolygonP);
+V4pSceneP v4p_sceneAdd(V4pSceneP, V4pPolygonP);
+V4pSceneP v4p_sceneRemove(V4pSceneP, V4pPolygonP);
 
 // v4p view
-void v4p_viewToAbsolute(Coord x, Coord y, Coord* xa, Coord* ya);
-void v4p_absoluteToView(Coord x, Coord y, Coord* xa, Coord* ya);
+void v4p_viewToAbsolute(V4pCoord x, V4pCoord y, V4pCoord* xa, V4pCoord* ya);
+void v4p_absoluteToView(V4pCoord x, V4pCoord y, V4pCoord* xa, V4pCoord* ya);
 
 // v4p polygon
-PolygonP v4p_new(PolygonProps t, Color col, ILayer z);
-PolygonP v4p_newDisk(PolygonProps t,
-                     Color col,
-                     ILayer z,
-                     Coord center_x,
-                     Coord center_y,
-                     Coord radius);
-PolygonP v4p_clone(PolygonP p);
-PolygonP v4p_concrete(PolygonP p, ICollide i);
-PolygonP v4p_intoList(PolygonP p, PolygonP* list);
-Boolean v4p_outOfList(PolygonP p, PolygonP* list);
-PolygonP v4p_addSub(PolygonP parent, PolygonP p);
-PolygonP v4p_addNewSub(PolygonP parent, PolygonProps t, Color col, ILayer z);
-Boolean v4p_destroyFromParent(PolygonP parent, PolygonP p);
-PolygonP v4p_destroyPointFrom(PolygonP p, PointP s);
-PolygonProps v4p_putProp(PolygonP p, PolygonProps i);
-PolygonProps v4p_removeProp(PolygonP p, PolygonProps i);
-PointP v4p_addPoint(PolygonP p, Coord x, Coord y);
-PointP v4p_addJump(PolygonP p);
-PointP v4p_movePoint(PolygonP p, PointP s, Coord x, Coord y);
-Color v4p_setColor(PolygonP p, Color c);
-Color v4p_setLayer(PolygonP p, ILayer z);
-Coord v4p_setRadius(PolygonP p, Coord radius);
-PointP v4p_getPoints(PolygonP p);
-ILayer v4p_getZ(PolygonP p);
-Color v4p_getColor(PolygonP p);
-PolygonProps v4p_enable(PolygonP p);
-PolygonProps v4p_disable(PolygonP p);
+V4pPolygonP v4p_new(V4pProps t, V4pColor col, V4pLayer z);
+V4pPolygonP v4p_newDisk(V4pProps t,
+                        V4pColor col,
+                        V4pLayer z,
+                        V4pCoord center_x,
+                        V4pCoord center_y,
+                        V4pCoord radius);
+V4pPolygonP v4p_clone(V4pPolygonP p);
+V4pPolygonP v4p_concrete(V4pPolygonP p, V4pCollide i);
+V4pPolygonP v4p_intoList(V4pPolygonP p, V4pPolygonP* list);
+Boolean v4p_outOfList(V4pPolygonP p, V4pPolygonP* list);
+V4pPolygonP v4p_addSub(V4pPolygonP parent, V4pPolygonP p);
+V4pPolygonP v4p_addNewSub(V4pPolygonP parent, V4pProps t, V4pColor col, V4pLayer z);
+Boolean v4p_destroyFromParent(V4pPolygonP parent, V4pPolygonP p);
+V4pPolygonP v4p_destroyPointFrom(V4pPolygonP p, V4pPointP s);
+V4pProps v4p_putProp(V4pPolygonP p, V4pProps i);
+V4pProps v4p_removeProp(V4pPolygonP p, V4pProps i);
+V4pPointP v4p_addPoint(V4pPolygonP p, V4pCoord x, V4pCoord y);
+V4pPointP v4p_addJump(V4pPolygonP p);
+V4pPointP v4p_movePoint(V4pPolygonP p, V4pPointP s, V4pCoord x, V4pCoord y);
+V4pColor v4p_setColor(V4pPolygonP p, V4pColor c);
+V4pColor v4p_setLayer(V4pPolygonP p, V4pLayer z);
+V4pCoord v4p_setRadius(V4pPolygonP p, V4pCoord radius);
+V4pPointP v4p_getPoints(V4pPolygonP p);
+V4pLayer v4p_getZ(V4pPolygonP p);
+V4pColor v4p_getColor(V4pPolygonP p);
+V4pProps v4p_enable(V4pPolygonP p);
+V4pProps v4p_disable(V4pPolygonP p);
 
 // transformation
-PolygonP v4p_transformClone(PolygonP p,
-                            PolygonP c,
-                            Coord dx,
-                            Coord dy,
-                            int angle,
-                            ILayer dz,
-                            Coord zoom_x,
-                            Coord zoom_y);
-PolygonP v4p_transform(PolygonP p,
-                       Coord dx,
-                       Coord dy,
-                       int angle,
-                       ILayer dz,
-                       Coord zoom_x,
-                       Coord zoom_y);
+V4pPolygonP v4p_transformClone(V4pPolygonP p,
+                               V4pPolygonP c,
+                               V4pCoord dx,
+                               V4pCoord dy,
+                               int angle,
+                               V4pLayer dz,
+                               V4pCoord zoom_x,
+                               V4pCoord zoom_y);
+V4pPolygonP v4p_transform(V4pPolygonP p,
+                          V4pCoord dx,
+                          V4pCoord dy,
+                          int angle,
+                          V4pLayer dz,
+                          V4pCoord zoom_x,
+                          V4pCoord zoom_y);
 
 // anchor point management
-PolygonP v4p_setAnchorToCenter(PolygonP p);
-PolygonP v4p_setAnchor(PolygonP p, Coord x, Coord y);
+V4pPolygonP v4p_setAnchorToCenter(V4pPolygonP p);
+V4pPolygonP v4p_setAnchor(V4pPolygonP p, V4pCoord x, V4pCoord y);
 
 // helpers & combo
-PolygonP v4p_rect(PolygonP p, Coord x0, Coord y0, Coord x1, Coord y1);
-PolygonP v4p_add(PolygonP p);
-PolygonP v4p_remove(PolygonP);
-PolygonP v4p_sceneAddNewPoly(V4pSceneP, PolygonProps t, Color col, ILayer z);
-PolygonP v4p_sceneAddNewDisk(V4pSceneP,
-                             PolygonProps t,
-                             Color col,
-                             ILayer z,
-                             Coord center_x,
-                             Coord center_y,
-                             Coord radius);
-PolygonP v4p_sceneAddClone(V4pSceneP, PolygonP p);
-PolygonP v4p_addNew(PolygonProps t, Color col, ILayer z);
-PolygonP v4p_addClone(PolygonP p);
-Boolean v4p_destroy(PolygonP p);
-Boolean v4p_destroyFromScene(PolygonP p);
+V4pPolygonP v4p_rect(V4pPolygonP p, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1);
+V4pPolygonP v4p_add(V4pPolygonP p);
+V4pPolygonP v4p_remove(V4pPolygonP);
+V4pPolygonP v4p_sceneAddNewPoly(V4pSceneP, V4pProps t, V4pColor col, V4pLayer z);
+V4pPolygonP v4p_sceneAddNewDisk(V4pSceneP,
+                                V4pProps t,
+                                V4pColor col,
+                                V4pLayer z,
+                                V4pCoord center_x,
+                                V4pCoord center_y,
+                                V4pCoord radius);
+V4pPolygonP v4p_sceneAddClone(V4pSceneP, V4pPolygonP p);
+V4pPolygonP v4p_addNew(V4pProps t, V4pColor col, V4pLayer z);
+V4pPolygonP v4p_addClone(V4pPolygonP p);
+Boolean v4p_destroy(V4pPolygonP p);
+Boolean v4p_destroyFromScene(V4pPolygonP p);
 
 #endif

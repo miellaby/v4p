@@ -15,39 +15,39 @@ int fullscreen = 0;
 /** collide detection thing */
 
 typedef struct collide_s {
-    Coord x;
-    Coord y;
+    V4pCoord x;
+    V4pCoord y;
     UInt16 q;
-    PolygonP poly;
+    V4pPolygonP poly;
 } Collide;
 
 extern Collide collides[16];
 
 int i, j, k, dist, mindist;
 
-ILayer z;
+V4pLayer z;
 
-static Coord xvu, yvu, lvu, xpen1, ypen1, xpen0, ypen0, yButton = 1, stepGrid;
+static V4pCoord xvu, yvu, lvu, xpen1, ypen1, xpen0, ypen0, yButton = 1, stepGrid;
 
-PolygonP spots[64];
+V4pPolygonP spots[64];
 
 Boolean pen1;
 
 int iButton = 0, sel;
 int bAddition, bDel, bLayer, bScroll, bSave, bCol, bGrid;
 
-PolygonP pSel, pCol, pSelCol, pGrid, pSelGrid, pLayer, pSelLayer, currentPolygon, brush, focus;
+V4pPolygonP pSel, pCol, pSelCol, pGrid, pSelGrid, pLayer, pSelLayer, currentPolygon, brush, focus;
 
-PointP currentPoint, s;
+V4pPointP currentPoint, s;
 
-ILayer currentZ;
+V4pLayer currentZ;
 
-Color currentColor, nextColor;
+V4pColor currentColor, nextColor;
 
-PolygonP buttons[16];
+V4pPolygonP buttons[16];
 
-int addButton(Color col) {
-    PolygonP button = v4p_addNew(relative, col, 14);
+int addButton(V4pColor col) {
+    V4pPolygonP button = v4p_addNew(V4P_RELATIVE, col, 14);
     buttons[iButton] = button;
     v4p_rect(button, v4pDisplayWidth - 10, yButton, v4pDisplayWidth - 1, 9 + yButton);
     yButton += 10;
@@ -69,7 +69,7 @@ GuiStatus guiStatus;
 Boolean g4pOnInit() {
     v4pDisplayInit(quality, fullscreen);
     v4p_init();
-    v4p_setBGColor(green);
+    v4p_setBGColor(V4P_GREEN);
     xvu = -v4pDisplayWidth / 2;
     yvu = -v4pDisplayHeight / 2;
     lvu = v4pDisplayWidth;
@@ -79,43 +79,43 @@ Boolean g4pOnInit() {
     brush = NULL;
     focus = NULL;
     stepGrid = 8;
-    bAddition = addButton(red);
-    bDel = addButton(gray);
-    bLayer = addButton(blue);
-    bScroll = addButton(yellow);
-    bCol = addButton(black);
-    bGrid = addButton(cyan);
-    // bSave = addButton(fluo);
+    bAddition = addButton(V4P_RED);
+    bDel = addButton(V4P_GRAY);
+    bLayer = addButton(V4P_BLUE);
+    bScroll = addButton(V4P_YELLOW);
+    bCol = addButton(V4P_BLACK);
+    bGrid = addButton(V4P_CYAN);
+    // bSave = addButton(V4P_FLUO);
     sel = 0;
-    currentColor = black;
+    currentColor = V4P_BLACK;
     currentZ = 7;
     currentPolygon = NULL;
     //(-xvu,-yvu)=milieu �cran
-    pSel = v4p_addNew(relative, black, 13);
+    pSel = v4p_addNew(V4P_RELATIVE, V4P_BLACK, 13);
     v4p_rect(pSel, v4pDisplayWidth - 11, 0, v4pDisplayWidth, 11);
 
-    pCol = v4p_addNew(relative, black, 14);
+    pCol = v4p_addNew(V4P_RELATIVE, V4P_BLACK, 14);
     v4p_rect(pCol, -xvu - 20, -yvu - 20, -xvu + 20, -yvu + 20);
-    pSelCol = v4p_addNewSub(pCol, relative, black, 15);
+    pSelCol = v4p_addNewSub(pCol, V4P_RELATIVE, V4P_BLACK, 15);
     v4p_rect(pSelCol, -xvu - 18, -yvu - 18, -xvu + 18, -yvu + 18);
     v4p_disable(pCol);
 
-    pLayer = v4p_addNew(relative, black, 14);
+    pLayer = v4p_addNew(V4P_RELATIVE, V4P_BLACK, 14);
     v4p_rect(pLayer, -xvu - 3, -yvu - 17, -xvu + 3, -yvu + 17);
-    pSelLayer = v4p_addNewSub(pLayer, relative, red, 15);
+    pSelLayer = v4p_addNewSub(pLayer, V4P_RELATIVE, V4P_RED, 15);
     v4p_rect(pSelLayer, -xvu - 2, -yvu - 1, -xvu + 2, -yvu + 1);
     v4p_disable(pLayer);
 
-    pGrid = v4p_addNew(relative, black, 14);
+    pGrid = v4p_addNew(V4P_RELATIVE, V4P_BLACK, 14);
     v4p_rect(pGrid, -xvu - 9, -yvu - 9, -xvu + 9, -yvu + 9);
-    pSelGrid = v4p_addNewSub(pGrid, relative, red, 15);
+    pSelGrid = v4p_addNewSub(pGrid, V4P_RELATIVE, V4P_RED, 15);
     v4p_rect(pSelGrid, -xvu - 2, -yvu - 2, -xvu + 2, -yvu + 2);
     v4p_disable(pGrid);
 
     return success;
 }
 
-Coord align(Coord x) {
+V4pCoord align(V4pCoord x) {
     if (stepGrid <= 1)
         return x;
     else if (x > 0)
@@ -125,8 +125,8 @@ Coord align(Coord x) {
 }
 
 Boolean g4pOnTick(Int32 deltaTime) {
-    Coord stepGrid0, stepGridPrec, xs, ys;
-    ILayer z0, precZ;
+    V4pCoord stepGrid0, stepGridPrec, xs, ys;
+    V4pLayer z0, precZ;
     int selPrec;
 
     if (true) {
@@ -270,16 +270,16 @@ Boolean g4pOnTick(Int32 deltaTime) {
                 } else {  // screen pen down
                     if (sel == bAddition) {
                         if (spotNb == 0) {
-                            currentPolygon = v4p_addNew(standard, currentColor, currentZ);
+                            currentPolygon = v4p_addNew(V4P_STANDARD, currentColor, currentZ);
                             v4p_concrete(currentPolygon, 0);
                         }
                         currentPoint = v4p_addPoint(currentPolygon, xs, ys);
                         if (spotNb < 64) {
-                            spots[spotNb] = v4p_addNew(standard, currentColor, 14);
+                            spots[spotNb] = v4p_addNew(V4P_STANDARD, currentColor, 14);
                             v4p_rect(spots[spotNb], xs - 1, ys - 1, xs + 1, ys + 1);
                         }
                     }
-                    brush = v4p_addNew(relative, black, 15);
+                    brush = v4p_addNew(V4P_RELATIVE, V4P_BLACK, 15);
                     v4p_rect(brush,
                              g4pState.xpen - 1,
                              g4pState.ypen - 1,

@@ -5,16 +5,16 @@
 
 #define NUM_STARS 6
 
-PolygonP hexagon;
-PolygonP stars[NUM_STARS];
+V4pPolygonP hexagon;
+V4pPolygonP stars[NUM_STARS];
 
 // Function to create a star
-PolygonP create_star(Coord size, Color color) {
-    PolygonP star = v4p_new(absolute, color, 10);
+V4pPolygonP create_star(V4pCoord size, V4pColor color) {
+    V4pPolygonP star = v4p_new(V4P_ABSOLUTE, color, 10);
 
     // Create a 5-pointed star using v4p's trigonometric system
     int i;
-    Coord center_x = 0, center_y = 0;
+    V4pCoord center_x = 0, center_y = 0;
 
     for (i = 0; i < 10; i++) {
         // Convert to v4p angle format (0-511 where 512=360°)
@@ -23,10 +23,10 @@ PolygonP create_star(Coord size, Color color) {
         int v4p_angle = (angle * 512) / 360;  // Convert degrees to v4p format (0-511)
 
         computeCosSin(v4p_angle);
-        Coord radius
+        V4pCoord radius
             = (i % 2 == 0) ? size : size * 0.4f;  // Alternate between outer and inner points
-        Coord x = center_x + ((radius * lwmCosa) >> 8);  // Scale by 256 and shift right
-        Coord y = center_y + ((radius * lwmSina) >> 8);
+        V4pCoord x = center_x + ((radius * lwmCosa) >> 8);  // Scale by 256 and shift right
+        V4pCoord y = center_y + ((radius * lwmSina) >> 8);
         v4p_addPoint(star, x, y);
     }
 
@@ -34,11 +34,11 @@ PolygonP create_star(Coord size, Color color) {
 }
 
 // Function to create a regular hexagon
-PolygonP create_hexagon(Coord size, Color color) {
-    PolygonP hex = v4p_new(absolute, color, 5);
+V4pPolygonP create_hexagon(V4pCoord size, V4pColor color) {
+    V4pPolygonP hex = v4p_new(V4P_ABSOLUTE, color, 5);
 
     int i;
-    Coord center_x = 0, center_y = 0;
+    V4pCoord center_x = 0, center_y = 0;
 
     for (i = 0; i < 6; i++) {
         // 60° per point, start from top (-90°)
@@ -46,8 +46,8 @@ PolygonP create_hexagon(Coord size, Color color) {
         int v4p_angle = (angle * 512) / 360;  // Convert degrees to v4p format (0-511)
 
         computeCosSin(v4p_angle);
-        Coord x = center_x + ((size * lwmCosa) >> 8);
-        Coord y = center_y + ((size * lwmSina) >> 8);
+        V4pCoord x = center_x + ((size * lwmCosa) >> 8);
+        V4pCoord y = center_y + ((size * lwmSina) >> 8);
         v4p_addPoint(hex, x, y);
     }
 
@@ -57,11 +57,11 @@ PolygonP create_hexagon(Coord size, Color color) {
 Boolean g4pOnInit() {
     v4p_init();
     v4pDisplayInit(1, 0);  // Normal quality, windowed
-    v4p_setBGColor(black);  // Black background
+    v4p_setBGColor(V4P_BLACK);  // Black background
 
     // Create the main hexagon (this will be the parent)
-    Coord hexagon_size = v4pDisplayWidth / 10;
-    hexagon = create_hexagon(hexagon_size, maroon);
+    V4pCoord hexagon_size = v4pDisplayWidth / 10;
+    hexagon = create_hexagon(hexagon_size, V4P_MAROON);
     v4p_setAnchorToCenter(hexagon);
 
     // Create stars at each corner of the hexagon
@@ -71,13 +71,13 @@ Boolean g4pOnInit() {
         int v4p_angle = (angle * 512) / 360;  // Convert degrees to v4p format (0-511)
 
         // Create star
-        stars[i] = create_star(hexagon_size / 3, red + (i * 4));  // Different colors for each star
+        stars[i] = create_star(hexagon_size / 3, V4P_RED + (i * 4));  // Different colors for each star
         v4p_setAnchorToCenter(stars[i]);
 
         // Position star at hexagon corner using v4p trig
         computeCosSin(v4p_angle);
-        Coord star_x = (hexagon_size * lwmCosa) >> 8;
-        Coord star_y = (hexagon_size * lwmSina) >> 8;
+        V4pCoord star_x = (hexagon_size * lwmCosa) >> 8;
+        V4pCoord star_y = (hexagon_size * lwmSina) >> 8;
 
         // Add star as a child of the hexagon
         v4p_addSub(hexagon, stars[i]);
