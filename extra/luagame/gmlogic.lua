@@ -8,23 +8,23 @@ angle = 0
 pCloneMatrix={}
 
 
-function gmOnInit()
-  v4p.v4pDisplayInit(1, 0)
-  v4p.v4pInit()
-  v4p.v4pSetBGColor(v4p.blue)
+function g4pOnInit()
+  v4p.v4pi_init(1, 0)
+  v4p.v4p_init()
+  v4p.v4pi_setBgColor(v4p.blue)
  
-  pSprite=v4p.v4pPolygonNew(v4p.absolute, v4p.red, 10)
-  v4p.v4pPolygonRect(pSprite, -v4p.v4pDisplayWidth / 3 + v4p.v4pDisplayWidth, -v4p.v4pDisplayHeight / 3, v4p.v4pDisplayWidth / 3, v4p.v4pDisplayHeight / 3)
+  pSprite=v4p.v4p_new(v4p.absolute, v4p.red, 10)
+  v4p.v4p_rect(pSprite, -v4p.v4pDisplayWidth / 3 + v4p.v4pDisplayWidth, -v4p.v4pDisplayHeight / 3, v4p.v4pDisplayWidth / 3, v4p.v4pDisplayHeight / 3)
 
   for j= 0,STRESS_AMOUNT-1 do
     for k = 0,STRESS_AMOUNT-1 do
-      pCloneMatrix[1+j*STRESS_AMOUNT+k] = v4p.v4pAddClone(pSprite)
+      pCloneMatrix[1+j*STRESS_AMOUNT+k] = v4p.v4p_add_clone(pSprite)
     end
   end
   return false
 end
 
-function gmOnTick(deltaTime)
+function g4pOnTick(deltaTime)
   i = iu
   
   -- Use deltaTime for time-based animation
@@ -35,14 +35,14 @@ function gmOnTick(deltaTime)
      diu=-diu
      liu=liu-1
   end
-  v4p.v4pSetView(-v4p.v4pDisplayWidth * i / 256, -v4p.v4pDisplayHeight * i / 256, v4p.v4pDisplayWidth + v4p.v4pDisplayWidth * i / 256, v4p.v4pDisplayHeight + v4p.v4pDisplayHeight * i / 256)
+  v4p.v4p_setView(-v4p.v4pDisplayWidth * i / 256, -v4p.v4pDisplayHeight * i / 256, v4p.v4pDisplayWidth + v4p.v4pDisplayWidth * i / 256, v4p.v4pDisplayHeight + v4p.v4pDisplayHeight * i / 256)
   
   local idx=1
   local s=STRESS_AMOUNT-1
   if liu % 4 >= 2 then
       for j=0,s do
         for k=0,s do
-          v4p.v4pPolygonTransformClone(pSprite, pCloneMatrix[idx], v4p.v4pDisplayWidth * (1 + k - STRESS_AMOUNT/2) / 2, v4p.v4pDisplayWidth * (1 + j - STRESS_AMOUNT/2)/2, (j * k) + angle / 16, 0)
+          v4p.v4p_transformClone(pSprite, pCloneMatrix[idx], v4p.v4pDisplayWidth * (1 + k - STRESS_AMOUNT/2) / 2, v4p.v4pDisplayWidth * (1 + j - STRESS_AMOUNT/2)/2, (j * k) + angle / 16, 0)
           idx=idx+1
         end
       end
@@ -54,22 +54,22 @@ function gmOnTick(deltaTime)
   return (liu < 0)
 end
  
-function gmOnFrame()
-   v4p.v4pRender()
+function g4pOnFrame()
+   v4p.v4p_render()
    return false
 end
 
-function gmOnQuit()
-  v4p.v4pDisplayQuit()
+function g4pOnQuit()
+  v4p.v4pi_quit()
   v4p.v4pQuit()
 end
 
-if gmMain then
-   gmMain()
+if g4pMain then
+   g4pMain()
 else
    require("v4p")
-   gmOnInit()
-   gmOnIterate()
-   gmOnFrame()
-   gmOnQuit()
+   g4pOnInit()
+   g4pOnIterate()
+   g4pOnFrame()
+   g4pOnQuit()
 end

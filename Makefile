@@ -23,10 +23,10 @@ bindings/lua/v4p4lua.c: bindings/v4p.i v4p.h v4pi.h
 	swig -I$(TOP)/$(TARGET)-$(BACKEND) -lua -module v4p -o $@ bindings/v4p.i
 
 bindings/lua/v4p4lua.o: bindings/lua/v4p4lua.c
-bindings/lua/v4p4lua.o: CFLAGS += -I/usr/include/lua5.1
+bindings/lua/v4p4lua.o: CFLAGS += -I/usr/include/lua5.1 -fPIC
 
 bindings/lua/v4p.so: libv4p.a bindings/lua/v4p4lua.o
-	$(CC) -shared -L/usr/lib/lua bindings/lua/v4p4lua.o $(CPPFLAGS) -o $@
+	$(CC) -shared -fPIC -L/usr/lib/lua bindings/lua/v4p4lua.o $(CPPFLAGS) -o $@
 
 lua: bindings/lua/v4p.so
 

@@ -1,7 +1,7 @@
 #include "game_engine.h"
 #include "v4p.h"
 #include "v4pi.h"
-#include "lowmath.h" // For iabs() function
+#include "lowmath.h"  // For iabs() function
 
 #define BOX_SIZE 50
 #define SPACING 70
@@ -10,61 +10,63 @@
 PolygonP box_matrix[GRID_SIZE][GRID_SIZE];
 
 Boolean g4pOnInit() {
-  int i, j;
-  v4pDisplayInit(1, 0);  // Normal quality, windowed
-  v4pInit();
-  v4pSetBGColor(black);  // Black background
+    int i, j;
+    v4pDisplayInit(1, 0);  // Normal quality, windowed
+    v4p_init();
+    v4p_setBGColor(black);  // Black background
 
-  // Create a base box
-  PolygonP original_box = v4pPolygonNew(absolute, red, 5);
-  v4pPolygonRect(original_box, 0, 0, BOX_SIZE, BOX_SIZE);
-  v4pPolygonSetAnchorToCenter(original_box);
-  
-  // Create a grid of clones
-  for (j = 0; j < GRID_SIZE; j++) {
-    for (i = 0; i < GRID_SIZE; i++) {
-      box_matrix[j][i] = v4pAddClone(original_box);
+    // Create a base box
+    PolygonP original_box = v4p_new(absolute, red, 5);
+    v4p_rect(original_box, 0, 0, BOX_SIZE, BOX_SIZE);
+    v4p_setAnchorToCenter(original_box);
+
+    // Create a grid of clones
+    for (j = 0; j < GRID_SIZE; j++) {
+        for (i = 0; i < GRID_SIZE; i++) {
+            box_matrix[j][i] = v4p_addClone(original_box);
+        }
     }
-  }
 
-  return success;  // Keep running indefinitely
+    return success;  // Keep running indefinitely
 }
 
 int elapsedTime = 0;
 
 Boolean g4pOnTick(Int32 deltaTime) {
-  int i, j;
+    int i, j;
 
-  elapsedTime += deltaTime;
+    elapsedTime += deltaTime;
 
-  // Apply different zoom levels to each box
-  for (j = 0; j < GRID_SIZE; j++) {
-    for (i = 0; i < GRID_SIZE; i++) {
-      // Calculate zoom factor using triangle wave
-      int phase = (i + j + elapsedTime / 2) % 256; // 0 to 255
-      int zoom_factor = 128 + (255 - iabs(phase - 128));  // Creates triangle wave: 128->0->128
+    // Apply different zoom levels to each box
+    for (j = 0; j < GRID_SIZE; j++) {
+        for (i = 0; i < GRID_SIZE; i++) {
+            // Calculate zoom factor using triangle wave
+            int phase = (i + j + elapsedTime / 2) % 256;  // 0 to 255
+            int zoom_factor
+                = 128 + (255 - iabs(phase - 128));  // Creates triangle wave: 128->0->128
 
-      // Transform clones with different zoom levels
-      v4pPolygonTransform(box_matrix[j][i],
+            // Transform clones with different zoom levels
+            v4p_transform(box_matrix[j][i],
                           i * SPACING,
                           j * SPACING + 100,
                           (i * j * 2) + elapsedTime / 2,
                           0,
-                          zoom_factor, zoom_factor);
+                          zoom_factor,
+                          zoom_factor);
+        }
     }
-  }
 
-  return success;  // Keep running indefinitely
+    return success;  // Keep running indefinitely
 }
 
 Boolean g4pOnFrame() {
-  return v4pRender();
+    return v4p_render();
 }
 
 void g4pOnQuit() {
-  // Cleanup if needed
+    // Cleanup if needed
 }
 
-int main(int argc, char **argv) {
-  return g4pMain(argc, argv);
+int main(int argc, char** argv) {
+    return g4pMain(argc, argv);
 }

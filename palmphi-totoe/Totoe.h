@@ -1,2 +1,2 @@
-#define TOTOE	1000
-#define _TotoF	1001
+#define TOTOE 1000
+#define _TotoF 1001

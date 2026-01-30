@@ -1,102 +1,114 @@
-# V4P C Code Formatting Style
-# Matches the existing codebase conventions
+# V4P Modern C Code Formatting Style
+# Updated: 2026 - Modern C (C17) Standards
 
-BasedOnStyle: LLVM
-IndentWidth: 2
-TabWidth: 2
+# Base Configuration - Modern C Standards
+BasedOnStyle: WebKit
+Language: Cpp  # Best C compatibility
+Standard: c++17
+IndentWidth: 4
+TabWidth: 4
 UseTab: Never
+# ColumnLimit: 80
+
+# Brace Style - Modern K&R (Most common in C)
 BreakBeforeBraces: Custom
 BraceWrapping:
-  AfterFunction: false
-  AfterClass: false
-  AfterControlStatement: false
-  AfterEnum: false
-  AfterStruct: false
-  AfterUnion: false
-  AfterExternBlock: false
-  BeforeCatch: false
-  BeforeElse: false
+  AfterFunction: false      # function() {
+  AfterControlStatement: false  # if () {
+  AfterStruct: false        # struct {
+  AfterEnum: false         # enum {
+  AfterUnion: false        # union {
+  AfterExternBlock: false  # extern {
+  BeforeCatch: false       # (C++ only)
+  BeforeElse: false        # } else {
   IndentBraces: false
   SplitEmptyFunction: false
   SplitEmptyRecord: false
   SplitEmptyNamespace: false
 
+# Spacing - Modern C Readability Standards
+SpaceBeforeParens: ControlStatements
+SpaceAfterCStyleCast: true
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+SpacesInContainerLiterals: false
+SpaceBeforeSquareBrackets: false
+
+# Pointer/Reference Alignment - C Standard (Type *pointer)
+PointerAlignment: Left
+ReferenceAlignment: Left
+DerivePointerAlignment: false
+
+# Function Formatting - Modern C Standards
+# AllowAllParametersOfDeclarationOnNextLine: true
+# BinPackParameters: false
+# BinPackArguments: false
+# AlignConsecutiveDeclarations: true
+# AlignConsecutiveAssignments: true
+AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: None
-AllowShortBlocksOnASingleLine: false
-AllowShortCaseLabelsOnASingleLine: false
 
+# Indentation - Modern Standards
 IndentCaseLabels: true
 IndentCaseBlocks: true
-IndentAccessModifiers: false
 IndentGotoLabels: true
 IndentPPDirectives: BeforeHash
 IndentExternBlock: NoIndent
-IndentRequires: false
 
-KeepEmptyLinesAtTheStartOfBlocks: false
-NamespaceIndentation: None
-ObjCBlockIndentation: 2
-ObjCSpaceAfterProperty: false
-ObjCSpaceBeforeProtocolList: true
+# Comment Formatting - Modern Standards
+SpacesBeforeTrailingComments: 2
+CommentPragmas: '^ IWYU pragma:|^ TODO:|^ FIXME:'
+FixNamespaceComments: false
 
-PenaltyBreakBeforeFirstCallParameter: 19
+# Line Breaking - Conservative (Fixed to prevent excessive breaking)
+PenaltyBreakBeforeFirstCallParameter: 1000  # Higher = less likely to break
 PenaltyBreakComment: 300
-PenaltyBreakFirstLessLess: 120
+# PenaltyBreakFirstLessLess: 1000
 PenaltyBreakString: 1000
-PenaltyBreakTemplateDeclaration: 10
+PenaltyBreakTemplateDeclaration: 1000
 PenaltyExcessCharacter: 1000000
-PenaltyReturnTypeOnItsOwnLine: 200
+PenaltyReturnTypeOnItsOwnLine: 1000
 PenaltyIndentedWhitespace: 0
 
-PointerAlignment: Right
-ReferenceAlignment: Right
+# Alignment - Conservative C Standards (Fixed)
+AlignConsecutiveMacros: None
+AlignConsecutiveAssignments: None
+# AlignConsecutiveDeclarations: None
+AlignEscapedNewlines: DontAlign
+AlignOperands: DontAlign
+AlignTrailingComments: false
 
-SpaceAfterCStyleCast: false
-SpaceAfterTemplateKeyword: true
-SpaceBeforeAssignmentOperators: true
-SpaceBeforeCtorInitializerColon: true
-SpaceBeforeInheritanceColon: true
-SpaceBeforeParens: ControlStatements
-SpaceBeforeRangeBasedForLoopColon: true
-SpaceInEmptyParentheses: false
-SpacesBeforeTrailingComments: 2
-SpacesInAngles: false
-SpacesInContainerLiterals: true
-SpacesInCStyleCastParentheses: false
-SpacesInParentheses: false
-SpacesInSquareBrackets: false
-SpaceBeforeSquareBrackets: false
-
-Standard: Cpp11
-DerivePointerAlignment: false
+# Whitespace - Modern Standards
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1
 PackConstructorInitializers: Never
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 
+# Includes and Sorting
+SortIncludes: Never  # Preserve manual include order
+SortUsingDeclarations: false
+
+# C-Specific Optimizations (Fixed for better function signatures)
 AllowAllArgumentsOnNextLine: true
-AllowAllParametersOfDeclarationOnNextLine: true
+AllowAllParametersOfDeclarationOnNextLine: false
+ContinuationIndentWidth: 4
+BinPackArguments: false
 
-AlignConsecutiveMacros: AcrossEmptyLinesAndComments
-AlignConsecutiveAssignments: AcrossEmptyLinesAndComments
-AlignConsecutiveDeclarations: AcrossEmptyLinesAndComments
-AlignEscapedNewlines: Right
-AlignOperands: Align
-AlignTrailingComments: true
+# Function signature formatting - keep parameters compact
+BinPackParameters: false
+ColumnLimit: 100  # Allow longer lines for function signatures
+PenaltyBreakFirstLessLess: 1000
 
-BinPackArguments: true
-BinPackParameters: true
+# Better function parameter handling
+AlignAfterOpenBracket: Align
+AlignConsecutiveDeclarations: false
 
-ColumnLimit: 0
-CommentPragmas: '^ IWYU pragma:'
-CompactNamespaces: false
-ConstructorInitializerIndentWidth: 2
-ContinuationIndentWidth: 2
-FixNamespaceComments: true
-MaxEmptyLinesToKeep: 1
+# V4P Specific Adjustments
+SpaceAfterLogicalNot: true  # Modern C standard
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCtorInitializerColon: false  # C doesn't have constructors
+SpaceBeforeInheritanceColon: false     # C doesn't have inheritance
 
-SortIncludes: Never
-SortUsingDeclarations: true
-
-# V4P specific adjustments
-SpaceAfterLogicalNot: false
+# Disable C++ specific features
+Cpp11BracedListStyle: false

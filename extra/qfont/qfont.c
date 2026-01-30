@@ -2,7 +2,6 @@
 #include "v4pi.h"
 #include "qfont.h"
 
-
 #define AA0 "1111 111  1111 111  1111 1111 1111 1  1 111  1111 1  1 1    "
 #define AA1 "1  1 1  1 1    1  1 1    1    1    1  1  1      1 1 1  1    "
 #define AA2 "1111 111  1    1  1 111  111  1 11 1111  1      1 11   1    "
@@ -40,76 +39,77 @@
 #define PB3 "      11  1111  11   1 1  111 "
 #define PB4 "       11      11    11  111  "
 
-
 #define S0 " " AA0 AB0 AC0 NA0 PA0 PB0
 #define S1 " " AA1 AB1 AC1 NA1 PA1 PB1
 #define S2 " " AA2 AB2 AC2 NA2 PA2 PB2
 #define S3 " " AA3 AB3 AC3 NA3 PA3 PB3
 #define S4 " " AA4 AB4 AC4 NA4 PA4 PB4
 
-char* qfont[5] = {
-   S0,
-   S1,
-   S2,
-   S3,
-   S4
-};
+char* qfont[5] = { S0, S1, S2, S3, S4 };
 
 #define CHAR_WIDTH 4
 #define CHAR_HEIGHT 5
 
 static int ichar(char c) {
-  int   i = 0;
-  char *s     = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!/?,\"'.:;&*+-<=>@$";
-  if (!c || c == ' ')
-    return -1;
+    int i = 0;
+    char* s = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!/?,\"'.:;&*+-<=>@$";
+    if (! c || c == ' ')
+        return -1;
 
-  while (c != s[i] && s[i])
-    i++;
-  if (!s[i])
-    return 45;  // *
-  return i;
+    while (c != s[i] && s[i])
+        i++;
+    if (! s[i])
+        return 45;  // *
+    return i;
 }
 
-PolygonP qfontDefinePolygonFromChar(char c, PolygonP poly,
-    Coord x, Coord y, Coord width, Coord height) {
-  int i, j, down, is;
-  int ic = ichar(c);
-  if (ic == -1) return poly; // white char, no edge
+PolygonP qfontDefinePolygonFromChar(char c,
+                                    PolygonP poly,
+                                    Coord x,
+                                    Coord y,
+                                    Coord width,
+                                    Coord height) {
+    int i, j, down, is;
+    int ic = ichar(c);
+    if (ic == -1)
+        return poly;  // white char, no edge
 
-  v4pPolygonAddJump(poly);
-  for (i = 0; i <= CHAR_WIDTH; i++) {
-    Boolean down = 0;
-    //v4pPolygonAddJump(poly);
-    for (j = 0; j < CHAR_HEIGHT ; j++) {
-      int is = ic * (1 + CHAR_WIDTH) + i;
-      if (!down && qfont[j][is] != qfont[j][1 + is]) {
-        v4pPolygonAddPoint(poly, x + i * width / CHAR_WIDTH, y + j * height / CHAR_HEIGHT);
-        down = 1;
-      } else if (down && qfont[j][is] == qfont[j][1 + is]) {
-        // dubed point to left the pen up
-        v4pPolygonAddPoint(poly, x + i * width / CHAR_WIDTH, y + j * height / CHAR_HEIGHT);
-        v4pPolygonAddJump(poly);
-        down = 0;
-      }
+    v4p_addJump(poly);
+    for (i = 0; i <= CHAR_WIDTH; i++) {
+        Boolean down = 0;
+        // v4p_addJump (poly);
+        for (j = 0; j < CHAR_HEIGHT; j++) {
+            int is = ic * (1 + CHAR_WIDTH) + i;
+            if (! down && qfont[j][is] != qfont[j][1 + is]) {
+                v4p_addPoint(poly, x + i * width / CHAR_WIDTH, y + j * height / CHAR_HEIGHT);
+                down = 1;
+            } else if (down && qfont[j][is] == qfont[j][1 + is]) {
+                // dubed point to left the pen up
+                v4p_addPoint(poly, x + i * width / CHAR_WIDTH, y + j * height / CHAR_HEIGHT);
+                v4p_addJump(poly);
+                down = 0;
+            }
+        }
+        if (down) {
+            v4p_addPoint(poly, x + i * width / CHAR_WIDTH, y + j * height / CHAR_HEIGHT);
+            v4p_addJump(poly);
+        }
     }
-    if (down) {
-        v4pPolygonAddPoint(poly, x + i * width / CHAR_WIDTH, y + j * height / CHAR_HEIGHT);
-        v4pPolygonAddJump(poly);
+    return poly;
+}
+
+PolygonP qfontDefinePolygonFromString(char* s,
+                                      PolygonP poly,
+                                      Coord x,
+                                      Coord y,
+                                      Coord width,
+                                      Coord height,
+                                      Coord interleave) {
+    char c;
+    int i;
+    for (i = 0; c = s[i]; i++) {
+        qfontDefinePolygonFromChar(c, poly, x, y, width, height);
+        x += width + interleave;
     }
-  }
-  return poly;
+    return poly;
 }
-
-PolygonP qfontDefinePolygonFromString(char* s, PolygonP poly,
-    Coord x, Coord y, Coord width, Coord height, Coord interleave) {
-  char c;
-  int i;
-  for (i = 0; c = s[i]; i++) {
-    qfontDefinePolygonFromChar(c, poly, x, y, width, height);
-    x += width + interleave;
-  }
-  return poly;
-}
-
-
