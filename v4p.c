@@ -484,6 +484,11 @@ Color v4pPolygonSetColor(PolygonP p, Color c) {
   return p->color = c;
 }
 
+// set polygon color
+Color v4pPolygonSetLayer(PolygonP p, ILayer z) {
+  return p->z = z;
+}
+
 // returns a polygon points list
 PointP v4pPolygonGetPoints(PolygonP p) {
   return p->point1;
@@ -673,8 +678,8 @@ PolygonP v4pRecPolygonTransformClone(Boolean estSub, PolygonP p, PolygonP c, Coo
       straighten(tx, ty, &x2, &y2);
       
       // Apply zoom/scaling
-      x2 = (x2 * zoom_x) >> 8;
-      y2 = (y2 * zoom_y) >> 8;
+      x2 = (x2 * zoom_x) / 256;
+      y2 = (y2 * zoom_y) / 256;
       
       // Translate back and apply position delta
       sc->x = x2 + anchor_x + dx;

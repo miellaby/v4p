@@ -88,6 +88,7 @@ PointP             v4pPolygonAddPoint(PolygonP p, Coord x, Coord y);
 PointP             v4pPolygonAddJump(PolygonP p);
 PointP             v4pPolygonMovePoint(PolygonP p, PointP s, Coord x, Coord y);
 Color              v4pPolygonSetColor(PolygonP p, Color c);
+Color              v4pPolygonSetLayer(PolygonP p, ILayer z);
 Coord              v4pPolygonSetRadius(PolygonP p, Coord radius);
 PointP             v4pPolygonGetPoints(PolygonP p);
 ILayer             v4pPolygonGetZ(PolygonP p);

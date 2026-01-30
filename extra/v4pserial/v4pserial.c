@@ -158,6 +158,7 @@ PolygonP v4pPolygonDecodeSVGPath(PolygonP p, char *s, int scale) {
                   NEXT } status = INIT;
   float param_1, xs = 0, xs1;
   float param_2, ys = 0, ys1;
+  float scalef = scale;
   int   offset;
 
   for (j = 0; s[j]; j++) {
@@ -177,7 +178,7 @@ PolygonP v4pPolygonDecodeSVGPath(PolygonP p, char *s, int scale) {
               xs = param_1;
               ys = param_2;
             }
-            v4pPolygonAddPoint(p, xs * scale / 256, ys * scale / 256);
+            v4pPolygonAddPoint(p, (xs * scalef) / 256, ys * scalef / 256);
             if (!knowFirstPoint) {
               xs1            = xs;
               ys1            = ys;
@@ -207,7 +208,7 @@ PolygonP v4pPolygonDecodeSVGPath(PolygonP p, char *s, int scale) {
         if (sscanf(&s[j], "%f,%f%n", &param_1, &param_2, &offset) >= 2) {
           j += offset - 1;
           if (toBeClosed && knowFirstPoint) {
-            v4pPolygonAddPoint(p, xs1 * scale / 256, ys1 * scale / 256);
+            v4pPolygonAddPoint(p, (xs1 * scalef) / 256, (ys1 * scalef) / 256);
             toBeClosed = knowFirstPoint = false;
           }
           if (nextIsRelative) {
@@ -217,7 +218,7 @@ PolygonP v4pPolygonDecodeSVGPath(PolygonP p, char *s, int scale) {
             xs = param_1;
             ys = param_2;
           }
-          v4pPolygonAddPoint(p, xs * scale / 256, ys * scale / 256);
+          v4pPolygonAddPoint(p, (xs * scalef) / 256, (ys * scalef) / 256);
           if (!knowFirstPoint) {
             xs1            = xs;
             ys1            = ys;
@@ -229,7 +230,7 @@ PolygonP v4pPolygonDecodeSVGPath(PolygonP p, char *s, int scale) {
     }  // switch status
   }  // j
   if (toBeClosed && knowFirstPoint) {
-    v4pPolygonAddPoint(p, xs1 * scale / 256, ys1 * scale / 256);
+    v4pPolygonAddPoint(p, (xs1 * scalef) / 256, (ys1 * scalef) / 256);
     toBeClosed = knowFirstPoint = false;
   }
   return p;
