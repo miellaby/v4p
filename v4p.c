@@ -104,7 +104,7 @@ typedef struct activeEdge_s* ActiveEdgeP;
 
 // V4P context
 typedef struct v4p_context_s {
-    V4pDisplayP display;
+    V4piContextP display;
     V4pSceneP scene;  // Scene = a polygon set
     V4pCoord xvu0, yvu0, xvu1, yvu1;  // View corner coordinates
     Polygon dummyBgPoly;  // Just for color
@@ -174,7 +174,7 @@ Boolean v4p_setView(V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1) {
 }
 
 // Set the display
-void v4pi_set(V4pDisplayP d) {
+void v4pi_set(V4piContextP d) {
     v4p->display = d;
     // Call to refresh internal values depending on current display
     v4p_setView(v4p->xvu0, v4p->yvu0, v4p->xvu1, v4p->yvu1);
@@ -195,7 +195,7 @@ V4pContextP v4p_contextNew() {
     V4pContextP v4p = (V4pContextP) malloc(sizeof(V4pContext));
     int lineWidth = v4p_displayWidth, lineNb = v4p_displayHeight;
 
-    v4p->display = v4pDisplayContext;
+    v4p->display = v4pi_context;
     v4p->scene = v4p_defaultScene;
     v4p->pointHeap = QuickHeapNewFor(V4pPoint);
     v4p->polygonHeap = QuickHeapNewFor(Polygon);
@@ -257,13 +257,10 @@ Boolean v4p_init() {
 
 // V4P cleanup
 void v4p_quit() {
-    if (v4p_defaultContext) {
+    if (v4p != v4p_defaultContext) {
         v4p_contextFree(v4p_defaultContext);
-    }
-    if (v4p == v4p_defaultContext) {
         v4p = NULL;
     }
-    v4p_defaultContext = NULL;
 }
 
 // Create a polygon

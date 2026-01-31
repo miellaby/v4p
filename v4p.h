@@ -4,6 +4,7 @@
 #ifndef V4P_H
 #define V4P_H
 #include "v4p_ll.h"
+#include "v4p_color.h"
 
 typedef UInt16 V4pLayer;  // < 16
 typedef UInt16 V4pCollide;  // < 16
@@ -18,6 +19,11 @@ typedef UInt16 V4pFlag;
 #define V4P_DISABLED (V4pFlag) 32  // wont be displayed for now
 #define V4P_IN_DISABLED (V4pFlag) 64  // ancester disabled
 #define V4P_CHANGED (V4pFlag) 128  // definition changed since last rendering
+
+// Quality vs. Perfs Levels
+#define V4P_QUALITY_LOW 0
+#define V4P_QUALITY_NORMAL 1
+#define V4P_QUALITY_HIGH 2
 
 typedef V4pFlag V4pProps;
 
@@ -43,6 +49,9 @@ typedef struct v4p_point_s {
 extern V4pContextP v4p_defaultContext;  // Default context (set once by v4pinit())
 extern V4pSceneP v4p_defaultScene;  // Default scene within default context (set
                                     // once by v4pinit())
+
+extern V4pCoord v4p_displayWidth;   // current display width
+extern V4pCoord v4p_displayHeight;  // current display height
 
 /**
  * Functions

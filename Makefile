@@ -1,13 +1,14 @@
 TOP=.
 LIBS=libv4p.a
-EXTRAS = v4pserial qfont game_engine luagame
+ADDONS = v4pserial qfont game_engine luagame
 DEMOS = square ved stars parent_test zoom_test nested_hexagon circle debug_circle qfont starfield_3d collision_test
 include $(TOP)/rules.mak
+
 #BACKEND=xlib
 
-all: extra demo
+all: addons demos
 
-libv4p.a: quickheap.o quicktable.o sortable.o lowmath.o v4p.o v4pi.o
+libv4p.a: quickheap.o quicktable.o sortable.o lowmath.o v4p_color.o v4p_ll.o v4pi.o v4p.o
 	$(AR) $(ARFLAGS) $@ $?
 
 libv4pserial.a: v4pserial.o
@@ -20,7 +21,7 @@ libg4p.a: game_engine.o
 # LUA binding
 
 bindings/lua/v4p4lua.c: bindings/v4p.i v4p.h v4pi.h
-	swig -I$(TOP)/$(TARGET)-$(BACKEND) -lua -module v4p -o $@ bindings/v4p.i
+	swig -I$(TOP)/v4pi/$(TARGET)/$(BACKEND) -I$(TOP)/v4pi/$(TARGET) -I$(TOP)/v4pi -I$(TOP) -lua -module v4p -o $@ bindings/v4p.i
 
 bindings/lua/v4p4lua.o: bindings/lua/v4p4lua.c
 bindings/lua/v4p4lua.o: CFLAGS += -I/usr/include/lua5.1 -fPIC
@@ -33,24 +34,24 @@ lua: bindings/lua/v4p.so
 clean.lua:
 	-rm bindings/lua/v4p4lua.c bindings/lua/v4p.so
 
-%.extra: $(LIBS)
-	$(MAKE) -C extra/$(@:.extra=)
+%.addon: $(LIBS)
+	$(MAKE) -C addons/$(@:.addon=)
 
-%.extraclean:
-	$(MAKE) -C extra/$(@:.extraclean=) clean
+%.addonclean:
+	$(MAKE) -C addons/$(@:.addonclean=) clean
 
-extra: $(EXTRAS:=.extra)
+addons: $(ADDONS:=.addon)
 
-extraclean: $(EXTRAS:=.extraclean)
+addonclean: $(ADDONS:=.addonclean)
 
-demo: $(LIBS) extra $(DEMOS:=.demo)
+demos: $(LIBS) addons $(DEMOS:=.demo)
 
 democlean: $(DEMOS:=.democlean)
 
 %.demo:
-	$(MAKE) -C demo/$(@:.demo=)
+	$(MAKE) -C demos/$(@:.demo=)
 
 %.democlean:
-	$(MAKE) -C demo/$(@:.democlean=) clean
+	$(MAKE) -C demos/$(@:.democlean=) clean
 
-clean: clean.lua extraclean democlean
+clean: clean.lua addonclean democlean

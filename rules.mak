@@ -1,4 +1,4 @@
-.PHONY: all clean demo democlean extra extraclean
+.PHONY: all clean demo democlean addons addonclean
 
 
 TARGETS = linux palmos
@@ -45,7 +45,11 @@ endif
 
 CC=$(or $(CC_$(TARGET)),$(CC_DEFAULT))
 AR=$(or $(AR_$(TARGET)),$(AR_DEFAULT))
-CPPFLAGS+=-L$(TOP) -I$(TOP) -I$(TOP)/$(TARGET)-$(BACKEND) $(CCFLAGS_$(TARGET))$(CCFLAGS_$(TARGET)_$(BACKEND)) $(CCFLAGS_$(TARGET)_$(MODE)) -I.
+CPPFLAGS+=-L$(TOP) -L. \
+   -I./$(TARGET)/$(BACKEND) -I./$(TARGET) -I. \
+   -I$(TOP)/backends/$(TARGET)/$(BACKEND) -I$(TOP)/backends/$(TARGET) -I$(TOP)/backends \
+   -I$(TOP)/quick -I$(TOP) \
+   $(CCFLAGS_$(TARGET))$(CCFLAGS_$(TARGET)_$(BACKEND)) $(CCFLAGS_$(TARGET)_$(MODE))
 ARFLAGS=$(ARFLAGS_$(TARGET)) $(ARFLAGS_$(TARGET)_$(MODE))
 
 all: $(LIBS) $(EXES)
@@ -67,4 +71,4 @@ ifneq ($(PUBLIC_HEADERS),)
 	cp $(PUBLIC_HEADERS) $(PREFIX)/include/$(PROJECT)/
 endif
 
-VPATH=./$(TARGET)-$(BACKEND):.:$(TOP)/$(TARGET)-$(BACKEND):$(TOP)
+VPATH=./$(TARGET)/$(BACKEND):./$(TARGET):.:$(TOP)/backends/$(TARGET)/$(BACKEND):$(TOP)/backends/$(TARGET):$(TOP)/backends:$(TOP)/quick:$(TOP)

@@ -3,11 +3,11 @@
 .vscode
 
 # Demo directory - keep source files, ignore build artifacts
-demo/*/*
-!demo/*/*.c
-!demo/*/*.h
-!demo/*/Makefile
-!demo/*/README*
+demos/*/*
+!demos/*/*.c
+!demos/*/*.h
+!demos/*/Makefile
+!demos/*/README*
 
 # Ignore compiled executables
-extra/luagame/luagame
+addons/luagame/luagame
