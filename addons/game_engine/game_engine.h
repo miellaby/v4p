@@ -1,6 +1,6 @@
 #ifndef GAME_4_POCKET_H
 #define GAME_4_POCKET_H
-#include "v4p_ll.h"
+#include "v4p.h"
 #include "collision.h"
 
 /**
@@ -25,9 +25,6 @@ void g4pi_destroy();
 extern G4pState g4p_state;
 extern int g4p_framerate;
 extern int g4p_avgFramePeriod;
-
-// Collision system access
-extern Collide collides[16];
 
 // To be implemented by the caller
 extern Boolean g4p_onInit();

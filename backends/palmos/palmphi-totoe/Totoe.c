@@ -682,11 +682,11 @@ Boolean iterateApp() {
 #line 179 "editor.c"
 
 #line 180 "editor.c"
-                } else if (collides[2].q > 0) {
+                } else if (g4p_collides[2].q > 0) {
 #line 181 "editor.c"
                     if (sel == bScroll) {
 #line 182 "editor.c"
-                        focus = collides[2].poly;
+                        focus = g4p_collides[2].poly;
 #line 183 "editor.c"
                         x0 = xs;
 #line 184 "editor.c"
@@ -696,7 +696,7 @@ Boolean iterateApp() {
 #line 186 "editor.c"
                         if (! focus) {
 #line 187 "editor.c"
-                            focus = collides[2].poly;
+                            focus = g4p_collides[2].poly;
 #line 188 "editor.c"
                             s = v4p_getPoints(focus);
 #line 189 "editor.c"
@@ -726,7 +726,7 @@ Boolean iterateApp() {
 #line 201 "editor.c"
                     } else
 #line 202 "editor.c"
-                        focus = collides[2].poly;
+                        focus = g4p_collides[2].poly;
 #line 203 "editor.c"
                 } else if (sel == bScroll) {
 #line 204 "editor.c"

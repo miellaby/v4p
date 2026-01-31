@@ -1,7 +1,7 @@
 TOP=.
 LIBS=libv4p.a
 ADDONS = v4pserial qfont game_engine luagame
-DEMOS = square ved stars parent_test zoom_test nested_hexagon circle debug_circle qfont starfield_3d collision_test
+DEMOS = square ved stars parent_test zoom_test nested_hexagon circle debug_circle qfont starfield_3d collision_test asteroids
 include $(TOP)/rules.mak
 
 #BACKEND=xlib

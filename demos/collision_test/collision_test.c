@@ -8,7 +8,7 @@ int main(int argc, char* argv[]) {
     printf("=== COLLISION TEST ===\n");
     
     // Initialize the system
-    v4pi_init(1, 0);
+    v4pi_init(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);
     v4p_init();
     v4p_setBGColor(V4P_GREEN);
     
@@ -47,15 +47,15 @@ int main(int argc, char* argv[]) {
     printf("\n=== COLLISION RESULTS ===\n");
     int collision_found = 0;
     for (int i = 0; i < 16; i++) {
-        if (collides[i].q > 0) {
+        if (g4p_collides[i].q > 0) {
             collision_found = 1;
             printf("Collision detected on index %d: q=%d, x=%d, y=%d, poly=%p\n", 
-                   i, collides[i].q, collides[i].x, collides[i].y, (void*)collides[i].poly);
+                   i, g4p_collides[i].q, g4p_collides[i].x, g4p_collides[i].y, (void*)g4p_collides[i].poly);
             
             // Check if it's one of our test polygons
-            if (collides[i].poly == poly1) {
+            if (g4p_collides[i].poly == poly1) {
                 printf("  -> Collision with RED polygon!\n");
-            } else if (collides[i].poly == poly2) {
+            } else if (g4p_collides[i].poly == poly2) {
                 printf("  -> Collision with BLUE polygon!\n");
             }
         }

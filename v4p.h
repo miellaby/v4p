@@ -6,8 +6,8 @@
 #include "v4p_ll.h"
 #include "v4p_color.h"
 
-typedef UInt16 V4pLayer;  // < 16
-typedef UInt16 V4pCollide;  // < 16
+typedef UInt16 V4pLayer;  // Rendering layer (< 16)
+typedef UInt16 V4pCollide;  // Collision layer (< 16)
 
 typedef UInt16 V4pFlag;
 #define V4P_STANDARD (V4pFlag) 0
@@ -24,6 +24,10 @@ typedef UInt16 V4pFlag;
 #define V4P_QUALITY_LOW 0
 #define V4P_QUALITY_NORMAL 1
 #define V4P_QUALITY_HIGH 2
+
+// UX
+#define V4P_UX_NORMAL 0
+#define V4P_UX_FULLSCREEN 1
 
 typedef V4pFlag V4pProps;
 
@@ -150,13 +154,18 @@ V4pPolygonP v4p_addClone(V4pPolygonP p);
 Boolean v4p_destroy(V4pPolygonP p);
 Boolean v4p_destroyFromScene(V4pPolygonP p);
 
+
+
+// Collision detection when rendering
+typedef Boolean (*V4pCollideCallback)(V4pCollide i1,
+                                      V4pCollide i2,
+                                      V4pCoord py,
+                                      V4pCoord x1,
+                                      V4pCoord x2,
+                                      V4pPolygonP p1,
+                                      V4pPolygonP p2);
+
 // Collision callback function (see game engine implmentation)
-void v4p_setCollideCallback(Boolean (*callback)(V4pCollide i1,
-                                              V4pCollide i2,
-                                              V4pCoord py,
-                                              V4pCoord x1,
-                                              V4pCoord x2,
-                                              V4pPolygonP p1,
-                                              V4pPolygonP p2));
+void v4p_setCollideCallback(V4pCollideCallback f);
 
 #endif

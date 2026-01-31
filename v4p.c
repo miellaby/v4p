@@ -52,14 +52,6 @@
 #include <stdio.h>
 #include "assert.h"
 
-// Collision callback function pointer
-typedef Boolean (*V4pCollideCallback)(V4pCollide i1,
-                                      V4pCollide i2,
-                                      V4pCoord py,
-                                      V4pCoord x1,
-                                      V4pCoord x2,
-                                      V4pPolygonP p1,
-                                      V4pPolygonP p2);
 static V4pCollideCallback collisionCallback = NULL;
 
 #define YHASH_SIZE 512

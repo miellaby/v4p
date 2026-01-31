@@ -14,7 +14,7 @@ Boolean g4p_onInit() {
     int i;
     V4pCoord x, y;
 
-    v4pi_init(1, 0);  // Normal quality, windowed
+    v4pi_init(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);  // Normal quality, windowed
     v4p_init();
     v4p_setBGColor(V4P_BLACK);  // Black background
     box = v4p_new(V4P_ABSOLUTE, i, 4);

@@ -1,3 +1,3 @@
 #!/bin/sh
-TARGET=linux BACKEND=drm make "$@"
+TARGET=linux BACKEND=sdl make "$@"
 

@@ -3,7 +3,7 @@
 #include "v4pi.h"
 
 // Global collision array
-Collide collides[16];
+Collide g4p_collides[16];
 
 // Default collision callback
 Boolean g4p_onCollide(V4pCollide i1,
@@ -19,16 +19,16 @@ Boolean g4p_onCollide(V4pCollide i1,
     dy = l * py;
     v4pi_debug("g4p_onCollide() called with i1=%d, i2=%d, l=%d, p1=%p, p2=%p\n", 
                i1, i2, l, (void*)p1, (void*)p2);
-    collides[i1].q += l;
-    collides[i1].x += dx;
-    collides[i1].y += dy;
-    collides[i1].poly = p2;
-    collides[i2].q += l;
-    collides[i2].x += dx;
-    collides[i2].y += dy;
-    collides[i2].poly = p1;
+    g4p_collides[i1].q += l;
+    g4p_collides[i1].x += dx;
+    g4p_collides[i1].y += dy;
+    g4p_collides[i1].poly = p2;
+    g4p_collides[i2].q += l;
+    g4p_collides[i2].x += dx;
+    g4p_collides[i2].y += dy;
+    g4p_collides[i2].poly = p1;
     v4pi_debug("After collision: collides[%d].q=%d, collides[%d].q=%d\n", 
-               i1, collides[i1].q, i2, collides[i2].q);
+               i1, g4p_collides[i1].q, i2, g4p_collides[i2].q);
     return true;
 }
 
@@ -46,10 +46,10 @@ void g4p_resetCollide() {
     int i;
     v4pi_debug("g4p_resetCollide() called\n");
     for (i = 0; i < 16; i++) {
-        collides[i].q = 0;
-        collides[i].x = 0;
-        collides[i].y = 0;
-        collides[i].poly = NULL;
+        g4p_collides[i].q = 0;
+        g4p_collides[i].x = 0;
+        g4p_collides[i].y = 0;
+        g4p_collides[i].poly = NULL;
     }
 }
 
@@ -59,12 +59,12 @@ void g4p_finalizeCollide() {
     v4pi_debug("g4p_finalizeCollide() called\n");
     for (i = 0; i < 16; i++) {
         v4pi_debug("collides[%d]: q=%d, x=%d, y=%d, poly=%p\n", 
-                   i, collides[i].q, collides[i].x, collides[i].y, (void*)collides[i].poly);
-        if (! collides[i].q)
+                   i, g4p_collides[i].q, g4p_collides[i].x, g4p_collides[i].y, (void*)g4p_collides[i].poly);
+        if (! g4p_collides[i].q)
             continue;
-        collides[i].x /= collides[i].q;
-        collides[i].y /= collides[i].q;
+        g4p_collides[i].x /= g4p_collides[i].q;
+        g4p_collides[i].y /= g4p_collides[i].q;
         v4pi_debug("collides[%d] after division: x=%d, y=%d\n", 
-                   i, collides[i].x, collides[i].y);
+                   i, g4p_collides[i].x, g4p_collides[i].y);
     }
 }

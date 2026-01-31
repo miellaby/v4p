@@ -15,7 +15,7 @@ int liu = 3;
 
 Boolean g4p_onInit() {
     int j, k;
-    v4pi_init(1, 0);
+    v4pi_init(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);
     v4p_init();
     v4p_setBGColor(V4P_BLACK);
 

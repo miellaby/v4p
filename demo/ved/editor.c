@@ -1,10 +1,10 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <getopt.h>
 #include "v4p.h"
 #include "v4pi.h"
 #include "game_engine.h"
+#include "getopt.h"
 #include "lowmath.h"
 
 /** global options with their default values */
