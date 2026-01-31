@@ -16,25 +16,25 @@ static char** argv;
 
 // BEGIN Functions exposed to Lua ====================================
 static int l_g4pGetFramerate(lua_State* luaVM) {
-    lua_Number fr = g4pFramerate;
+    lua_Number fr = g4p_framerate;
     lua_pushnumber(luaVM, fr);  // return value
     return 1;  // 1 return value
 }
 
 static int l_g4pSetFramerate(lua_State* luaVM) {
     int fr = (int) luaL_checknumber(luaVM, 1);
-    g4pSetFramerate(fr);
+    g4p_setFramerate(fr);
     return 0;  // no return value
 }
 
 static int l_g4pMain(lua_State* luaVM) {
-    lua_Number rc = g4pMain(argc, argv);
+    lua_Number rc = g4p_main(argc, argv);
     lua_pushnumber(luaVM, rc);  // return value
     return 1;  // 1 return value
 }
 // END Functions exposed to Lua ======================================
 
-Boolean g4pOnInit() {
+Boolean g4p_onInit() {
     // Call to Lua g4pOnInit
     if (luaL_dostring(luaVM, "return g4pOnInit()")) {
         fprintf(stderr, "lua script error\n");
@@ -47,28 +47,28 @@ Boolean g4pOnInit() {
     return rc;
 }
 
-Boolean g4pOnTick(Int32 deltaTime) {
-    // transmit g4pState to LUA in a dumb way
+Boolean g4p_onTick(Int32 deltaTime) {
+    // transmit g4p_state to LUA in a dumb way
     static char buffer[500];
     snprintf(buffer,
              500,
-             "g4pState.buttons={%d,%d,%d,%d,%d,%d,%d,%d}; g4pState.xpen=%d; "
-             "g4pState.ypen=%d; g4pState.deltaTime=%d;",
-             g4pState.buttons[0],
-             g4pState.buttons[1],
-             g4pState.buttons[2],
-             g4pState.buttons[3],
-             g4pState.buttons[4],
-             g4pState.buttons[5],
-             g4pState.buttons[6],
-             g4pState.buttons[7],
-             g4pState.xpen,
-             g4pState.ypen,
+             "g4p_state.buttons={%d,%d,%d,%d,%d,%d,%d,%d}; g4p_state.xpen=%d; "
+             "g4pState.ypen=%d; g4p_state.deltaTime=%d;",
+             g4p_state.buttons[0],
+             g4p_state.buttons[1],
+             g4p_state.buttons[2],
+             g4p_state.buttons[3],
+             g4p_state.buttons[4],
+             g4p_state.buttons[5],
+             g4p_state.buttons[6],
+             g4p_state.buttons[7],
+             g4p_state.xpen,
+             g4p_state.ypen,
              deltaTime);
     luaL_dostring(luaVM, buffer);
 
     // Call to Lua g4pOnTick
-    if (luaL_dostring(luaVM, "return g4pOnTick(g4pState.deltaTime)")) {
+    if (luaL_dostring(luaVM, "return g4pOnTick(g4p_state.deltaTime)")) {
         fprintf(stderr, "lua script error\n");
         return 1;
     }
@@ -77,7 +77,7 @@ Boolean g4pOnTick(Int32 deltaTime) {
     return rc;
 }
 
-Boolean g4pOnFrame() {
+Boolean g4p_onFrame() {
     // Call to Lua g4pOnFrame
     if (luaL_dostring(luaVM, "return g4pOnFrame()")) {
         fprintf(stderr, "lua script error\n");
@@ -88,7 +88,7 @@ Boolean g4pOnFrame() {
     return rc;
 }
 
-void g4pOnQuit() {
+void g4p_onQuit() {
     // Call to Lua g4pOnQuit
     luaL_dostring(luaVM, "g4pOnQuit();");
 }
@@ -133,9 +133,9 @@ int main(int _argc, char** _argv) {
 
     // register 'Game Engine' API
     lua_register(luaVM, "g4pGetFramerate", l_g4pGetFramerate);
-    lua_register(luaVM, "g4pSetFramerate", l_g4pSetFramerate);
+    lua_register(luaVM, "g4p_setFramerate", l_g4pSetFramerate);
     lua_register(luaVM, "g4pMain", l_g4pMain);
-    luaL_dostring(luaVM, "g4pState={buttons={0,0,0,0,0,0,0,0},xpen=0,ypen=0,deltaTime=0};");
+    luaL_dostring(luaVM, "g4p_state={buttons={0,0,0,0,0,0,0,0},xpen=0,ypen=0,deltaTime=0};");
 
     // load exe arguments
     lua_newtable(luaVM);

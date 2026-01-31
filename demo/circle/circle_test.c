@@ -8,7 +8,7 @@
 #define DEPTH 6
 V4pPolygonP circle_matrix[GRID_SIZE][GRID_SIZE];
 
-Boolean g4pOnInit() {
+Boolean g4p_onInit() {
     int i, j;
     v4pDisplayInit(1, 0);  // Normal quality, windowed
     v4p_init();
@@ -29,7 +29,7 @@ Boolean g4pOnInit() {
 
 int elapsedTime = 0;
 
-Boolean g4pOnTick(Int32 deltaTime) {
+Boolean g4p_onTick(Int32 deltaTime) {
     int i, j;
 
     elapsedTime += deltaTime;
@@ -51,15 +51,15 @@ Boolean g4pOnTick(Int32 deltaTime) {
     return success;  // Keep running indefinitely
 }
 
-Boolean g4pOnFrame() {
+Boolean g4p_onFrame() {
     v4p_render();
     return success;
 }
 
-void g4pOnQuit() {
+void g4p_onQuit() {
     // Cleanup if needed
 }
 
 int main(int argc, char** argv) {
-    return g4pMain(argc, argv);
+    return g4p_main(argc, argv);
 }

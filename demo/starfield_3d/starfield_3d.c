@@ -26,8 +26,8 @@ V4pPolygonP starPolygons[NUM_STARS];
 
 // Initialize a star with random position
 void initStar(Star3D* star) {
-    star->x = (float) (rand() % (v4pDisplayWidth * 40) - v4pDisplayWidth * 20);
-    star->y = (float) (rand() % (v4pDisplayHeight * 40) - v4pDisplayHeight * 20);
+    star->x = (float) (rand() % (v4p_displayWidth * 40) - v4p_displayWidth * 20);
+    star->y = (float) (rand() % (v4p_displayHeight * 40) - v4p_displayHeight * 20);
     star->z = (float) (rand() % (int) STAR_DEPTH);
     star->size = 0.2 * (0.5f + (float) (rand() % 5) * 0.2f);
     star->brightness = 0.1f + (float) (rand() % 20) * 0.01f;
@@ -71,7 +71,7 @@ V4pPolygonP createStarPolygon() {
     return v4p_addClone(poly);
 }
 
-Boolean g4pOnInit() {
+Boolean g4p_onInit() {
     int i;
 
     // Seed random number generator
@@ -79,10 +79,10 @@ Boolean g4pOnInit() {
 
     v4pDisplayInit(1, 0);
     v4p_init();
-    v4p_setView(-v4pDisplayWidth * 10,
-                -v4pDisplayHeight * 10,
-                v4pDisplayWidth * 10,
-                v4pDisplayHeight * 10);
+    v4p_setView(-v4p_displayWidth * 10,
+                -v4p_displayHeight * 10,
+                v4p_displayWidth * 10,
+                v4p_displayHeight * 10);
     v4p_setBGColor(V4P_BLACK);
 
     // Initialize all stars
@@ -94,7 +94,7 @@ Boolean g4pOnInit() {
     return success;
 }
 
-Boolean g4pOnTick(Int32 deltaTime) {
+Boolean g4p_onTick(Int32 deltaTime) {
     int i;
     float screenX, screenY, screenSize;
 
@@ -139,15 +139,15 @@ Boolean g4pOnTick(Int32 deltaTime) {
     return success;  // Run indefinitely
 }
 
-Boolean g4pOnFrame() {
+Boolean g4p_onFrame() {
     v4p_render();
     return success;
 }
 
-void g4pOnQuit() {
-    v4pDisplayQuit();
+void g4p_onQuit() {
+    v4pi_quit();
 }
 
 int main(int argc, char** argv) {
-    return g4pMain(argc, argv);
+    return g4p_main(argc, argv);
 }

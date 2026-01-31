@@ -54,13 +54,13 @@ V4pPolygonP create_hexagon(V4pCoord size, V4pColor color) {
     return hex;
 }
 
-Boolean g4pOnInit() {
+Boolean g4p_onInit() {
     v4p_init();
     v4pDisplayInit(1, 0);  // Normal quality, windowed
     v4p_setBGColor(V4P_BLACK);  // Black background
 
     // Create the main hexagon (this will be the parent)
-    V4pCoord hexagon_size = v4pDisplayWidth / 10;
+    V4pCoord hexagon_size = v4p_displayWidth / 10;
     hexagon = create_hexagon(hexagon_size, V4P_MAROON);
     v4p_setAnchorToCenter(hexagon);
 
@@ -89,7 +89,7 @@ Boolean g4pOnInit() {
     return success;
 }
 
-Boolean g4pOnTick(Int32 deltaTime) {
+Boolean g4p_onTick(Int32 deltaTime) {
     static int elapsedTime = 0;
     elapsedTime += deltaTime;
 
@@ -101,8 +101,8 @@ Boolean g4pOnTick(Int32 deltaTime) {
     int zoom_factor = 128 + (255 - iabs(phase - 128));  // Creates triangle wave: 128->0->128
 
     v4p_transform(hexagon,
-                  v4pDisplayWidth / 2,
-                  v4pDisplayHeight / 2,
+                  v4p_displayWidth / 2,
+                  v4p_displayHeight / 2,
                   rotation_angle,
                   0,
                   zoom_factor,
@@ -110,15 +110,15 @@ Boolean g4pOnTick(Int32 deltaTime) {
     return success;
 }
 
-Boolean g4pOnFrame() {
+Boolean g4p_onFrame() {
     v4p_render();
     return success;
 }
 
-void g4pOnQuit() {
-    v4pDisplayQuit();
+void g4p_onQuit() {
+    v4pi_quit();
 }
 
 int main(int argc, char** argv) {
-    return g4pMain(argc, argv);
+    return g4p_main(argc, argv);
 }

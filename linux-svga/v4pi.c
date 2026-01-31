@@ -79,20 +79,11 @@ V4pDisplayP v4pDisplayDefaultContext = &v4pDisplayDefaultContextS;
 
 // Variables hosting current context and related properties
 V4pDisplayP v4pDisplayContext = &v4pDisplayDefaultContextS;
-V4pCoord v4pDisplayWidth;
-V4pCoord v4pDisplayHeight;
+V4pCoord v4p_displayWidth;
+V4pCoord v4p_displayHeight;
 
 /**
- * Collide computing stuff
- */
-typedef struct collide_s {
-    V4pCoord x;
-    V4pCoord y;
-    UInt16 q;
-    V4pPolygonP poly;
-} Collide;
 
-Collide collides[16];
 
 /**
  * Metrics stuff
@@ -144,42 +135,14 @@ Boolean v4pi_error(char* formatString, ...) {
     return success;
 }
 
-// record collides
-Boolean v4pi_collide(V4pCollide i1,
-                     V4pCollide i2,
-                     V4pCoord py,
-                     V4pCoord x1,
-                     V4pCoord x2,
-                     V4pPolygonP p1,
-                     V4pPolygonP p2) {
-    int l, dx, dy;
-    l = x2 - x1;
-    dx = x1 * l + (l + 1) * l / 2;
-    dy = l * py;
-    collides[i1].q += l;
-    collides[i1].x += dx;
-    collides[i1].y += dy;
-    collides[i1].poly = p2;
-    collides[i2].q += l;
-    collides[i2].x += dx;
-    collides[i2].y += dy;
-    collides[i2].poly = p1;
-    return success;
-}
+
 
 // prepare things before V4P engine scanline loop
 Boolean v4pi_start() {
     // remember start time
     t1 = getTicks();
 
-    // Init collides
-    int i;
-    for (i = 0; i < 16; i++) {
-        collides[i].q = 0;
-        collides[i].x = 0;
-        collides[i].y = 0;
-        collides[i].poly = NULL;
-    }
+
 
     return success;
 }
@@ -197,13 +160,7 @@ Boolean v4pi_end() {
     if (! (j % 100))
         v4pi_debug("v4p_displayEnd, average time = %dms\n", tlaps / 4);
 
-    // sumarize collides
-    for (i = 0; i < 16; i++) {
-        if (! collides[i].q)
-            continue;
-        collides[i].x /= collides[i].q;
-        collides[i].y /= collides[i].q;
-    }
+
 
     return success;
 }
@@ -274,13 +231,13 @@ void v4pDisplayFreeContext(V4pDisplayP c) {
 // Change the current V4P context
 V4pDisplayP v4pi_setContext(V4pDisplayP c) {
     v4pDisplayContext = c;
-    v4pDisplayWidth = c->width;
-    v4pDisplayHeight = c->height;
+    v4p_displayWidth = c->width;
+    v4p_displayHeight = c->height;
     return c;
 }
 
 // clean things before quitting
-void v4pDisplayQuit() {
+void v4pi_quit() {
     vga_setmode(TEXT);
     v4pi_debug("w=%d h=%d\n", v4pDisplayDefaultContextS.width, v4pDisplayDefaultContextS.height);
 }

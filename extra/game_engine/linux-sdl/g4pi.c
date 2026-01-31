@@ -4,29 +4,29 @@
 #include "g4pi.h"
 
 // get ticks
-Int32 g4pGetTicks() {
+Int32 g4p_getTicks() {
     return SDL_GetTicks();
 }
 
 // pause execution
-void g4pDelay(Int32 d) {
+void g4pi_delay(Int32 d) {
     SDL_Delay(d);
 }
 
 // Initialize the game engine
-void g4piInit() {
+void g4pi_init() {
     // SDL initialization is typically handled by the main application
     // This stub can be extended if needed for SDL-specific initialization
 }
 
 // Cleanup the game engine
-void g4piDestroy() {
+void g4pi_destroy() {
     // SDL cleanup is typically handled by the main application
     // This stub can be extended if needed for SDL-specific cleanup
 }
 
 // poll user events
-int g4pPollEvents() {
+int g4pi_pollEvents() {
     int rc = 0;  // return code
 
     SDL_Event event;  // event data
@@ -42,20 +42,20 @@ int g4pPollEvents() {
                     SDLKey keypressed = event.key.keysym.sym;
                     if (keypressed == SDLK_ESCAPE)
                         rc = 1;
-                    g4pState.key = (Uint16) keypressed;
+                    g4p_state.key = (Uint16) keypressed;
                     break;
                 }
             case SDL_MOUSEBUTTONDOWN:
-                g4pState.buttons[0] = 1;
+                g4p_state.buttons[0] = 1;
                 break;
 
             case SDL_MOUSEBUTTONUP:
-                g4pState.buttons[0] = 0;
+                g4p_state.buttons[0] = 0;
                 break;
 
             case SDL_MOUSEMOTION:
-                g4pState.xpen = event.motion.x;
-                g4pState.ypen = event.motion.y;
+                g4p_state.xpen = event.motion.x;
+                g4p_state.ypen = event.motion.y;
                 break;
         }  // switch
     }  // loop

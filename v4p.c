@@ -52,6 +52,16 @@
 #include <stdio.h>
 #include "assert.h"
 
+// Collision callback function pointer
+typedef Boolean (*V4pCollideCallback)(V4pCollide i1,
+                                      V4pCollide i2,
+                                      V4pCoord py,
+                                      V4pCoord x1,
+                                      V4pCoord x2,
+                                      V4pPolygonP p1,
+                                      V4pPolygonP p2);
+static V4pCollideCallback collisionCallback = NULL;
+
 #define YHASH_SIZE 512
 #define YHASH_MASK 511
 
@@ -139,7 +149,7 @@ V4pColor v4p_setBGColor(V4pColor bg) {
 
 // Set the view
 Boolean v4p_setView(V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1) {
-    int lineWidth = v4pDisplayWidth, lineNb = v4pDisplayHeight;
+    int lineWidth = v4p_displayWidth, lineNb = v4p_displayHeight;
 
     v4p->xvu0 = x0;
     v4p->yvu0 = y0;
@@ -183,7 +193,7 @@ V4pSceneP v4p_getScene() {
 // Create a v4p context
 V4pContextP v4p_contextNew() {
     V4pContextP v4p = (V4pContextP) malloc(sizeof(V4pContext));
-    int lineWidth = v4pDisplayWidth, lineNb = v4pDisplayHeight;
+    int lineWidth = v4p_displayWidth, lineNb = v4p_displayHeight;
 
     v4p->display = v4pDisplayContext;
     v4p->scene = v4p_defaultScene;
@@ -242,7 +252,7 @@ Boolean v4p_init() {
         v4p_defaultContext = v4p_contextNew();
     }
     v4p_setContext(v4p_defaultContext);
-    v4p_setView(0, 0, v4pDisplayWidth, v4pDisplayHeight);
+    v4p_setView(0, 0, v4p_displayWidth, v4p_displayHeight);
 }
 
 // V4P cleanup
@@ -918,7 +928,7 @@ V4pPolygonP v4p_computeLimits(V4pPolygonP p) {
 
 // transform relative coordinates into absolute (scene related) ones
 void v4p_viewToAbsolute(V4pCoord x, V4pCoord y, V4pCoord* xa, V4pCoord* ya) {
-    int lineWidth = v4pDisplayWidth, lineNb = v4pDisplayHeight;
+    int lineWidth = v4p_displayWidth, lineNb = v4p_displayHeight;
     *xa = v4p->xvu0 + x * v4p->divxvub + (x * v4p->modxvub) / lineWidth
         + (x < 0 && v4p->modxvub ? -1 : 0);
     *ya = v4p->yvu0 + y * v4p->divyvub + (y * v4p->modyvub) / lineNb
@@ -953,7 +963,7 @@ Boolean v4p_isVisible(V4pPolygonP p) {
     }
     p->minyv = miny;
     p->maxyv = maxy;
-    return (maxx >= 0 && maxy >= 0 && minx < v4pDisplayWidth && miny < v4pDisplayHeight);
+    return (maxx >= 0 && maxy >= 0 && minx < v4p_displayWidth && miny < v4p_displayHeight);
 }
 
 // build a list of ActiveEdges for a given polygon
@@ -1134,7 +1144,7 @@ List v4p_openActiveEdge(V4pCoord yl, V4pCoord yu) {
         xr1 = b->x1v;
         yr1 = b->y1v;
 
-        v4pi_debug("EDGE_OPEN: Processing edge %p: (%d,%d) to (%d,%d), circle=%d\n",
+        v4pi_debug("EDGE_OPEN: Candidate edge %p: (%d,%d) to (%d,%d), circle=%d\n",
                    (void*) b,
                    xr0,
                    yr0,
@@ -1218,11 +1228,11 @@ Boolean v4p_render() {
     ou2 = v4p->divyvub + 1;
     yu = v4p->yvu0 - ou2;
     ru1 = v4p->modyvub;
-    ru2 = v4p->modyvub - v4pDisplayHeight;
+    ru2 = v4p->modyvub - v4p_displayHeight;
     su = v4p->modyvub;
 
     // Scan-line loop
-    for (y = 0; y < v4pDisplayHeight; y++) {
+    for (y = 0; y < v4p_displayHeight; y++) {
         sortNeeded = false;
 
         if (su >= 0) {
@@ -1262,7 +1272,7 @@ Boolean v4p_render() {
 
                     x = xr0 + sign * dx;
                     b->x = x;
-                    v4pi_debug("CIRCLE_SHIFT: Shift circle edge %p "
+                    v4pi_debug("SHIFT: Shift circle edge %p "
                                "(%d,%d)x(%d,%d) to x=%d, y=%d\n",
                                (void*) b,
                                xr0,
@@ -1273,7 +1283,7 @@ Boolean v4p_render() {
                                y);
 
                 } else {
-                    v4pi_debug("CIRCLE_SHIFT: Shift edge %p (%d,%d)x(%d,%d) to "
+                    v4pi_debug("SHIFT: Shift edge %p (%d,%d)x(%d,%d) to "
                                "x=%d, y=%d\n",
                                (void*) b,
                                b->x0v,
@@ -1336,8 +1346,8 @@ Boolean v4p_render() {
             // (int)px, (pb ? pb->x : -1)); If (px > b->x) v4pi_error ("pb slice
             // %d %d %d", (int)y, (int)px, (int)b->x);
             if ((int) z >= zMax) {
-                if (px < v4pDisplayWidth && b->x > 0) {
-                    v4pi_slice(y, imax(px, 0), imin(b->x, v4pDisplayWidth), polyVisible->color);
+                if (px < v4p_displayWidth && b->x > 0) {
+                    v4pi_slice(y, imax(px, 0), imin(b->x, v4p_displayWidth), polyVisible->color);
                 }
                 px = b->x;
                 if ((int) z > zMax) {
@@ -1350,8 +1360,8 @@ Boolean v4p_render() {
             } else {  // z < zMax
                 layers[z] = p;
             }
-            if (nColli > 1) {
-                v4pi_collide(colli1, colli2, y, px_collide, b->x, pColli[colli1], pColli[colli2]);
+            if (nColli > 1 && collisionCallback != NULL) {
+                collisionCallback(colli1, colli2, y, px_collide, b->x, pColli[colli1], pColli[colli2]);
             }
             px_collide = b->x;
             i = p->i;
@@ -1388,8 +1398,8 @@ Boolean v4p_render() {
         }  // X opened ActiveEdge loop
 
         // Last slice
-        if (px < v4pDisplayWidth) {
-            v4pi_slice(y, imax(0, px), v4pDisplayWidth, polyVisible->color);
+        if (px < v4p_displayWidth) {
+            v4pi_slice(y, imax(0, px), v4p_displayWidth, polyVisible->color);
         }
 
     }  // Y loop ;
@@ -1415,4 +1425,9 @@ V4pPolygonP v4p_rect(V4pPolygonP p, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCo
     v4p_addPoint(p, x1, y1);
     v4p_addPoint(p, x1, y0);
     return p;
+}
+
+// Set the collision callback
+void v4p_setCollideCallback(V4pCollideCallback callback) {
+    collisionCallback = callback;
 }

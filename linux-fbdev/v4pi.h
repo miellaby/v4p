@@ -13,7 +13,7 @@ typedef struct v4pDisplay_s* V4pDisplayP;
 
 extern V4pDisplayP v4pDisplayDefaultContext, v4pDisplayContext;
 
-extern V4pCoord v4pDisplayWidth, v4pDisplayHeight;  // current display size
+extern V4pCoord v4p_displayWidth, v4p_displayHeight;  // current display size
 
 #define V4P_QUALITY_LOW 0
 #define V4P_QUALITY_NORMAL 1
@@ -33,14 +33,6 @@ void v4pi_debug(char* formatString, ...);
     #define v4pi_debug (...)(0)
 #endif
 Boolean v4pi_error(char* s, ...);
-Boolean v4pi_collide(V4pCollide i1,
-                     V4pCollide i2,
-                     V4pCoord py,
-                     V4pCoord x1,
-                     V4pCoord x2,
-                     V4pPolygonP p1,
-                     V4pPolygonP p2);
-
-void v4pDisplayQuit();
+void v4pi_quit();
 
 #endif

@@ -39,7 +39,7 @@ Linux Framebuffer was chosen for several key advantages:
 - `v4pDisplaySlice()` - Draws horizontal slices directly to framebuffer memory
 - `v4pDisplayNewContext()` - Creates off-screen buffers
 - `v4pDisplaySetContext()` - Switches between contexts
-- `v4pDisplayQuit()` - Cleans up resources
+- `v4pi_quit()` - Cleans up resources
 
 ## Technical Highlights
 
@@ -66,7 +66,7 @@ v4pDisplayEnd();
 
 // Cleanup
 v4pDisplayFreeContext(ctx);
-v4pDisplayQuit();
+v4pi_quit();
 ```
 
 ## Building and Testing
@@ -98,7 +98,7 @@ To use this backend with the main V4P engine:
 1. Include the `v4pi.h` header
 2. Call `v4pDisplayInit()` before using V4P functions
 3. The V4P engine will automatically use the framebuffer backend through the callback interface
-4. Call `v4pDisplayQuit()` when done
+4. Call `v4pi_quit()` when done
 
 ## Compatibility
 

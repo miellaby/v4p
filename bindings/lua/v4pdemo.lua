@@ -17,5 +17,5 @@ v4p.v4pSetView(-v4p.v4pDisplayWidth * i / 256, -v4p.v4pDisplayHeight * i / 256, 
 v4p.v4pPolygonTransformClone(pSprite, pClone, v4p.v4pDisplayWidth / 2, v4p.v4pDisplayWidth / 2, 0, 0);
 v4p.v4pRender();
 io.stdin:read'*l';
-v4p.v4pDisplayQuit();
+v4p.v4pi_quit();
 v4p.v4pQuit();

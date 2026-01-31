@@ -13,7 +13,7 @@ int riu = 0;
 int diu = STRESS_AMOUNT / 1;
 int liu = 3;
 
-Boolean g4pOnInit() {
+Boolean g4p_onInit() {
     int j, k;
     v4pDisplayInit(1, 0);
     v4p_init();
@@ -57,8 +57,8 @@ Boolean g4pOnInit() {
             pColMatrix[j][k] = v4p_addClone(pCol);
             v4p_transformClone(pCol,
                                pColMatrix[j][k],
-                               v4pDisplayWidth * (1 + k - STRESS_AMOUNT / 2) / 2,
-                               v4pDisplayWidth * (1 + j - STRESS_AMOUNT / 2),
+                               v4p_displayWidth * (1 + k - STRESS_AMOUNT / 2) / 2,
+                               v4p_displayWidth * (1 + j - STRESS_AMOUNT / 2),
                                (j * k) / 2 + riu,
                                1 + k % 12,
                                256,
@@ -69,7 +69,7 @@ Boolean g4pOnInit() {
     return success;
 }
 
-Boolean g4pOnTick(Int32 deltaTime) {
+Boolean g4p_onTick(Int32 deltaTime) {
     int i = iu, j, k;
 
     // Use deltaTime for time-based animation
@@ -81,18 +81,18 @@ Boolean g4pOnTick(Int32 deltaTime) {
         diu = -diu;
         liu--;
     }
-    v4p_setView(-v4pDisplayWidth * i / 256,
-                -v4pDisplayHeight * i / 256,
-                v4pDisplayWidth + v4pDisplayWidth * i / 256,
-                v4pDisplayHeight + v4pDisplayHeight * i / 256);
+    v4p_setView(-v4p_displayWidth * i / 256,
+                -v4p_displayHeight * i / 256,
+                v4p_displayWidth + v4p_displayWidth * i / 256,
+                v4p_displayHeight + v4p_displayHeight * i / 256);
 
     if (! (liu & 1))
         for (j = 0; j < STRESS_AMOUNT; j++) {
             for (k = 0; k < STRESS_AMOUNT; k++) {
                 v4p_transformClone(pCol,
                                    pColMatrix[j][k],
-                                   v4pDisplayWidth * (1 + k - STRESS_AMOUNT / 2) / 2,
-                                   v4pDisplayWidth * (1 + j - STRESS_AMOUNT / 2),
+                                   v4p_displayWidth * (1 + k - STRESS_AMOUNT / 2) / 2,
+                                   v4p_displayWidth * (1 + j - STRESS_AMOUNT / 2),
                                    (j * k) / 2 + riu,
                                    1 + k % 12,
                                    256,
@@ -106,15 +106,15 @@ Boolean g4pOnTick(Int32 deltaTime) {
     return (liu < 0);
 }
 
-Boolean g4pOnFrame() {
+Boolean g4p_onFrame() {
     v4p_render();
     return success;
 }
 
-void g4pOnQuit() {
-    v4pDisplayQuit();
+void g4p_onQuit() {
+    v4pi_quit();
 }
 
 int main(int argc, char** argv) {
-    return g4pMain(argc, argv);
+    return g4p_main(argc, argv);
 }

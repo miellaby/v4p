@@ -72,7 +72,7 @@ static void cleanup_input_devices() {
 }
 
 // get ticks in milliseconds
-Int32 g4pGetTicks() {
+Int32 g4p_getTicks() {
     struct timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
 
@@ -102,7 +102,7 @@ Int32 g4pGetTicks() {
 }
 
 // pause execution for milliseconds
-void g4pDelay(Int32 d) {
+void g4pi_delay(Int32 d) {
     if (d <= 0)
         return;
     struct timespec req;
@@ -122,13 +122,13 @@ static void read_mouse_event() {
     while (read(mouse_fd, &ev, sizeof(struct input_event)) == sizeof(struct input_event)) {
         if (ev.type == EV_REL) {
             if (ev.code == REL_X) {
-                g4pState.xpen += ev.value;
+                g4p_state.xpen += ev.value;
             } else if (ev.code == REL_Y) {
-                g4pState.ypen += ev.value;
+                g4p_state.ypen += ev.value;
             }
         } else if (ev.type == EV_KEY) {
             if (ev.code == BTN_LEFT) {
-                g4pState.buttons[0] = (ev.value == 1);
+                g4p_state.buttons[0] = (ev.value == 1);
             }
         }
     }
@@ -150,7 +150,7 @@ static int read_keyboard_event() {
 }
 
 // poll user events
-int g4pPollEvents() {
+int g4pi_pollEvents() {
     int rc = 0;  // return code
 
     // Read mouse events
@@ -163,11 +163,11 @@ int g4pPollEvents() {
 }
 
 // Initialize the game engine input system
-void g4piInit() {
+void g4pi_init() {
     init_input_devices();
 }
 
 // Cleanup the game engine input system
-void g4piDestroy() {
+void g4pi_destroy() {
     cleanup_input_devices();
 }

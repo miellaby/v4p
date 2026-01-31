@@ -8,7 +8,7 @@
 
 #define CLOCKS_PER_MSEC (CLOCKS_PER_SEC / 1000);
 
-Int32 g4pGetTicks() {
+Int32 g4p_getTicks() {
     static struct tms buf;
     static int clk_ticks = 0;
     if (! clk_ticks) {
@@ -23,23 +23,23 @@ Int32 g4pGetTicks() {
 }
 
 // pause execution
-void g4pDelay(Int32 d) {
+void g4pi_delay(Int32 d) {
     usleep(d * 1000);
 }
 
 // Initialize the game engine
-void g4piInit() {
+void g4pi_init() {
     // Xlib initialization is typically handled by the display system
     // This stub can be extended if needed for Xlib-specific initialization
 }
 
 // Cleanup the game engine
-void g4piDestroy() {
+void g4pi_destroy() {
     // Xlib cleanup is typically handled by the display system
     // This stub can be extended if needed for Xlib-specific cleanup
 }
 
-int g4pPollEvents() {
+int g4pi_pollEvents() {
     int rc = 0;
     XEvent report;
     // retrieve one event, returns if none
@@ -52,24 +52,24 @@ int g4pPollEvents() {
             while (XCheckTypedEvent(currentDisplay, Expose, &report))
                 ;
 
-            // one operate Expose events only when g4pFramerate == 0
-            if (g4pFramerate == 0)
-                rc |= g4pOnFrame();
+            // one operate Expose events only when g4p_framerate == 0
+            if (g4p_framerate == 0)
+                rc |= g4p_onFrame();
             break;
 
         case ConfigureNotify:
             /*  Store new window width & height  */
-            // v4pDisplayWidth = v4pDisplayContext->width  =
-            // report.xconfigure.width; v4pDisplayHeight =
+            // v4p_displayWidth = v4pDisplayContext->width  =
+            // report.xconfigure.width; v4p_displayHeight =
             // v4pDisplayContext->height = report.xconfigure.height;
             break;
 
         case ButtonPress:
-            g4pState.buttons[0] = 1;
+            g4p_state.buttons[0] = 1;
             break;
 
         case ButtonRelease:
-            g4pState.buttons[0] = 0;
+            g4p_state.buttons[0] = 0;
             break;
 
         case MotionNotify:
@@ -91,8 +91,8 @@ int g4pPollEvents() {
                                     &pos_y,
                                     &keys_buttons))
                     break;
-                g4pState.xpen = pos_x;
-                g4pState.ypen = pos_y;
+                g4p_state.xpen = pos_x;
+                g4p_state.ypen = pos_y;
                 break;
             }
         case KeyPress:

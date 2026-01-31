@@ -32,8 +32,8 @@ V4pDisplayP v4pDisplayDefaultContext = NULL;
 V4pDisplayP v4pDisplayContext = NULL;
 
 // Display dimensions
-V4pCoord v4pDisplayWidth = 0;
-V4pCoord v4pDisplayHeight = 0;
+V4pCoord v4p_displayWidth = 0;
+V4pCoord v4p_displayHeight = 0;
 
 // A 256 color system palette inspired from old Palm Computing Devices
 static struct s_color {
@@ -232,8 +232,8 @@ static int init_drm_dumb_buffer() {
     drm_context.fb_memory = memory;
     drm_context.fb_size = size;
 
-    v4pDisplayWidth = drm_context.fb_width;
-    v4pDisplayHeight = drm_context.fb_height;
+    v4p_displayWidth = drm_context.fb_width;
+    v4p_displayHeight = drm_context.fb_height;
 
     return 0;
 }
@@ -488,25 +488,9 @@ Boolean v4pi_error(char* s, ...) {
     return false;
 }
 
-Boolean v4pi_collide(V4pCollide i1,
-                     V4pCollide i2,
-                     V4pCoord py,
-                     V4pCoord x1,
-                     V4pCoord x2,
-                     V4pPolygonP p1,
-                     V4pPolygonP p2) {
-    // Stub implementation
-    (void) i1;
-    (void) i2;
-    (void) py;
-    (void) x1;
-    (void) x2;
-    (void) p1;
-    (void) p2;
-    return false;
-}
 
-void v4pDisplayQuit() {
+
+void v4pi_quit() {
     if (v4pDisplayDefaultContext) {
         free(v4pDisplayDefaultContext);
         v4pDisplayDefaultContext = NULL;

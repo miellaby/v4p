@@ -183,11 +183,11 @@ UInt32 PilotMain(UInt16 launchCode, MemPtr cmdPBP, UInt16 launchFlags) {
 }
 
 void applicativeLoop(UInt16 almProcCmd, SysAlarmTriggeredParamType* paramP) {
-    g4pOnInit();
+    g4p_onInit();
     while (! (StopEvent || g4pOnIterate())) {
         Application_ProcessMessages(5);
     }
-    g4pOnQuit();
+    g4p_onQuit();
 }
 Boolean startApplicativeLoop() {
     AlmSetProcAlarm(applicativeLoop, 0, TimGetSeconds() + 1);
@@ -208,19 +208,19 @@ EVENT G4p_OnTerminate(EventPtr event) {
     return false;
 }
 EVENT G4pF_OnPenDownXY(UInt16 X, UInt16 Y) {
-    g4pState->buttons[0] = true;
-    g4pState->xpen = X - 10;
-    g4pState->ypen = Y - 10;
+    g4p_state->buttons[0] = true;
+    g4p_state->xpen = X - 10;
+    g4p_state->ypen = Y - 10;
     return false;
 }
 
 EVENT G4pF_OnPenUpXY(UInt16 X, UInt16 Y) {
-    g4pState->buttons[0] = false;
+    g4p_state->buttons[0] = false;
     return false;
 }
 
 EVENT G4pF_OnPenMoveXY(UInt16 X, UInt16 Y) {
-    g4pState->xpen = X - 10;
-    g4pState->ypen = Y - 10;
+    g4p_state->xpen = X - 10;
+    g4p_state->ypen = Y - 10;
     return false;
 }

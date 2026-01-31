@@ -141,4 +141,13 @@ V4pPolygonP v4p_addClone(V4pPolygonP p);
 Boolean v4p_destroy(V4pPolygonP p);
 Boolean v4p_destroyFromScene(V4pPolygonP p);
 
+// Collision callback function (see game engine implmentation)
+void v4p_setCollideCallback(Boolean (*callback)(V4pCollide i1,
+                                              V4pCollide i2,
+                                              V4pCoord py,
+                                              V4pCoord x1,
+                                              V4pCoord x2,
+                                              V4pPolygonP p1,
+                                              V4pPolygonP p2));
+
 #endif

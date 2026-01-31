@@ -145,8 +145,8 @@ V4pDisplayP v4pDisplayDefaultContext = &v4pDisplayDefaultContextS;
 
 // Variables hosting current context and related properties
 V4pDisplayP v4pDisplayContext = &v4pDisplayDefaultContextS;
-V4pCoord v4pDisplayWidth;
-V4pCoord v4pDisplayHeight;
+V4pCoord v4p_displayWidth;
+V4pCoord v4p_displayHeight;
 // private properties of current context
 static unsigned char* currentBuffer;
 static int iBuffer;
@@ -187,29 +187,6 @@ Boolean v4pi_error(char* formatString, ...) {
     vfprintf(stderr, formatString, args);
     va_end(args);
 
-    return success;
-}
-
-// record collides
-Boolean v4pi_collide(V4pCollide i1,
-                     V4pCollide i2,
-                     V4pCoord py,
-                     V4pCoord x1,
-                     V4pCoord x2,
-                     V4pPolygonP p1,
-                     V4pPolygonP p2) {
-    int l, dx, dy;
-    l = x2 - x1;
-    dx = x1 * l + (l + 1) * l / 2;
-    dy = l * py;
-    collides[i1].q += l;
-    collides[i1].x += dx;
-    collides[i1].y += dy;
-    collides[i1].poly = p2;
-    collides[i2].q += l;
-    collides[i2].x += dx;
-    collides[i2].y += dy;
-    collides[i2].poly = p1;
     return success;
 }
 
@@ -441,14 +418,14 @@ void v4pDisplayFreeContext(V4pDisplayP c) {
 // Change the current V4P context
 V4pDisplayP v4pi_setContext(V4pDisplayP c) {
     v4pDisplayContext = c;
-    v4pDisplayWidth = c->width;
-    v4pDisplayHeight = c->height;
+    v4p_displayWidth = c->width;
+    v4p_displayHeight = c->height;
     currentBuffer = c->surface;
     return c;
 }
 
 // clean things before quitting
-void v4pDisplayQuit() {
+void v4pi_quit() {
     if (v4pDisplayDefaultContextS.surface) {
         munmap(v4pDisplayDefaultContextS.surface, v4pDisplayDefaultContextS.screensize);
     }

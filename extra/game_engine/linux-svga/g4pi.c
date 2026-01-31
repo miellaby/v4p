@@ -8,7 +8,7 @@
     #include <stdio.h>
 #endif
 
-Int32 g4pGetTicks() {
+Int32 g4p_getTicks() {
     static struct tms buf;
     static int clk_ticks = 0;
     if (! clk_ticks) {
@@ -23,24 +23,24 @@ Int32 g4pGetTicks() {
 }
 
 // pause execution
-void g4pDelay(Int32 d) {
+void g4pi_delay(Int32 d) {
     usleep(d * 1000);
 }
 
 // Initialize the game engine
-void g4piInit() {
+void g4pi_init() {
     // SVGA initialization is typically handled by the display system
     // This stub can be extended if needed for SVGA-specific initialization
 }
 
 // Cleanup the game engine
-void g4piDestroy() {
+void g4pi_destroy() {
     // SVGA cleanup is typically handled by the display system
     // This stub can be extended if needed for SVGA-specific cleanup
 }
 
 // poll user events
-int g4pPollEvents() {
+int g4pi_pollEvents() {
     static int firstRun = 1;
 
     int rc = 0;  // return code
@@ -71,26 +71,26 @@ int g4pPollEvents() {
 #ifdef TESTU_G4P_LINUX_SVGA
     #include <stdio.h>
     #include "game_engine.h"
-Boolean g4pOnInit() {
+Boolean g4p_onInit() {
     return success;
 }
 
-void g4pOnQuit() {
+void g4p_onQuit() {
 }
 
 Boolean g4pOnIterate() {
     return ! success;
 }
 
-Boolean g4pOnFrame() {
+Boolean g4p_onFrame() {
     return success;
 }
 
 int main(int argc, char** argv) {
-    Int32 t0 = g4pGetTicks();
-    g4pDelay(1000);
-    Int32 t1 = g4pGetTicks();
+    Int32 t0 = g4p_getTicks();
+    g4pi_delay(1000);
+    Int32 t1 = g4p_getTicks();
     printf("Waited 1s from %d to %d\n", (int) t0, (int) t1);
-    return g4pMain(argc, argv);
+    return g4p_main(argc, argv);
 }
 #endif

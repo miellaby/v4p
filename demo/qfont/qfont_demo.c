@@ -13,7 +13,7 @@ int iu = 0;
 int diu = STRESS_AMOUNT;
 int liu = 3;
 
-Boolean g4pOnInit() {
+Boolean g4p_onInit() {
     int j, k;
 
     v4pDisplayInit(1, 0);
@@ -24,17 +24,17 @@ Boolean g4pOnInit() {
     pCol = v4p_new(V4P_ABSOLUTE, V4P_RED, 10);
     qfontDefinePolygonFromString("PORTEZ CE VIEUX WHISKY AU JUGE BLOND QUI FUME",
                                  pCol,
-                                 -v4pDisplayWidth / 2,
-                                 -v4pDisplayWidth / 32,
-                                 v4pDisplayWidth / 16,
-                                 v4pDisplayWidth / 16,
+                                 -v4p_displayWidth / 2,
+                                 -v4p_displayWidth / 32,
+                                 v4p_displayWidth / 16,
+                                 v4p_displayWidth / 16,
                                  12);
     qfontDefinePolygonFromString("THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG",
                                  pCol,
-                                 -v4pDisplayWidth / 2,
-                                 v4pDisplayWidth / 32 + 12,
-                                 v4pDisplayWidth / 16,
-                                 v4pDisplayWidth / 16,
+                                 -v4p_displayWidth / 2,
+                                 v4p_displayWidth / 32 + 12,
+                                 v4p_displayWidth / 16,
+                                 v4p_displayWidth / 16,
                                  12);
 
     for (j = 0; j < STRESS_AMOUNT * 2; j++) {
@@ -42,8 +42,8 @@ Boolean g4pOnInit() {
             pColMatrix[j][k] = v4p_addClone(pCol);
             v4p_transformClone(pCol,
                                pColMatrix[j][k],
-                               v4pDisplayWidth * (2 + 2 * k - STRESS_AMOUNT) * 2,
-                               v4pDisplayHeight * (1 + j - STRESS_AMOUNT / 2) / 3,
+                               v4p_displayWidth * (2 + 2 * k - STRESS_AMOUNT) * 2,
+                               v4p_displayHeight * (1 + j - STRESS_AMOUNT / 2) / 3,
                                0,
                                10,
                                256,
@@ -55,26 +55,26 @@ Boolean g4pOnInit() {
 
 int elapsedTime = 0;
 
-Boolean g4pOnTick(Int32 deltaTime) {
+Boolean g4p_onTick(Int32 deltaTime) {
     elapsedTime += deltaTime;
     int scale = (129 - iabs(elapsedTime % 256 - 128) + (3 * elapsedTime / 2) % 64000) / 64;
-    v4p_setView(-v4pDisplayWidth * scale / 256,
-                -v4pDisplayHeight * scale / 256,
-                v4pDisplayWidth + v4pDisplayWidth * scale / 256,
-                v4pDisplayHeight + v4pDisplayHeight * scale / 256);
+    v4p_setView(-v4p_displayWidth * scale / 256,
+                -v4p_displayHeight * scale / 256,
+                v4p_displayWidth + v4p_displayWidth * scale / 256,
+                v4p_displayHeight + v4p_displayHeight * scale / 256);
     return success;
 }
 
-Boolean g4pOnFrame() {
+Boolean g4p_onFrame() {
     v4p_render();
     return success;
 }
 
-void g4pOnQuit() {
-    printf("average %d\n", g4pAvgFramePeriod);
-    v4pDisplayQuit();
+void g4p_onQuit() {
+    printf("average %d\n", g4p_avgFramePeriod);
+    v4pi_quit();
 }
 
 int main(int argc, char** argv) {
-    return g4pMain(argc, argv);
+    return g4p_main(argc, argv);
 }

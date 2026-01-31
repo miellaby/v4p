@@ -10,7 +10,7 @@ V4pPolygonP box;
 V4pPolygonP color_boxes[256];
 int current_color = 0;
 
-Boolean g4pOnInit() {
+Boolean g4p_onInit() {
     int i;
     V4pCoord x, y;
 
@@ -33,13 +33,13 @@ Boolean g4pOnInit() {
     return success;
 }
 
-Boolean g4pOnTick(Int32 deltaTime) {
+Boolean g4p_onTick(Int32 deltaTime) {
     int i;
 
     // Check for mouse interaction - select color based on mouse position
-    if (g4pState.buttons[0]) {  // Mouse button pressed
-        int mouse_x = g4pState.xpen;
-        int mouse_y = g4pState.ypen;
+    if (g4p_state.buttons[0]) {  // Mouse button pressed
+        int mouse_x = g4p_state.xpen;
+        int mouse_y = g4p_state.ypen;
 
         // Calculate which color box the mouse is over
         int col = mouse_x / (COLOR_BOX_SIZE + SPACING);
@@ -74,12 +74,12 @@ Boolean g4pOnTick(Int32 deltaTime) {
     return success;  // Keep running indefinitely
 }
 
-Boolean g4pOnFrame() {
+Boolean g4p_onFrame() {
     v4p_render();
     return success;
 }
 
-void g4pOnQuit() {
+void g4p_onQuit() {
     // // Cleanup
     // int i;
     // for (i = 0; i < 256; i++) {
@@ -87,9 +87,9 @@ void g4pOnQuit() {
     //     v4p_destroy (color_boxes[i]);
     //   }
     // }
-    v4pDisplayQuit();
+    v4pi_quit();
 }
 
 int main(int argc, char** argv) {
-    return g4pMain(argc, argv);
+    return g4p_main(argc, argv);
 }

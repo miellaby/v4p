@@ -28,14 +28,7 @@ static char* buffer = NULL;
 
 static int iBuffer;
 
-typedef struct collide_s {
-    V4pCoord x;
-    V4pCoord y;
-    UInt16 q;
-    V4pPolygonP poly;
-} Collide;
 
-Collide collides[16];
 
 void v4pi_debug(char* formatString, ...) {
     va_list args;
@@ -55,27 +48,7 @@ Boolean v4pi_error(char* formatString, ...) {
     WinDrawChars(text, StrLen(text), 0, 0);
 }
 
-Boolean v4pi_collide(V4pCollide i1,
-                     V4pCollide i2,
-                     V4pCoord py,
-                     V4pCoord x1,
-                     V4pCoord x2,
-                     PolygonP p1,
-                     PolygonP p2) {
-    int l, dx, dy;
-    l = x2 - x1;
-    dx = x1 * l + (l + 1) * l / 2;
-    dy = l * py;
-    collides[i1].q += l;
-    collides[i1].x += dx;
-    collides[i1].y += dy;
-    collides[i1].poly = p2;
-    collides[i2].q += l;
-    collides[i2].x += dx;
-    collides[i2].y += dy;
-    collides[i2].poly = p1;
-    return success;
-}
+
 
 static UInt32 t1;
 static UInt32 laps[4] = { 0, 0, 0, 0 }, tlaps = 0;
@@ -85,13 +58,7 @@ Boolean v4pi_start() {
     t1 = TimGetTicks();
     iBuffer = marginY * screenWidth + marginX;
 
-    // Init collides
-    for (i = 0; i < 16; i++) {
-        collides[i].q = 0;
-        collides[i].x = 0;
-        collides[i].y = 0;
-        collides[i].poly = NULL;
-    }
+
     return success;
 }
 
@@ -104,13 +71,7 @@ Boolean v4pi_end() {
     j++;
     idebug(tlaps);
 
-    // Bilan des collides
-    for (i = 0; i < 16; i++) {
-        if (! collides[i].q)
-            continue;
-        collides[i].x /= collides[i].q;
-        collides[i].y /= collides[i].q;
-    }
+
     return success;
 }
 
@@ -221,5 +182,5 @@ Boolean v4pDisplayInit(int quality, V4pColor background) {
     buffer = BmpGetBits(WinGetBitmap(WinGetDisplayWindow()));
 }
 
-void v4pDisplayQuit() {
+void v4pi_quit() {
 }

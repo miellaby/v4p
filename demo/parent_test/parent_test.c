@@ -9,7 +9,7 @@
 V4pPolygonP original_box;
 V4pPolygonP box_matrix[GRID_SIZE][GRID_SIZE];
 
-Boolean g4pOnInit() {
+Boolean g4p_onInit() {
     int j, k;
     V4pCoord x, y;
 
@@ -41,7 +41,7 @@ Boolean g4pOnInit() {
 
 int frame_count = 0;
 
-Boolean g4pOnTick(Int32 deltaTime) {
+Boolean g4p_onTick(Int32 deltaTime) {
     int i = frame_count++;
     int j, k;
 
@@ -62,15 +62,15 @@ Boolean g4pOnTick(Int32 deltaTime) {
     return success;
 }
 
-Boolean g4pOnFrame() {
+Boolean g4p_onFrame() {
     v4p_render();
     return success;
 }
 
-void g4pOnQuit() {
+void g4p_onQuit() {
     // Cleanup if needed
 }
 
 int main(int argc, char** argv) {
-    return g4pMain(argc, argv);
+    return g4p_main(argc, argv);
 }

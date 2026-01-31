@@ -14,13 +14,13 @@ int main(int argc, char* argv[]) {
     }
 
     printf("Display initialized successfully\n");
-    printf("Width: %d, Height: %d\n", v4pDisplayWidth, v4pDisplayHeight);
+    printf("Width: %d, Height: %d\n", v4p_displayWidth, v4p_displayHeight);
 
     // Test creating a new context
     V4pDisplayP ctx = v4pDisplayNewContext(320, 240);
     if (! ctx) {
         fprintf(stderr, "Failed to create new context\n");
-        v4pDisplayQuit();
+        v4pi_quit();
         return 1;
     }
 
@@ -29,13 +29,13 @@ int main(int argc, char* argv[]) {
     // // Test setting context
     // v4pi_setContext (ctx);
     // printf("Context set, current size: %dx%d\n", v4pDisplayWidth,
-    // v4pDisplayHeight);
+    // v4p_displayHeight);
 
     // Test display functions
     if (v4pi_start() != success) {
         fprintf(stderr, "v4p_displayStart failed\n");
         v4pDisplayFreeContext(ctx);
-        v4pDisplayQuit();
+        v4pi_quit();
         return 1;
     }
 
@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
     if (v4pi_end() != success) {
         fprintf(stderr, "v4p_displayEnd failed\n");
         v4pDisplayFreeContext(ctx);
-        v4pDisplayQuit();
+        v4pi_quit();
         return 1;
     }
 
@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
 
     // Clean up
     v4pDisplayFreeContext(ctx);
-    v4pDisplayQuit();
+    v4pi_quit();
 
     printf("Test completed successfully!\n");
     return 0;
