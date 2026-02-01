@@ -111,6 +111,7 @@ V4pColor v4p_setLayer(V4pPolygonP p, V4pLayer z);
 V4pCoord v4p_setRadius(V4pPolygonP p, V4pCoord radius);
 V4pPointP v4p_getPoints(V4pPolygonP p);
 V4pLayer v4p_getZ(V4pPolygonP p);
+UInt32 v4p_getId(V4pPolygonP p);
 V4pColor v4p_getColor(V4pPolygonP p);
 V4pProps v4p_enable(V4pPolygonP p);
 V4pProps v4p_disable(V4pPolygonP p);

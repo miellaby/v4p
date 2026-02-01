@@ -2,6 +2,7 @@
 # Modern, standards-compliant build system
 
 .PHONY: all clean install uninstall addons demos help
+.SECONDARY: # Prevents intermediate files from being deleted (I hate that)
 
 all: libv4p.a addons demos
 

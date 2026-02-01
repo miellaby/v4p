@@ -72,6 +72,7 @@ typedef struct v4p_polygon_s {
     V4pCoord minx, maxx, miny, maxy;  // Bounding box
     V4pCoord minyv, maxyv;  // Vertical boundaries in view coordinates
     List ActiveEdge1;  // ActiveEdges list
+    UInt32 id;  // Unique polygon ID
 } Polygon;
 
 // ActiveEdge type
@@ -111,6 +112,7 @@ typedef struct v4p_context_s {
         modyvub;  // Ratios view / screen in result+reminder pairs
     Boolean scaling;  // Is scaling necessary?
     UInt32 changes;
+    UInt32 nextId;
 } V4pContext;
 
 /**
@@ -210,6 +212,7 @@ V4pContextP v4p_contextNew() {
     v4p->modyvub = 0;
     v4p->scaling = 0;
     v4p->changes = 255;  // All memoization caches to be reset
+    v4p->nextId = 0; // to number polygons uniquely
 
     return v4p;
 }
@@ -264,7 +267,7 @@ V4pPolygonP v4p_new(V4pProps t, V4pColor col, V4pLayer z) {
     p->i = (V4pCollide) -1;
     p->color = col;
     p->radius = 0;
-    p->point1 = NULL;
+    p->point1 = NULL; 
     p->sub1 = NULL;
     p->next = NULL;
     p->parent = NULL;  // No parent by default
@@ -272,6 +275,7 @@ V4pPolygonP v4p_new(V4pProps t, V4pColor col, V4pLayer z) {
     p->anchor_y = 0;
     p->miny = V4P_NIL;  // miny = too much => boundaries to be computed
     p->ActiveEdge1 = NULL;
+    p->id = v4p->nextId++;
     return p;
 }
 
@@ -522,6 +526,11 @@ V4pColor v4p_setColor(V4pPolygonP p, V4pColor c) {
 // set polygon color
 V4pColor v4p_setLayer(V4pPolygonP p, V4pLayer z) {
     return p->z = z;
+}
+
+// returns a polygon id
+UInt32 v4p_getId(V4pPolygonP p) {
+    return p->id;
 }
 
 // returns a polygon points list
