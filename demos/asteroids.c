@@ -262,7 +262,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
         // For simplicity, let's just move bullets forward and remove them when off screen
         
         // Move bullet forward (approximate - we'll recreate the transform)
-        float bullet_x, bullet_y, bullet_angle;
+        // float bullet_x, bullet_y, bullet_angle;
         // We can't get the current transform, so we need a different approach
         // Let's store bullet positions and angles in separate arrays
     }

@@ -11,7 +11,6 @@ V4pPolygonP boxMatrix[GRID_SIZE][GRID_SIZE];
 
 Boolean g4p_onInit() {
     int j, k;
-    V4pCoord x, y;
 
     v4pi_init(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);  // Normal quality, windowed
     v4p_init();
@@ -25,10 +24,7 @@ Boolean g4p_onInit() {
     // Create grid of clones using parent-aware methods (now default)
     for (j = 0; j < GRID_SIZE; j++) {
         for (k = 0; k < GRID_SIZE; k++) {
-            x = k * SPACING;
-            y = j * SPACING;
-
-            // Use standard cloning method (now sets parent automatically)
+            // Clone the prototype box
             boxMatrix[j][k] = v4p_addClone(proto);
 
             // Set different colors for visualization
@@ -48,7 +44,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
     // Animate using new transform method
     for (j = 0; j < GRID_SIZE; j++) {
         for (k = 0; k < GRID_SIZE; k++) {
-            // Transform clones using parent-aware method
+            // Transform clones (parent-based transform)
             v4p_transform(boxMatrix[j][k],
                           k * SPACING,
                           j * SPACING + (i / 4) % 20,

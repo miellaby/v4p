@@ -996,7 +996,6 @@ V4pPolygonP v4p_buildActiveEdgeList(V4pPolygonP p) {
             continue;
         }
         V4pPointP sa = s1, sb = sa->next;
-        Boolean closed = false;
         v4pi_debug("POLYGON: Processing point (%d, %d), next=%p\n", sa->x, sa->y, (void*) sb);
 
         // sub-path loop
@@ -1107,7 +1106,7 @@ List v4p_openActiveEdge(V4pCoord yl, V4pCoord yu) {
 
     V4pCoord xr0, yr0, xr1, yr1, dx, dy, q, r;
 
-    v4pi_debug("EDGE_OPEN: Opening active edges for scanline y=%d\n", yl);
+    v4pi_debug("EDGE_OPEN: Opening active edges for scanline y=%d yu=%d\n", yl, yu);
 
     l = QuickTableGet(v4p->openableAETable, yl & YHASH_MASK);
     for (; l; l = l->quick) {

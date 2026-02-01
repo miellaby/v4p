@@ -102,7 +102,6 @@ Boolean g4p_onTick(Int32 deltaTime) {
     for (i = 0; i < NUM_STARS; i++) {
         // Move star towards viewer (decrease z)
         stars[i].z -= SPEED * deltaTime;
-        float z = stars[i].z;
 
         // Twinkle animation
         stars[i].twinkle_phase += stars[i].twinkle_speed * deltaTime;

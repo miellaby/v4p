@@ -27,6 +27,7 @@ int main(int argc, char** argv) {
 
     printf("Creating circle at (%d, %d) with radius %d\n", center_x, center_y, radius);
     V4pPolygonP circle = v4p_newDisk(V4P_ABSOLUTE, V4P_RED, 0, center_x, center_y, radius);
+    v4p_destroy(circle);  // Clean up temporary circle
     printf("Circle created successfully\n");
 
     // Add to scene
