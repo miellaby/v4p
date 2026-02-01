@@ -37,12 +37,12 @@ int g4p_main(int argc, char* argv[]) {
     // Initialize
     g4pi_init();
 
-    // Initialize collision system
-    g4p_initCollide();
-
     // Init call-back
     if (g4p_onInit())
         return failure;
+
+    // Initialize collision system
+    g4p_initCollide();
 
     lastTickTime = g4p_getTicks();
     while (! rc) {  // main game 4 pocket loop

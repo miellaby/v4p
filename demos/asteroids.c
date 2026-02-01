@@ -1,6 +1,5 @@
 #include "g4p.h"
 #include "v4p.h"
-#include "v4pi.h"
 #include "v4pserial.h"
 #include <SDL/SDL.h>
 #include <stdlib.h>
@@ -207,8 +206,7 @@ void asteroids_onCollide(V4pCollide i1, V4pCollide i2, V4pCoord py, V4pCoord x1,
 }
 
 Boolean g4p_onInit() {
-    v4pi_init(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);
-    v4p_init();
+    v4p_init2(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);
     v4p_setView(-v4p_displayWidth / 2, -v4p_displayHeight / 2,
                  v4p_displayWidth / 2, v4p_displayHeight / 2);
     v4p_setBGColor(V4P_BLACK);
@@ -304,7 +302,7 @@ Boolean g4p_onFrame() {
 }
 
 void g4p_onQuit() {
-    v4pi_destroy();
+    v4p_quit();
 }
 
 int main(int argc, char** argv) {

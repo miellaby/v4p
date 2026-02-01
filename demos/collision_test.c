@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include "v4p.h"
-#include "v4pi.h"
 #include "collision.h"
 
 // Simple test to demonstrate collision debugging
@@ -8,13 +7,15 @@ int main(int argc, char* argv[]) {
     printf("=== COLLISION TEST ===\n");
     
     // Initialize the system
-    v4pi_init(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);
-    v4p_init();
+    v4p_init2(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);
     v4p_setBGColor(V4P_GREEN);
     
     // Initialize collision system
     g4p_initCollide();
-    
+
+    // Set default callback if none is set
+    v4p_setCollideCallback(g4p_onCollide);
+
     // Create some polygons that should collide
     V4pPolygonP poly1 = v4p_addNew(V4P_RELATIVE, V4P_RED, 10);
     V4pPolygonP poly2 = v4p_addNew(V4P_RELATIVE, V4P_BLUE, 11);
@@ -63,7 +64,7 @@ int main(int argc, char* argv[]) {
     }
     
     // Clean up
-    v4pi_destroy();
+    v4p_quit();
     
     printf("\n=== TEST COMPLETE ===\n");
     return 0;

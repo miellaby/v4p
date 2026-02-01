@@ -1,6 +1,6 @@
 #include "g4p.h"
 #include "v4p.h"
-#include "v4pi.h"
+
 #include "lowmath.h"  // For iabs() and computeCosSin() functions
 
 #define NUM_STARS 6
@@ -55,8 +55,7 @@ V4pPolygonP create_hexagon(V4pCoord size, V4pColor color) {
 }
 
 Boolean g4p_onInit() {
-    v4p_init();
-    v4pi_init(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);  // Normal quality, windowed
+    v4p_init2(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);  // Normal quality, windowed
     v4p_setBGColor(V4P_BLACK);  // Black background
 
     // Create the main hexagon (this will be the parent)
@@ -116,7 +115,7 @@ Boolean g4p_onFrame() {
 }
 
 void g4p_onQuit() {
-    v4pi_destroy();
+    v4p_quit();
 }
 
 int main(int argc, char** argv) {

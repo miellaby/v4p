@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include "v4p.h"
-#include "v4pi.h"
 #include "g4p.h"
 #include "lowmath.h"
 
@@ -58,8 +57,7 @@ int spotNb;
 GuiStatus guiStatus;
 
 Boolean g4p_onInit() {
-    v4pi_init(quality, fullscreen);
-    v4p_init();
+    v4p_init2(quality, fullscreen);
     v4p_setBGColor(V4P_GREEN);
     xvu = -v4p_displayWidth / 2;
     yvu = -v4p_displayHeight / 2;
@@ -154,7 +152,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
                     v4p_setColor(pSelCol, nextColor);
                 } else if (sel == bLayer) {
                     precZ = currentZ;
-                    currentZ = (z0 + (iabs(g4p_state.ypen - ypen0) / 4)) % 15;
+                    currentZ = (abs(g4p_state.ypen - ypen0) / 4) % 15;
                     if (precZ != currentZ)
                         v4p_transform(pSelLayer, 0, (precZ - currentZ) * 2, 0, 0, 256, 256);
                 }
@@ -326,7 +324,7 @@ Boolean g4p_onFrame() {
 }
 
 void g4p_onQuit() {
-    v4pi_destroy();
+    v4p_quit();
 }
 
 struct option longopts[] = { { "version", 0, 0, 'v' },
@@ -351,6 +349,7 @@ int main(int argc, char** argv) {
                 break;
             case 'q':
                 quality = atoi(optarg);
+                break;
 
             default:
                 lose = 1;

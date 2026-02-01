@@ -1,6 +1,5 @@
 #include "g4p.h"
 #include "v4p.h"
-#include "v4pi.h"
 #include "lowmath.h"  // For iabs() function
 #define RADIUS 20
 #define SPACING 70
@@ -10,8 +9,7 @@ V4pPolygonP circle_matrix[GRID_SIZE][GRID_SIZE];
 
 Boolean g4p_onInit() {
     int i, j;
-    v4pi_init(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);  // Normal quality, windowed
-    v4p_init();
+    v4p_init2(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);  // Normal quality, windowed
     v4p_setBGColor(V4P_WHITE);  // Black background
 
     // Create a prototype
@@ -41,7 +39,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
             int phase = (i * 3145 + j * 4791 + elapsedTime) % 256;  // 0 to 255
             int scale = 128 + (255 - iabs(phase - 128));
 
-            v4pi_debug("scale %d\n", scale);
+            // v4pi_debug("scale %d\n", scale);
 
             // Transform clones with different zoom levels
             v4p_transform(circle_matrix[j][i], i * SPACING, j * SPACING + 100, 0, 0, scale, scale);

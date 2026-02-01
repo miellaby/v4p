@@ -52,6 +52,9 @@
 #include <stdio.h>
 #include "assert.h"
 
+// Forward declarations
+V4pPolygonP v4p_computeLimits(V4pPolygonP p);
+
 static V4pCollideCallback collisionCallback = NULL;
 
 #define YHASH_SIZE 512
@@ -238,8 +241,12 @@ void v4p_sceneFree(V4pSceneP s) {
     free(s);
 }
 
-// V4P initialization
-Boolean v4p_init() {
+// V4P initialization with parameters
+Boolean v4p_init2(int quality, Boolean fullscreen) {
+    if (v4pi_init(quality, fullscreen)) {
+        return failure;
+    }
+    
     if (! v4p_defaultScene) {
         v4p_defaultScene = v4p_sceneNew();
     }
@@ -251,16 +258,28 @@ Boolean v4p_init() {
     return success;
 }
 
+// V4P initialization (default parameters)
+Boolean v4p_init() {
+    return v4p_init2(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);
+}
+
 // V4P cleanup
 void v4p_quit() {
     if (v4p != v4p_defaultContext) {
         v4p_contextFree(v4p_defaultContext);
         v4p = NULL;
     }
+    v4pi_destroy();
 }
 
 // Create a polygon
 V4pPolygonP v4p_new(V4pProps t, V4pColor col, V4pLayer z) {
+    // Ensure v4p context is initialized
+    if (v4p == NULL) {
+        v4pi_error("v4p_new: v4p context not initialized. Call v4p_init() first.");
+        return NULL;
+    }
+    
     V4pPolygonP p = QuickHeapAlloc(v4p->polygonHeap);
     p->props = t & ~V4P_CHANGED;
     p->z = z;
@@ -546,6 +565,18 @@ V4pLayer v4p_getZ(V4pPolygonP p) {
 // returns a polygon color
 V4pColor v4p_getColor(V4pPolygonP p) {
     return p->color;
+}
+
+// get the polygon limits (bounding box)
+V4pPolygonP v4p_getLimits(V4pPolygonP p, V4pCoord *minx, V4pCoord *maxx, V4pCoord *miny, V4pCoord *maxy) {
+    if (p->miny == V4P_NIL) {
+        v4p_computeLimits(p);
+    }
+    *minx = p->minx;
+    *maxx = p->maxx;
+    *miny = p->miny;
+    *maxy = p->maxy;
+    return p;
 }
 
 // move a polygon point
@@ -852,9 +883,6 @@ V4pPolygonP v4p_sceneAddClone(V4pSceneP s, V4pPolygonP p) {
 V4pPolygonP v4p_addClone(V4pPolygonP p) {
     return v4p_sceneAddClone(v4p->scene, p);
 }
-
-// Forward declaration for anchor functions
-V4pPolygonP v4p_computeLimits(V4pPolygonP p);
 
 // set polygon anchor point to its center
 V4pPolygonP v4p_setAnchorToCenter(V4pPolygonP p) {

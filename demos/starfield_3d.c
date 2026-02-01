@@ -4,7 +4,7 @@
 #include <math.h>
 #include "g4p.h"
 #include "v4p.h"
-#include "v4pi.h"
+
 #include "v4pserial.h"
 #include <stdio.h>
 #define NUM_STARS 1000
@@ -77,8 +77,7 @@ Boolean g4p_onInit() {
     // Seed random number generator
     srand(time(NULL));
 
-    v4pi_init(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);
-    v4p_init();
+    v4p_init2(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);
     v4p_setView(-v4p_displayWidth * 10,
                 -v4p_displayHeight * 10,
                 v4p_displayWidth * 10,
@@ -144,7 +143,7 @@ Boolean g4p_onFrame() {
 }
 
 void g4p_onQuit() {
-    v4pi_destroy();
+    v4p_quit();
 }
 
 int main(int argc, char** argv) {

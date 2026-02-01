@@ -1,6 +1,5 @@
 #include "g4p.h"
 #include "v4p.h"
-#include "v4pi.h"
 
 #define STRESS_AMOUNT 12
 V4pPolygonP proto;
@@ -13,8 +12,7 @@ int liu = 3;
 Boolean g4p_onInit() {
     int j, k;
 
-    v4pi_init(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);
-    v4p_init();
+    v4p_init2(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);
     v4p_setBGColor(V4P_BLUE);
 
     proto = v4p_new(V4P_ABSOLUTE, V4P_RED, 10);
@@ -78,7 +76,7 @@ Boolean g4p_onFrame() {
 }
 
 void g4p_onQuit() {
-    v4pi_destroy();
+    v4p_quit();
 }
 
 int main(int argc, char** argv) {

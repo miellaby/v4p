@@ -1,6 +1,6 @@
 #include "g4p.h"
 #include "v4p.h"
-#include "v4pi.h"
+
 
 #define BOX_SIZE 20
 #define SPACING 30
@@ -12,8 +12,7 @@ V4pPolygonP boxMatrix[GRID_SIZE][GRID_SIZE];
 Boolean g4p_onInit() {
     int j, k;
 
-    v4pi_init(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);  // Normal quality, windowed
-    v4p_init();
+    v4p_init2(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);  // Normal quality, windowed
     v4p_setBGColor(V4P_BLACK);  // Black background
 
     // Create original box

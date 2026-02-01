@@ -8,23 +8,22 @@ angle = 0
 pCloneMatrix={}
 
 
-function g4pOnInit()
-  v4p.v4pi_init(1, 0)
-  v4p.v4p_init()
-  v4p.v4pi_setBgColor(v4p.blue)
+function g4p_onInit()
+  v4p.v4p_init2(1, 0)
+  v4p.v4p_setBgColor(v4p.blue)
  
   pSprite=v4p.v4p_new(v4p.absolute, v4p.red, 10)
   v4p.v4p_rect(pSprite, -v4p.v4p_displayWidth / 3 + v4p.v4p_displayWidth, -v4p.v4p_displayHeight / 3, v4p.v4p_displayWidth / 3, v4p.v4p_displayHeight / 3)
 
   for j= 0,STRESS_AMOUNT-1 do
     for k = 0,STRESS_AMOUNT-1 do
-      pCloneMatrix[1+j*STRESS_AMOUNT+k] = v4p.v4p_add_clone(pSprite)
+      pCloneMatrix[1+j*STRESS_AMOUNT+k] = v4p.v4p_addClone(pSprite)
     end
   end
   return false
 end
 
-function g4pOnTick(deltaTime)
+function g4p_onTick(deltaTime)
   i = iu
   
   -- Use deltaTime for time-based animation
@@ -54,22 +53,21 @@ function g4pOnTick(deltaTime)
   return (liu < 0)
 end
  
-function g4pOnFrame()
+function g4p_onFrame()
    v4p.v4p_render()
    return false
 end
 
-function g4pOnQuit()
-  v4p.v4pi_destroy()
-  v4p.v4pQuit()
+function g4p_onQuit()
+  v4p.v4p_quit()
 end
 
-if g4pMain then
-   g4pMain()
+if g4p_ain then
+   g4p_main()
 else
    require("v4p")
-   g4pOnInit()
-   g4pOnIterate()
-   g4pOnFrame()
-   g4pOnQuit()
+   g4p_onInit()
+   g4p_onIterate()
+   g4p_onFrame()
+   g4p_onQuit()
 end

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "g4p.h"
 #include "v4p.h"
-#include "v4pi.h"
+
 #include "qfont.h"
 #include "lowmath.h"
 
@@ -16,8 +16,7 @@ int liu = 3;
 Boolean g4p_onInit() {
     int j, k;
 
-    v4pi_init(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);
-    v4p_init();
+    v4p_init2(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);
 
     v4p_setBGColor(V4P_BLUE);
 
@@ -72,7 +71,7 @@ Boolean g4p_onFrame() {
 
 void g4p_onQuit() {
     printf("average %d\n", g4p_avgFramePeriod);
-    v4pi_destroy();
+    v4p_quit();
 }
 
 int main(int argc, char** argv) {

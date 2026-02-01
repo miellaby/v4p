@@ -4,6 +4,11 @@ C-based 2D vector graphic engine.
 
 It targets tiny MPU with nothing more than a video ram buffer. Integer maths. Binary ops. No dependencies.
 
+## Dev
+
+Avoid guards. Prefer a crash-early design pattern.
+
+
 ## Build
 
 ```bash
@@ -47,7 +52,7 @@ make install
 
 v4p_error and v4p_debug may be used for tracing, but v4p_debug is enabled only with DEBUG=1 build.
 
-## Code
+## Coding a demo/app with v4p
 
 - create plain polygons and circles and ensure they are added to the scene.
 - v4p_transform() to move/rotate/zoom these objects.
@@ -77,24 +82,22 @@ V4pPolygonP createStar() {
     return v4p_addClone(poly);
 }
 
-# "game loop" boilerplate
+# game/app loop boilerplate
 ..
 #include "v4p.h"
 #include "g4p.h"
 ..
 
 Boolean g4p_onInit() {
-    v4pi_init(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);
     v4p_init();
     v4p_setBGColor(V4P_BLACK);
-
-    // Prepare the scene, add polys (use the cloning pattern)
+    // add polys to the scene (use the cloning pattern to make transform easier)
     return success;
 }
 
 Boolean g4p_onTick(Int32 deltaTime) {
     // read inputs
-    // move stuff (transform)
+    // transform stuff
 }
 
 Boolean g4p_onFrame() {
@@ -102,16 +105,16 @@ Boolean g4p_onFrame() {
 }
 
 void g4p_onQuit() {
-    v4pi_destroy();
+    v4p_quit();
 }
 
 int main(int argc, char** argv) {
     return g4p_main(argc, argv);
 }
 
-## Input
+## User Inputs
 
-g4p gather user inputs
+They're in
 
 typedef struct g4pState_s {
     Boolean buttons[8];

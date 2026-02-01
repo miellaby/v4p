@@ -40,9 +40,6 @@ void g4p_onCollide(V4pCollide i1,
 
 // Initialize collision system (sets up callback)
 void g4p_initCollide() {
-    // Set default callback if none is set
-    v4p_setCollideCallback(g4p_onCollide);
-
     // Also perform initial reset
     g4p_resetCollide();
 }

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "g4p.h"
 #include "v4p.h"
-#include "v4pi.h"
+
 #include "v4pserial.h"
 
 #define STRESS_AMOUNT 128
@@ -15,8 +15,7 @@ int liu = 3;
 
 Boolean g4p_onInit() {
     int j, k;
-    v4pi_init(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);
-    v4p_init();
+    v4p_init2(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);
     v4p_setBGColor(V4P_BLACK);
 
     proto = v4p_new(V4P_ABSOLUTE, V4P_RED, 0);
@@ -88,7 +87,7 @@ Boolean g4p_onFrame() {
 }
 
 void g4p_onQuit() {
-    v4pi_destroy();
+    v4p_quit();
 }
 
 int main(int argc, char** argv) {
