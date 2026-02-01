@@ -1,6 +1,6 @@
--- install SWIG and LUA-DEV packages in your environment platform
--- exec "make lua" from v4p source top directory;
--- then come in this directory and execute "lua demov4p.lua"
+-- install SWIG and LUA-DEV dependencies
+-- build with "make lua"
+-- run with "lua demov4p.lua"
 require("v4p");
 v4p.v4pi_init(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);
 v4p.v4p_init();

@@ -1,6 +1,10 @@
 # V4P Build System - Single Makefile
 # Modern, standards-compliant build system
 
+.PHONY: all clean install uninstall addons demos help
+
+all: libv4p.a addons demos
+
 # ============================================
 # CONFIGURATION
 # ============================================
@@ -178,10 +182,6 @@ demos/%: demos/%.o libv4p.a libg4p.a libqfont.a libv4pserial.a
 # ============================================
 # TARGETS
 # ============================================
-
-.PHONY: all clean install uninstall addons demos help
-
-all: libv4p.a addons demos
 
 addons: libg4p.a libqfont.a libv4pserial.a libluagame.a
 

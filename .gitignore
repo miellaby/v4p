@@ -10,6 +10,7 @@ demos/*
 
 # Ignore SWIG-generated files
 bindings/v4p_wrap.c
+bindings/lua/v4p.so
 
 # Ignore compiled executables
 addons/luagame/luagame
