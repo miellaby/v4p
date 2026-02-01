@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <sys/times.h>
 #include <X11/Xlib.h>
-#include "game_engine.h"
+#include "g4p.h"
 #include "v4pi.h"
 #include "g4pi.h"
 

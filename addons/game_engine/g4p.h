@@ -1,12 +1,12 @@
 #ifndef GAME_4_POCKET_H
 #define GAME_4_POCKET_H
+/**
+ * G4P (Game 4 Pocket) Engine
+ */
 #include "v4p.h"
 #include "collision.h"
 
-/**
- * Game Engine State
- */
-
+// Engine State
 typedef struct g4pState_s {
     Boolean buttons[8];
     V4pCoord xpen, ypen;

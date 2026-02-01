@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "v4p.h"
 #include "v4pi.h"
-#include "game_engine.h"
+#include "g4p.h"
 #include "getopt.h"
 #include "lowmath.h"
 

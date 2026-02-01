@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "game_engine.h"
+#include "g4p.h"
 #include "SDL/SDL.h"
 #include "g4pi.h"
 

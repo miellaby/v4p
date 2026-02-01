@@ -592,24 +592,6 @@ V4pPolygonP v4p_destroyPointFrom(V4pPolygonP p, V4pPointP s) {
     return p;
 }
 
-// Transform hexa char ('0-9,A-F') to int
-int v4p_parseHexDigit(char c) {
-    int o, r;
-    o = (int) c;
-    r = o - (int) '0';
-    if (r >= 0 && r <= 9) {
-        return r;
-    } else {
-        r = o - (int) 'A';
-        if (r >= 0 && r <= 5) {
-            return 10 + r;
-        } else {
-            r = o - (int) 'a';
-            return (r >= 0 && r <= 5 ? 10 + r : 0);
-        }
-    }
-}
-
 // set the polygon colliding layer
 V4pPolygonP v4p_concrete(V4pPolygonP p, V4pCollide i) {
     p->i = i;

@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "game_engine.h"
+#include "g4p.h"
 #include "v4p.h"
 #include "v4pi.h"
 #include "v4pserial.h"
@@ -20,12 +20,12 @@ Boolean g4p_onInit() {
     v4p_setBGColor(V4P_BLACK);
 
     pCol = v4p_new(V4P_ABSOLUTE, V4P_RED, 0);
-    v4pPolygonDecodeSVGPath(pCol,
+    v4p_decodeSVGPath(pCol,
                             "M 478.1,5  L 490.5,43.2 L 530.7,43.2 L 498.2,66.8 \
           L 510.6,105 L 478.1,81.4 L 445.6,105 L 458,66.8 \
           L 425.5,43.2 L 465.7,43.2 L 478.1,5 z",
                             1200);
-    // v4pPolygonDecodeSVGPath(pCol,
+    // v4p_decodeSVGPath(pCol,
     // "m277,318l-10,-69l-18,-58l-17,-36l-19,-25l14,-7l30,30l26,49l21,65l18,53l-45,-2z\
     //      m-95.5,-194l-37.5,16l-40,40l-31,61l3,-69l34,-57l63,-15l23,6l-14.5,18z\
     //      m-9.5,-40l-46,-9l-60,9l-40,26l-22,27l16,-48l57,-35l59,0l51,17l15,21l-30,-8z\
@@ -35,7 +35,7 @@ Boolean g4p_onInit() {
     //			     v4p_addJump (pCol);
     v4p_transform(pCol, -200, -300, 0, 0, 256, 256);  // x-=400
 
-    // v4pPolygonDecodePoints(pCol, "4e05 5a2b 822b 6242 6e69 4e51 2d69 3a42
+    // v4p_decodePoints(pCol, "4e05 5a2b 822b 6242 6e69 4e51 2d69 3a42
     // 192b 412b", 700); Path extracted from
     // http://upload.wikimedia.org/wikipedia/commons/4/4e/3_stars.svg path = "M
     // 478.1117,4.99999  L 490.52087,43.198877 L 530.68482,43.196598 L

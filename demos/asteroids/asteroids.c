@@ -1,4 +1,4 @@
-#include "game_engine.h"
+#include "g4p.h"
 #include "v4p.h"
 #include "v4pi.h"
 #include "v4pserial.h"
@@ -8,7 +8,7 @@
 
 #define MAX_ASTEROIDS 10
 #define MAX_BULLETS 5
-#define SHIP_SIZE 20
+#define SHIP_SIZE 28
 #define ASTEROID_SIZE 50
 #define BULLET_SIZE 5
 
@@ -23,7 +23,7 @@ int lives = 3;
 int asteroid_count = 0;
 int bullet_count = 0;
 float ship_angle = 0;
-V4pCoord ship_x = 0, ship_y = 0;
+float ship_x = 0, ship_y = 0;
 Boolean thrusting = false;
 Boolean game_over = false;
 
@@ -32,8 +32,10 @@ V4pPolygonP createShipPrototype() {
     static V4pPolygonP proto = NULL;
     if (proto == NULL) {
         proto = v4p_new(V4P_ABSOLUTE, V4P_WHITE, 1);
-        // Create a simple triangle for the ship using SVG path
-        v4pPolygonDecodeSVGPath(proto, "M 0 -20 L 10 20 L -10 20 Z", 256);
+        // Create a simple triangle for the ship using v4p_addPoint
+        v4p_addPoint(proto, 0, -20);  // Top point
+        v4p_addPoint(proto, -10, 20); // Bottom right
+        v4p_addPoint(proto, 10, 20); // Bottom left
         v4p_setAnchorToCenter(proto);
     }
     return proto;
@@ -44,10 +46,15 @@ V4pPolygonP createAsteroidPrototype() {
     static V4pPolygonP proto = NULL;
     if (proto == NULL) {
         proto = v4p_new(V4P_ABSOLUTE, V4P_GRAY, 2);
-        // Create a simple octagon for the asteroid using SVG path
-        v4pPolygonDecodeSVGPath(proto, 
-            "M 50 0 L 35 35 L 0 50 L -35 35 L -50 0 L -35 -35 L 0 -50 L 35 -35 Z", 
-            256);
+        // Create a simple octagon for the asteroid using v4p_addPoint
+        v4p_addPoint(proto, 50, 0);
+        v4p_addPoint(proto, 35, 35);
+        v4p_addPoint(proto, 0, 50);
+        v4p_addPoint(proto, -35, 35);
+        v4p_addPoint(proto, -50, 0);
+        v4p_addPoint(proto, -35, -35);
+        v4p_addPoint(proto, 0, -50);
+        v4p_addPoint(proto, 35, -35);
         v4p_setAnchorToCenter(proto);
     }
     return proto;
@@ -113,8 +120,8 @@ void fireBullet() {
     bullets[bullet_count] = v4p_addClone(bullet_proto);
     
     // Position bullet at ship's nose (ship_angle is already in degrees)
-    float bullet_x = ship_x + sin(ship_angle * M_PI / 180) * SHIP_SIZE;
-    float bullet_y = ship_y - cos(ship_angle * M_PI / 180) * SHIP_SIZE;
+    float bullet_x = ship_x + sin(ship_angle * M_PI / 360) * SHIP_SIZE;
+    float bullet_y = ship_y - cos(ship_angle * M_PI / 360) * SHIP_SIZE;
     
     v4p_transform(bullets[bullet_count], bullet_x, bullet_y, ship_angle * 256.f / 360.f, 0, 256, 256);
     v4p_concrete(bullets[bullet_count], 3); // Bullets are on layer 3
@@ -181,14 +188,18 @@ Boolean asteroids_onCollide(V4pCollide i1, V4pCollide i2, V4pCoord py, V4pCoord 
             // Reset ship position
             ship_x = 0;
             ship_y = 0;
-            ship_angle = 0;
+            ship_angle = 90;
         }
     }
+
+    game_over = false; // TEMPORARY FIXME
 }
 
 Boolean g4p_onInit() {
     v4pi_init(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);
     v4p_init();
+    v4p_setView(-v4p_displayWidth / 2, -v4p_displayHeight / 2,
+                 v4p_displayWidth / 2, v4p_displayHeight / 2);
     v4p_setBGColor(V4P_BLACK);
     
     // Override the collision system
@@ -198,7 +209,7 @@ Boolean g4p_onInit() {
     V4pPolygonP ship_proto = createShipPrototype();
     ship = v4p_addClone(ship_proto);
     v4p_concrete(ship, 1); // Ship is on layer 1
-    
+
     // Create initial asteroids
     for (int i = 0; i < 3; i++) {
         createAsteroid();
@@ -220,8 +231,8 @@ Boolean g4p_onTick(Int32 deltaTime) {
     if (g4p_state.key == SDLK_UP) {
         thrusting = true;
         // Move ship forward (convert degrees to radians for trig functions)
-        ship_x += sin(ship_angle * M_PI / 180) * 2;
-        ship_y -= cos(ship_angle * M_PI / 180) * 2;
+        ship_x += sin(ship_angle * M_PI / 360.) * 2.;
+        ship_y -= cos(ship_angle * M_PI / 360.) * 2.;
     }
     
     if (g4p_state.key == SDLK_SPACE) {

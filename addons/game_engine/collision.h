@@ -1,7 +1,7 @@
 #ifndef COLLISION_H
 #define COLLISION_H
 
-#include "game_engine.h"
+#include "g4p.h"
 
 /**
  * Collision detection structures and functions

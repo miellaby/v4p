@@ -3,7 +3,7 @@
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
-#include "game_engine.h"
+#include "g4p.h"
 #include "v4p.h"
 #include "v4pi.h"
 // V4P->lua bindings

@@ -95,58 +95,6 @@ Boolean v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
     return success;
 }
 
-extern int v4p_parseHexDigit(char c);
-V4pPolygonP v4pDecodePolygon(char* s) {
-    V4pLayer z;
-    V4pProps t;
-    V4pColor col;
-    V4pPolygonP p;
-    int i = 0;
-    if (strlen(s) < 6)
-        return NULL;
-    t = v4p_parseHexDigit(s[i]) << 4 + v4p_parseHexDigit(s[i + 1]);
-    i = 2;
-    col = v4p_parseHexDigit(s[i]) << 4 + v4p_parseHexDigit(s[i + 1]);
-    i = 4;
-    z = v4p_parseHexDigit(s[i]) << 4 + v4p_parseHexDigit(s[i + 1]);
-    p = v4p_new(t, col, z);
-    return v4pPolygonDecodePoints(p, s + 6);
-}
-
-char* v4pEncodePolygon(V4pPolygonP p) {
-    const char* t = "0123456789ABCDEF";
-    UInt16 i, v;
-    char *s, *ss, *sss;
-
-    s = (char*) malloc(7);
-    ss = s;
-    for (i = 0; i <= 2; i++) {
-        if (i == 0)
-            v = v4p_putProp(p, 0);
-        else if (i == 1)
-            v = v4p_getColor(p);
-        else if (i == 2)
-            v = v4p_getZ(p);
-        *ss = t[v & 15];
-        ss++;
-        v = v >> 4;
-        *ss = t[v & 15];
-        ss++;
-    }
-    *ss = '\0';
-
-    sss = v4pPolygonEncodePoints(p);
-    if (! sss) {
-        free(s);
-        return NULL;
-    } else {
-        s = (char*) realloc(s, 7 + strlen(sss));
-        StrCopy(ss, sss);
-        free(sss);
-        return s;
-    }
-}
-
 Boolean v4pDisplayInit(int quality, V4pColor background) {
     bgColor = background;
     buffer = BmpGetBits(WinGetBitmap(WinGetDisplayWindow()));

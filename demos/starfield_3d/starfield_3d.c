@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-#include "game_engine.h"
+#include "g4p.h"
 #include "v4p.h"
 #include "v4pi.h"
 #include "v4pserial.h"
@@ -59,11 +59,11 @@ V4pPolygonP createStarPolygon() {
     static V4pPolygonP poly = NULL;
     if (poly == NULL) {
         poly = v4p_new(V4P_ABSOLUTE, V4P_WHITE, 1);
-        v4pPolygonDecodeSVGPath(poly,
-                                "M 478.1,5  L 490.5,43.2 L 530.7,43.2 L 498.2,66.8 \
+        v4p_decodeSVGPath(poly,
+                          "M 478.1,5  L 490.5,43.2 L 530.7,43.2 L 498.2,66.8 \
           L 510.6,105 L 478.1,81.4 L 445.6,105 L 458,66.8 \
           L 425.5,43.2 L 465.7,43.2 L 478.1,5 z",
-                                4096);
+                          4096);
         v4p_transform(poly, 0, 0, 0, 0, 16, 16);
         v4p_transform(poly, 0, 0, 0, 0, 128, 128);
         v4p_setAnchorToCenter(poly);

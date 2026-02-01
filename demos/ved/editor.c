@@ -4,7 +4,7 @@
 #include <getopt.h>
 #include "v4p.h"
 #include "v4pi.h"
-#include "game_engine.h"
+#include "g4p.h"
 #include "lowmath.h"
 
 /** global options with their default values */

@@ -1,7 +1,7 @@
 #include <unistd.h>
 #include <vga.h>
 #include <sys/times.h>
-#include "game_engine.h"
+#include "g4p.h"
 #include "g4pi.h"
 
 #ifdef TESTU_G4P_LINUX_SVGA
@@ -70,7 +70,7 @@ int g4pi_pollEvents() {
 
 #ifdef TESTU_G4P_LINUX_SVGA
     #include <stdio.h>
-    #include "game_engine.h"
+    #include "g4p.h"
 Boolean g4p_onInit() {
     return success;
 }

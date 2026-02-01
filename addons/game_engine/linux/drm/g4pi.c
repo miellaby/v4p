@@ -8,7 +8,7 @@
 #include <sys/time.h>
 #include <errno.h>
 #include <limits.h>
-#include "game_engine.h"
+#include "g4p.h"
 #include "g4pi.h"
 
 // Global variables for input handling

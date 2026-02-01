@@ -3,11 +3,11 @@
 
 #include "v4p.h"
 
-char* v4pPolygonEncodePoints(V4pPolygonP p, int scale);
-V4pPolygonP v4pPolygonDecodePoints(V4pPolygonP p, char* s, int scale);
-V4pPolygonP v4pQuickPolygon(V4pProps t, V4pColor col, V4pLayer pz, char* s, int scale);
-V4pPolygonP v4pDecodePolygon(char* s, int scale);
-char* v4pEncodePolygon(V4pPolygonP p, int scale);
-V4pPolygonP v4pPolygonDecodeSVGPath(V4pPolygonP p, char* path, int scale);
+char* v4p_encodePoints(V4pPolygonP p, int scale);
+V4pPolygonP v4p_decodePoints(V4pPolygonP p, char* s, int scale);
+V4pPolygonP v4p_quickPolygon(V4pProps t, V4pColor col, V4pLayer pz, char* s, int scale);
+V4pPolygonP v4p_decodePolygon(char* s, int scale);
+char* v4p_encodePolygon(V4pPolygonP p, int scale);
+V4pPolygonP v4p_decodeSVGPath(V4pPolygonP p, char* path, int scale);
 
 #endif

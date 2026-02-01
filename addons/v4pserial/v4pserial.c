@@ -5,10 +5,26 @@
 #include "v4pi.h"
 #include "v4pserial.h"
 
-extern int v4p_parseHexDigit(char c);
+// Transform hexa char ('0-9,A-F') to int
+int v4p_parseHexDigit(char c) {
+    int o, r;
+    o = (int) c;
+    r = o - (int) '0';
+    if (r >= 0 && r <= 9) {
+        return r;
+    } else {
+        r = o - (int) 'A';
+        if (r >= 0 && r <= 5) {
+            return 10 + r;
+        } else {
+            r = o - (int) 'a';
+            return (r >= 0 && r <= 5 ? 10 + r : 0);
+        }
+    }
+}
 
 // add points to a polygon with coordinates decoded from a c-string
-V4pPolygonP v4pPolygonDecodePoints(V4pPolygonP p, char* s, int scale) {
+V4pPolygonP v4p_decodePoints(V4pPolygonP p, char* s, int scale) {
     int j;
     long xs, ys, xs1, ys1;
     Boolean sep, psep;
@@ -48,12 +64,12 @@ V4pPolygonP v4pPolygonDecodePoints(V4pPolygonP p, char* s, int scale) {
 }
 
 // create a polygon by adding all points encoded in a c-string
-V4pPolygonP v4pQuickPolygon(V4pProps t, V4pColor col, V4pLayer z, char* s, int scale) {
-    return v4pPolygonDecodePoints(v4p_new(t, col, z), s, scale);
+V4pPolygonP v4p_quickPolygon(V4pProps t, V4pColor col, V4pLayer z, char* s, int scale) {
+    return v4p_decodePoints(v4p_new(t, col, z), s, scale);
 }
 
 // encode every point of a polygon into a single c-string
-char* v4pPolygonEncodePoints(V4pPolygonP p, int scale) {
+char* v4p_encodePoints(V4pPolygonP p, int scale) {
     static char* t = "0123456789ABCDEF";
     char* s;
     V4pPointP s1, m, pm;
@@ -96,7 +112,7 @@ char* v4pPolygonEncodePoints(V4pPolygonP p, int scale) {
     return s;
 }
 
-V4pPolygonP v4pDecodePolygon(char* s, int scale) {
+V4pPolygonP v4p_decodePolygon(char* s, int scale) {
     V4pLayer z;
     V4pProps t;
     V4pColor col;
@@ -110,10 +126,10 @@ V4pPolygonP v4pDecodePolygon(char* s, int scale) {
     i = 4;
     z = v4p_parseHexDigit(s[i]) << 4 + v4p_parseHexDigit(s[i + 1]);
     p = v4p_new(t, col, z);
-    return v4pPolygonDecodePoints(p, s + 6, scale);
+    return v4p_decodePoints(p, s + 6, scale);
 }
 
-char* v4pEncodePolygon(V4pPolygonP p, int scale) {
+char* v4p_encodePolygon(V4pPolygonP p, int scale) {
     const char* t = "0123456789ABCDEF";
     UInt16 i, v;
     char *s, *ss, *sss;
@@ -135,7 +151,7 @@ char* v4pEncodePolygon(V4pPolygonP p, int scale) {
     }
     *ss = '\0';
 
-    sss = v4pPolygonEncodePoints(p, scale);
+    sss = v4p_encodePoints(p, scale);
     if (! sss) {
         free(s);
         return NULL;
@@ -148,7 +164,7 @@ char* v4pEncodePolygon(V4pPolygonP p, int scale) {
 }
 
 // add points to a polygon with coordinates decoded from a c-string
-V4pPolygonP v4pPolygonDecodeSVGPath(V4pPolygonP p, char* s, int scale) {
+V4pPolygonP v4p_decodeSVGPath(V4pPolygonP p, char* s, int scale) {
     int j;
     Boolean toBeClosed = false, knowFirstPoint = false, nextIsRelative = false;
     char c;
