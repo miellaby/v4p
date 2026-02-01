@@ -29,9 +29,6 @@ int main(int argc, char* argv[]) {
     
     printf("Created overlapping polygons: red=%p, blue=%p\n", (void*)poly1, (void*)poly2);
     
-    // Set up collision detection
-    v4p_setCollideCallback(g4p_onCollide);
-    
     printf("\n=== RENDERING SINGLE FRAME ===\n");
     
     // Reset collisions

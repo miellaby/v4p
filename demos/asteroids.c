@@ -4,13 +4,22 @@
 #include "v4pserial.h"
 #include <SDL/SDL.h>
 #include <stdlib.h>
-#include <math.h>
+#include "lowmath.h"  // For computeCosSin()
 
 #define MAX_ASTEROIDS 10
 #define MAX_BULLETS 5
 #define SHIP_SIZE 28
 #define ASTEROID_SIZE 50
 #define BULLET_SIZE 5
+
+// Helper function to get sin/cos values using v4p's 256-unit circle system
+void getSinCosFromDegrees(float degrees, int* sina, int* cosa) {
+    // Convert degrees to v4p's 256-unit circle format
+    UInt16 v4p_angle = (UInt16)(degrees * 256.0f / 360.0f);
+    computeCosSin(v4p_angle);
+    *sina = lwmSina;
+    *cosa = lwmCosa;
+}
 
 // Game objects
 V4pPolygonP ship;
@@ -96,7 +105,7 @@ void createAsteroid() {
             x = rand() % v4p_displayWidth - v4p_displayWidth/2;
             y = v4p_displayHeight/2 + 50;
             break;
-        case 3: // left
+        case 3: default: // left
             x = -v4p_displayWidth/2 - 50;
             y = rand() % v4p_displayHeight - v4p_displayHeight/2;
             break;
@@ -119,9 +128,11 @@ void fireBullet() {
     V4pPolygonP bullet_proto = createBulletPrototype();
     bullets[bullet_count] = v4p_addClone(bullet_proto);
     
-    // Position bullet at ship's nose (ship_angle is already in degrees)
-    float bullet_x = ship_x + sin(ship_angle * M_PI / 360) * SHIP_SIZE;
-    float bullet_y = ship_y - cos(ship_angle * M_PI / 360) * SHIP_SIZE;
+    // Position bullet at ship's nose using v4p's trigonometric system
+    int sina, cosa;
+    getSinCosFromDegrees(ship_angle, &sina, &cosa);
+    float bullet_x = ship_x + (sina / 256.0f) * SHIP_SIZE;
+    float bullet_y = ship_y - (cosa / 256.0f) * SHIP_SIZE;
     
     v4p_transform(bullets[bullet_count], bullet_x, bullet_y, ship_angle * 256.f / 360.f, 0, 256, 256);
     v4p_concrete(bullets[bullet_count], 3); // Bullets are on layer 3
@@ -130,7 +141,7 @@ void fireBullet() {
 }
 
 // Collision callback while rendering
-Boolean asteroids_onCollide(V4pCollide i1, V4pCollide i2, V4pCoord py, V4pCoord x1, V4pCoord x2, V4pPolygonP p1, V4pPolygonP p2) {
+void asteroids_onCollide(V4pCollide i1, V4pCollide i2, V4pCoord py, V4pCoord x1, V4pCoord x2, V4pPolygonP p1, V4pPolygonP p2) {
     // Classify collision
     Boolean isBullet1 = (i1 == 3);
     Boolean isAsteroid1 = (i1 == 2);
@@ -230,9 +241,11 @@ Boolean g4p_onTick(Int32 deltaTime) {
     thrusting = false;
     if (g4p_state.key == SDLK_UP) {
         thrusting = true;
-        // Move ship forward (convert degrees to radians for trig functions)
-        ship_x += sin(ship_angle * M_PI / 360.) * 2.;
-        ship_y -= cos(ship_angle * M_PI / 360.) * 2.;
+        // Move ship forward using v4p's trigonometric system
+        int sina, cosa;
+        getSinCosFromDegrees(ship_angle, &sina, &cosa);
+        ship_x += (sina / 256.0f) * 2.;
+        ship_y -= (cosa / 256.0f) * 2.;
     }
     
     if (g4p_state.key == SDLK_SPACE) {

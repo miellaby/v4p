@@ -42,14 +42,3 @@ V4P was developped with Palm OS 4 gcc based SDK and tested on an ancient PDA . I
 * accurate cos/sin/atan/dist routines
 * scene partial refresh and related optimisations
 
-### Palm OS 4 specific info
-makefiles have been written to deal with Palm OS 4 gcc based compilation.
-
-Palmphi projects are provided. Palmphi was an IDE running on Windows with cygwin so to simplify the authoring of Palm-OS based applications. See: http://www.digital-kingdoms.net/palmphi/
-
-* palmphi-toto : A V4P based top-view car game (WIP).
-* palmphi-totoe : A V4P based graphic editor.
-
-To compile these 2 projects, put the content of "src" directory into the path /usr/src/v4p/ of your cygwin distribution.
-
-Contact: sylvain.garden@gmail.com

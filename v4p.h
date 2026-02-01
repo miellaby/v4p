@@ -54,7 +54,7 @@ extern V4pContextP v4p_defaultContext;  // Default context (set once by v4pinit(
 extern V4pSceneP v4p_defaultScene;  // Default scene within default context (set
                                     // once by v4pinit())
 
-extern V4pCoord v4p_displayWidth;   // current display width
+extern V4pCoord v4p_displayWidth;  // current display width
 extern V4pCoord v4p_displayHeight;  // current display height
 
 /**
@@ -154,16 +154,14 @@ V4pPolygonP v4p_addClone(V4pPolygonP p);
 Boolean v4p_destroy(V4pPolygonP p);
 Boolean v4p_destroyFromScene(V4pPolygonP p);
 
-
-
 // Collision detection when rendering
-typedef Boolean (*V4pCollideCallback)(V4pCollide i1,
-                                      V4pCollide i2,
-                                      V4pCoord py,
-                                      V4pCoord x1,
-                                      V4pCoord x2,
-                                      V4pPolygonP p1,
-                                      V4pPolygonP p2);
+typedef void (*V4pCollideCallback)(V4pCollide i1,
+                                   V4pCollide i2,
+                                   V4pCoord py,
+                                   V4pCoord x1,
+                                   V4pCoord x2,
+                                   V4pPolygonP p1,
+                                   V4pPolygonP p2);
 
 // Collision callback function (see game engine implmentation)
 void v4p_setCollideCallback(V4pCollideCallback f);

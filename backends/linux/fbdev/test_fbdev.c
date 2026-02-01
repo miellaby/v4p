@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
 
     // // Test setting context
     // v4pi_setContext (ctx);
-    // printf("Context set, current size: %dx%d\n", v4pDisplayWidth,
+    // printf("Context set, current size: %dx%d\n", v4p_displayWidth,
     // v4p_displayHeight);
 
     // Test display functions

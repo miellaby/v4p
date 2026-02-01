@@ -115,8 +115,8 @@ Boolean v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
 
 #ifdef SUPPORT_UNALIGNED_WIDTH
     // Fix: Account for SDL surface pitch when moving to next scanline
-    if (x1 == v4pDisplayWidth) {  // end of a scanline, add SDL's padding bytes
-        iBuffer += v4pi_context->surface->pitch - v4pDisplayWidth;
+    if (x1 == v4p_displayWidth) {  // end of a scanline, add SDL's padding bytes
+        iBuffer += v4pi_context->surface->pitch - v4p_displayWidth;
     }
 #endif
 

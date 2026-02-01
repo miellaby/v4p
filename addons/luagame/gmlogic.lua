@@ -14,7 +14,7 @@ function g4pOnInit()
   v4p.v4pi_setBgColor(v4p.blue)
  
   pSprite=v4p.v4p_new(v4p.absolute, v4p.red, 10)
-  v4p.v4p_rect(pSprite, -v4p.v4pDisplayWidth / 3 + v4p.v4pDisplayWidth, -v4p.v4pDisplayHeight / 3, v4p.v4pDisplayWidth / 3, v4p.v4pDisplayHeight / 3)
+  v4p.v4p_rect(pSprite, -v4p.v4p_displayWidth / 3 + v4p.v4p_displayWidth, -v4p.v4p_displayHeight / 3, v4p.v4p_displayWidth / 3, v4p.v4p_displayHeight / 3)
 
   for j= 0,STRESS_AMOUNT-1 do
     for k = 0,STRESS_AMOUNT-1 do
@@ -35,14 +35,14 @@ function g4pOnTick(deltaTime)
      diu=-diu
      liu=liu-1
   end
-  v4p.v4p_setView(-v4p.v4pDisplayWidth * i / 256, -v4p.v4pDisplayHeight * i / 256, v4p.v4pDisplayWidth + v4p.v4pDisplayWidth * i / 256, v4p.v4pDisplayHeight + v4p.v4pDisplayHeight * i / 256)
+  v4p.v4p_setView(-v4p.v4p_displayWidth * i / 256, -v4p.v4p_displayHeight * i / 256, v4p.v4p_displayWidth + v4p.v4p_displayWidth * i / 256, v4p.v4p_displayHeight + v4p.v4p_displayHeight * i / 256)
   
   local idx=1
   local s=STRESS_AMOUNT-1
   if liu % 4 >= 2 then
       for j=0,s do
         for k=0,s do
-          v4p.v4p_transformClone(pSprite, pCloneMatrix[idx], v4p.v4pDisplayWidth * (1 + k - STRESS_AMOUNT/2) / 2, v4p.v4pDisplayWidth * (1 + j - STRESS_AMOUNT/2)/2, (j * k) + angle / 16, 0)
+          v4p.v4p_transformClone(pSprite, pCloneMatrix[idx], v4p.v4p_displayWidth * (1 + k - STRESS_AMOUNT/2) / 2, v4p.v4p_displayWidth * (1 + j - STRESS_AMOUNT/2)/2, (j * k) + angle / 16, 0)
           idx=idx+1
         end
       end

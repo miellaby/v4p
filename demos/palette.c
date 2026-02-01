@@ -17,7 +17,7 @@ Boolean g4p_onInit() {
     v4pi_init(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);  // Normal quality, windowed
     v4p_init();
     v4p_setBGColor(V4P_BLACK);  // Black background
-    box = v4p_new(V4P_ABSOLUTE, i, 4);
+    box = v4p_new(V4P_ABSOLUTE, 0, 4);
     v4p_rect(box, 0, 0, COLOR_BOX_SIZE, COLOR_BOX_SIZE);
 
     // Create a polygon for each color in the palette
@@ -80,13 +80,6 @@ Boolean g4p_onFrame() {
 }
 
 void g4p_onQuit() {
-    // // Cleanup
-    // int i;
-    // for (i = 0; i < 256; i++) {
-    //   if (color_boxes[i]) {
-    //     v4p_destroy (color_boxes[i]);
-    //   }
-    // }
     v4pi_destroy();
 }
 

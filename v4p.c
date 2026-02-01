@@ -245,6 +245,7 @@ Boolean v4p_init() {
     }
     v4p_setContext(v4p_defaultContext);
     v4p_setView(0, 0, v4p_displayWidth, v4p_displayHeight);
+    return success;
 }
 
 // V4P cleanup
@@ -633,7 +634,7 @@ ActiveEdgeP v4p_addNewActiveEdge(V4pPolygonP p, V4pPointP a, V4pPointP b) {
 }
 
 // Create a circle edge for a polygon point
-ActiveEdgeP v4p_addNewCircleEdges(V4pPolygonP p, V4pPointP c) {
+Boolean v4p_addNewCircleEdges(V4pPolygonP p, V4pPointP c) {
     V4pCoord r = p->radius, x = c->x, y = c->y;
 
     v4pi_debug("CIRCLE: Creating circle edges for point (%d, %d), radius=%d\n", x, y, r);
@@ -657,6 +658,7 @@ ActiveEdgeP v4p_addNewCircleEdges(V4pPolygonP p, V4pPointP c) {
     ActiveEdgeP right = v4p_addNewActiveEdge(p, &top, &bottom_right);
     right->circle = true;
     v4pi_debug("CIRCLE: Created right circle edge %p\n", (void*) right);
+    return success;
 }
 
 // delete all ActiveEdges of a poly

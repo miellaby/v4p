@@ -39,9 +39,6 @@ int g4p_main(int argc, char* argv[]) {
 
     // Initialize collision system
     g4p_initCollide();
-    
-    // Set up collision callback for v4p engine
-    v4p_setCollideCallback(g4p_onCollide);
 
     // Init call-back
     if (g4p_onInit())

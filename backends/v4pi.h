@@ -53,7 +53,7 @@ Boolean v4pi_end();
 #ifdef DEBUG
     void v4pi_debug(char* formatString, ...);
 #else
-    #define v4pi_debug(...) (0)
+    #define v4pi_debug(...) ((void)0)
 #endif
 Boolean v4pi_error(char* s, ...);
 

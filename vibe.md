@@ -1,20 +1,51 @@
 # Project
 
-C-based 2D vector graphic engine targeting tiny MPU with nothing more than a video ram buffer.
+C-based 2D vector graphic engine.
 
-## Build
+It targets tiny MPU with nothing more than a video ram buffer. Integer maths. Binary ops. No dependencies.
 
-Linux is the development platform with SDL1.2 backend as a video buffer.
+## Build
 
-    make libv4p.a # builds V4P with 
-    MODE=debug make clean all # rebuild with debug traces
-    BACKEND=xlib make libpv4.a # alternative backend (xlib, fbdev or libdrm are available)
+```bash
+# Linux build (default) with SDL1.2 backend as a video buffer
 
-Don't invoke the sub-makefiles. Run 'make' from the top dir.
+make
+
+# Debug build
+make DEBUG=1
+
+# Different backend
+make BACKEND=xlib
+
+# Verbose output
+make V=1
+
+# Install to system
+make install
+```
+
+## Build Options
+
+- `DEBUG=1`: Enable debug build with symbols and debug macros
+- `BACKEND=sdl|xlib|fbdev|drm`: Select Linux backend (default: sdl)
+- `TARGET=linux|palmos|esp32`: Select platform (default: linux)
+- `V=1`: Verbose output showing all commands
+- `PREFIX=/path`: Custom installation prefix (default: /usr/local)
+
+## Targets
+
+- `all`: Build everything (default)
+- `libv4p.a`: Build core library
+- `addons`: Build all addons
+- `demos`: Build all demos
+- `install`: Install to system
+- `uninstall`: Remove installation
+- `clean`: Clean build artifacts
+- `help`: Show usage information
 
 ## Debug
 
-v4p_error and v4p_debug may be used for tracing, but v4p_debug is enabled only with MODE=debug build.
+v4p_error and v4p_debug may be used for tracing, but v4p_debug is enabled only with DEBUG=1 build.
 
 ## Code
 
@@ -26,9 +57,9 @@ v4p_error and v4p_debug may be used for tracing, but v4p_debug is enabled only w
 
 # Pattern to create animated objects
 
-Warning: Transformations are cumulative by default (transformations "in place").
+Warning: Transformations are cumulative by default (because "in place").
 
-By cloning an existing polygon (out of scene), one gets not-cumulative transformations (transformations of clones are computed against their parents.
+By creating an existing polygon out of scene and cloning it, one gets polygons where transformations aren't cumulative (transformations computed against their parents).
 
 // Create a star-shaped polygon
 V4pPolygonP createStar() {
@@ -42,7 +73,7 @@ V4pPolygonP createStar() {
                                 128); // SVG coordinates scaled to 128/256 (50%)
         v4p_setAnchorToCenter(poly);
     }
-    // return a transformable copy (already added to the scene)
+    // return a transformable copy (added to the scene)
     return v4p_addClone(poly);
 }
 

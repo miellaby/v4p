@@ -95,7 +95,7 @@ Boolean v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
     return success;
 }
 
-Boolean v4pDisplayInit(int quality, V4pColor background) {
+Boolean v4pi_init(int quality, V4pColor background) {
     bgColor = background;
     buffer = BmpGetBits(WinGetBitmap(WinGetDisplayWindow()));
 }
