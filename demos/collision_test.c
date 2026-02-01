@@ -44,16 +44,16 @@ int main(int argc, char* argv[]) {
     // Check if any collisions were detected
     printf("\n=== COLLISION RESULTS ===\n");
     int collision_found = 0;
-    for (int i = 0; i < 16; i++) {
-        if (g4p_collides[i].q > 0) {
+    for (int collisionLayer = 0; collisionLayer < 16; collisionLayer++) {
+        if (g4p_collides[collisionLayer].q > 0) {
             collision_found = 1;
             printf("Collision detected on index %d: q=%d, x=%d, y=%d, poly=%p\n", 
-                   i, g4p_collides[i].q, g4p_collides[i].x, g4p_collides[i].y, (void*)g4p_collides[i].poly);
+                   collisionLayer, g4p_collides[collisionLayer].q, g4p_collides[collisionLayer].x, g4p_collides[collisionLayer].y, (void*)g4p_collides[collisionLayer].poly);
             
             // Check if it's one of our test polygons
-            if (g4p_collides[i].poly == poly1) {
+            if (g4p_collides[collisionLayer].poly == poly1) {
                 printf("  -> Collision with RED polygon!\n");
-            } else if (g4p_collides[i].poly == poly2) {
+            } else if (g4p_collides[collisionLayer].poly == poly2) {
                 printf("  -> Collision with BLUE polygon!\n");
             }
         }

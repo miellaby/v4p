@@ -4,6 +4,8 @@
 #include <SDL/SDL.h>
 #include <stdlib.h>
 #include "lowmath.h"  // For computeCosSin()
+#include "addons/game_engine/collision_points.h"
+#include "backends/v4pi.h"  // For v4pi_debug
 
 #define MAX_ASTEROIDS 10
 #define MAX_BULLETS 5
@@ -25,6 +27,14 @@ V4pPolygonP ship;
 V4pPolygonP asteroids[MAX_ASTEROIDS];
 V4pPolygonP bullets[MAX_BULLETS];
 
+// Track positions and angles for objects we can't query
+float bullet_x[MAX_BULLETS];
+float bullet_y[MAX_BULLETS];
+float bullet_angle[MAX_BULLETS];
+float asteroid_x[MAX_ASTEROIDS];
+float asteroid_y[MAX_ASTEROIDS];
+float asteroid_angle[MAX_ASTEROIDS];
+
 // Game state
 int score = 0;
 int lives = 3;
@@ -34,6 +44,14 @@ float ship_angle = 0;
 float ship_x = 0, ship_y = 0;
 Boolean thrusting = false;
 Boolean game_over = false;
+Boolean ship_invulnerable = false;
+int invulnerability_timer = 0;
+
+// Objects to remove (can't remove in callback)
+V4pPolygonP bullets_to_remove[MAX_BULLETS];
+int bullets_to_remove_count = 0;
+V4pPolygonP asteroids_to_remove[MAX_ASTEROIDS];
+int asteroids_to_remove_count = 0;
 
 // Ship prototype
 V4pPolygonP createShipPrototype() {
@@ -114,6 +132,10 @@ void createAsteroid() {
     float rotation_deg = (rand() % 360);
     
     // Set asteroid properties (convert degrees to V4P format: 0-256)
+    asteroid_x[asteroid_count] = x;
+    asteroid_y[asteroid_count] = y;
+    asteroid_angle[asteroid_count] = rotation_deg;
+    
     v4p_transform(asteroids[asteroid_count], x, y, rotation_deg * 256.f / 360.f, 0, 256, 256);
     v4p_concrete(asteroids[asteroid_count], 2); // Asteroids are on layer 2
     
@@ -130,23 +152,31 @@ void fireBullet() {
     // Position bullet at ship's nose using v4p's trigonometric system
     int sina, cosa;
     getSinCosFromDegrees(ship_angle, &sina, &cosa);
-    float bullet_x = ship_x + (sina / 256.0f) * SHIP_SIZE;
-    float bullet_y = ship_y - (cosa / 256.0f) * SHIP_SIZE;
+    bullet_x[bullet_count] = ship_x + (sina / 256.0f) * SHIP_SIZE;
+    bullet_y[bullet_count] = ship_y - (cosa / 256.0f) * SHIP_SIZE;
+    bullet_angle[bullet_count] = ship_angle;
     
-    v4p_transform(bullets[bullet_count], bullet_x, bullet_y, ship_angle * 256.f / 360.f, 0, 256, 256);
+    v4p_transform(bullets[bullet_count], bullet_x[bullet_count], bullet_y[bullet_count], ship_angle * 256.f / 360.f, 0, 256, 256);
     v4p_concrete(bullets[bullet_count], 3); // Bullets are on layer 3
     
     bullet_count++;
 }
 
-// Collision callback while rendering
-void asteroids_onCollide(V4pCollide i1, V4pCollide i2, V4pCoord py, V4pCoord x1, V4pCoord x2, V4pPolygonP p1, V4pPolygonP p2) {
-    // Classify collision
-    Boolean isBullet1 = (i1 == 3);
-    Boolean isAsteroid1 = (i1 == 2);
-    Boolean isBullet2 = (i2 == 3);
-    Boolean isAsteroid2 = (i2 == 3);
+
+
+// Collision point callback for finalized averages
+void asteroids_onCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord avg_x, V4pCoord avg_y, UInt16 count) {
+    // Get collision layers for both polygons
+    V4pCollide layer1 = v4p_getCollisionLayer(p1);
+    V4pCollide layer2 = v4p_getCollisionLayer(p2);
+    
+    // Classify collision based on layers
+    Boolean isBullet1 = (layer1 == 3);
+    Boolean isAsteroid1 = (layer1 == 2);
     Boolean isShip1 = (p1 == ship);
+    
+    Boolean isBullet2 = (layer2 == 3);
+    Boolean isAsteroid2 = (layer2 == 2);
     Boolean isShip2 = (p2 == ship);
 
     // Bullet-asteroid collision
@@ -157,52 +187,41 @@ void asteroids_onCollide(V4pCollide i1, V4pCollide i2, V4pCoord py, V4pCoord x1,
         V4pPolygonP bullet = isBullet1 ? p1 : p2;
         V4pPolygonP asteroid = isAsteroid1 ? p1 : p2;
         
-        // Remove bullet
+        // Mark bullet for removal
         for (int i = 0; i < bullet_count; i++) {
             if (bullets[i] == bullet) {
-                // One can't edit the scene in the callback
-                // v4p_destroyFromScene(bullets[i]);
-                // // Shift remaining bullets
-                // for (int j = i; j < bullet_count - 1; j++) {
-                //     bullets[j] = bullets[j + 1];
-                // }
-                // bullet_count--;
+                bullets_to_remove[bullets_to_remove_count++] = bullet;
                 break;
             }
         }
         
-        // Remove asteroid
+        // Mark asteroid for removal
         for (int i = 0; i < asteroid_count; i++) {
             if (asteroids[i] == asteroid) {
-                // One can't edit the scene in the callback
-                // v4p_destroyFromScene(asteroids[i]);
-                // // Shift remaining asteroids
-                // for (int j = i; j < asteroid_count - 1; j++) {
-                //     asteroids[j] = asteroids[j + 1];
-                // }
-                // asteroid_count--;
-                // break;
+                asteroids_to_remove[asteroids_to_remove_count++] = asteroid;
+                break;
             }
         }
     }
     
     // Ship-asteroid collision
-    
     if ((isShip1 && isAsteroid2) || (isShip2 && isAsteroid1)) {
-        // Ship hit asteroid
-        lives--;
-        
-        if (lives <= 0) {
-            game_over = true;
-        } else {
-            // Reset ship position
-            ship_x = 0;
-            ship_y = 0;
-            ship_angle = 90;
+        if (!ship_invulnerable) {
+            // Ship hit asteroid
+            lives--;
+            
+            if (lives <= 0) {
+                game_over = true;
+            } else {
+                // Reset ship position and make invulnerable temporarily
+                ship_x = 0;
+                ship_y = 0;
+                ship_angle = 90;
+                ship_invulnerable = true;
+                invulnerability_timer = 120; // 2 seconds at 60 FPS
+            }
         }
     }
-
-    game_over = false; // TEMPORARY FIXME
 }
 
 Boolean g4p_onInit() {
@@ -211,8 +230,11 @@ Boolean g4p_onInit() {
                  v4p_displayWidth / 2, v4p_displayHeight / 2);
     v4p_setBGColor(V4P_BLACK);
     
-    // Override the collision system
-    v4p_setCollideCallback(asteroids_onCollide);
+    // Initialize collision points system
+    g4p_initCollisionPoints(64);
+    
+    // Set collision point callback
+    g4p_setCollisionPointCallback(asteroids_onCollisionPoint);
     
     // Create ship
     V4pPolygonP ship_proto = createShipPrototype();
@@ -228,6 +250,51 @@ Boolean g4p_onInit() {
 }
 
 Boolean g4p_onTick(Int32 deltaTime) {
+    // Handle invulnerability timer
+    if (ship_invulnerable) {
+        invulnerability_timer--;
+        if (invulnerability_timer <= 0) {
+            ship_invulnerable = false;
+        }
+    }
+    
+    // Remove marked objects
+    for (int i = 0; i < bullets_to_remove_count; i++) {
+        for (int j = 0; j < bullet_count; j++) {
+            if (bullets[j] == bullets_to_remove[i]) {
+                v4p_destroyFromScene(bullets[j]);
+                // Shift remaining bullets
+                for (int k = j; k < bullet_count - 1; k++) {
+                    bullets[k] = bullets[k + 1];
+                    bullet_x[k] = bullet_x[k + 1];
+                    bullet_y[k] = bullet_y[k + 1];
+                    bullet_angle[k] = bullet_angle[k + 1];
+                }
+                bullet_count--;
+                break;
+            }
+        }
+    }
+    bullets_to_remove_count = 0;
+    
+    for (int i = 0; i < asteroids_to_remove_count; i++) {
+        for (int j = 0; j < asteroid_count; j++) {
+            if (asteroids[j] == asteroids_to_remove[i]) {
+                v4p_destroyFromScene(asteroids[j]);
+                // Shift remaining asteroids
+                for (int k = j; k < asteroid_count - 1; k++) {
+                    asteroids[k] = asteroids[k + 1];
+                    asteroid_x[k] = asteroid_x[k + 1];
+                    asteroid_y[k] = asteroid_y[k + 1];
+                    asteroid_angle[k] = asteroid_angle[k + 1];
+                }
+                asteroid_count--;
+                break;
+            }
+        }
+    }
+    asteroids_to_remove_count = 0;
+    
     // Handle input
     if (g4p_state.key == SDLK_LEFT) {
         ship_angle -= 1.f;
@@ -253,25 +320,48 @@ Boolean g4p_onTick(Int32 deltaTime) {
     // Update ship position and rotation (convert degrees to V4P format)
     v4p_transform(ship, ship_x, ship_y, ship_angle * 256.f / 360.f, 0, 256, 256);
     
-    // Update bullets
+    // Update bullets - move them forward
     for (int i = 0; i < bullet_count; i++) {
-        // Get current position (we need to track this manually)
-        // Since there's no v4p_getTransform, we'll track positions in arrays
-        // For simplicity, let's just move bullets forward and remove them when off screen
+        // Move bullet in its own direction
+        int sina, cosa;
+        getSinCosFromDegrees(bullet_angle[i], &sina, &cosa);
         
-        // Move bullet forward (approximate - we'll recreate the transform)
-        // float bullet_x, bullet_y, bullet_angle;
-        // We can't get the current transform, so we need a different approach
-        // Let's store bullet positions and angles in separate arrays
+        // Move bullet forward
+        bullet_x[i] += (sina / 256.0f) * 5.;
+        bullet_y[i] -= (cosa / 256.0f) * 5.;
+        
+        // Update bullet position
+        v4p_transform(bullets[i], bullet_x[i], bullet_y[i], bullet_angle[i] * 256.f / 360.f, 0, 256, 256);
+        
+        // Remove bullets that go off screen
+        if (bullet_x[i] < -v4p_displayWidth/2 - 50 || bullet_x[i] > v4p_displayWidth/2 + 50 ||
+            bullet_y[i] < -v4p_displayHeight/2 - 50 || bullet_y[i] > v4p_displayHeight/2 + 50) {
+            v4p_destroyFromScene(bullets[i]);
+            // Shift remaining bullets
+            for (int j = i; j < bullet_count - 1; j++) {
+                bullets[j] = bullets[j + 1];
+                bullet_x[j] = bullet_x[j + 1];
+                bullet_y[j] = bullet_y[j + 1];
+                bullet_angle[j] = bullet_angle[j + 1];
+            }
+            bullet_count--;
+            i--; // Adjust index after removal
+        }
     }
     
-    // Simplified bullet handling - just remove bullets after a while
-    // This is a simplified approach due to API limitations
-    
-    // Update asteroids - just rotate them
+    // Update asteroids - rotate them
     for (int i = 0; i < asteroid_count; i++) {
-        // Get current transform (we can't, so we'll just rotate)
-        // For now, let's just leave asteroids as they are
+        // Rotate asteroid slightly
+        asteroid_angle[i] += 1.f;
+        
+        // Move asteroid forward slightly
+        int sina, cosa;
+        getSinCosFromDegrees(asteroid_angle[i], &sina, &cosa);
+        asteroid_x[i] += (sina / 256.0f) * 0.5f;
+        asteroid_y[i] -= (cosa / 256.0f) * 0.5f;
+        
+        // Update asteroid transform
+        v4p_transform(asteroids[i], asteroid_x[i], asteroid_y[i], asteroid_angle[i] * 256.f / 360.f, 0, 256, 256);
     }
     
     // Wrap ship around screen edges

@@ -6,8 +6,7 @@ It targets tiny MPU with nothing more than a video ram buffer. Integer maths. Bi
 
 ## Dev
 
-Avoid guards. Prefer a crash-early design pattern.
-
+You avoid guards and prefer a crash-early design pattern.
 
 ## Build
 
@@ -22,11 +21,14 @@ make DEBUG=1
 # Different backend
 make BACKEND=xlib
 
-# Verbose output
+# Verbose make (ALWAYS USE IT WHEN CODING)
 make V=1
 
 # Install to system
 make install
+
+# build demos
+make demos # or demos/single_demo
 ```
 
 ## Build Options
@@ -51,20 +53,21 @@ make install
 ## Debug
 
 v4p_error and v4p_debug may be used for tracing, but v4p_debug is enabled only with DEBUG=1 build.
+Build with V=1 to see the compilation steps.
 
-## Coding a demo/app with v4p
+## Coding a demo/app with v4p AND g4p
 
 - create plain polygons and circles and ensure they are added to the scene.
 - v4p_transform() to move/rotate/zoom these objects.
 - v4p_render() to render the scene
-- use the "g4p" engine (addons/g4p/libg4p.a) to code an interactive animation/game. g4p runs a input>logic>draw infinite loop (esc to exit). You only have to code the app logic in onTick() callback.
+- use the companion "g4p" engine (addons/g4p/libg4p.a) to code an interactive animation/game. g4p runs a input>logic>draw infinite loop (esc to exit). You only have to code the app logic in onTick() callback.
 
 
 # Pattern to create animated objects
 
 Warning: Transformations are cumulative by default (because "in place").
 
-By creating an existing polygon out of scene and cloning it, one gets polygons where transformations aren't cumulative (transformations computed against their parents).
+By creating an existing polygon out of scene and cloning it, you get polygons whose transformations aren't cumulative (transformations computed against their parents).
 
 // Create a star-shaped polygon
 V4pPolygonP createStar() {

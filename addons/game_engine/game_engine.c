@@ -4,6 +4,7 @@
 #include "v4pi.h"
 #include "g4pi.h"
 #include "collision.h"
+#include "collision_points.h"
 
 // The game 4 pocket states holds basic up-to-date data
 G4pState g4p_state;
@@ -41,8 +42,14 @@ int g4p_main(int argc, char* argv[]) {
     if (g4p_onInit())
         return failure;
 
-    // Initialize collision system
+    // Initialize old collision system TODO remove
     g4p_initCollide();
+
+    // Initialize collision points system with a reasonable table size
+    g4p_initCollisionPoints(64);
+
+    // Set default callback
+    v4p_setCollideCallback(g4p_onCollide);
 
     lastTickTime = g4p_getTicks();
     while (! rc) {  // main game 4 pocket loop
@@ -90,6 +97,9 @@ int g4p_main(int argc, char* argv[]) {
 
     // we're done.
     g4p_onQuit();
+
+    // Cleanup collision points system
+    g4p_destroyCollisionPoints();
 
     // Cleanup
     g4pi_destroy();

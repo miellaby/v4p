@@ -18,7 +18,7 @@ QuickTable QuickTableNew(size_t sizeOfTable) {
         free(q);
         return NULL;
     }
-    QuickTableReset(q);
+    memset(q->table, 0, sizeof(List) * q->sizeOfTable);
     return q;
 }
 
@@ -29,6 +29,27 @@ void QuickTableDelete(QuickTable q) {
 
 void QuickTableReset(QuickTable q) {
     memset(q->table, 0, sizeof(List) * q->sizeOfTable);
+}
+
+void QuickTableResetAndFree(QuickTable q) {
+    // Free all List elements and their data in the table
+    for (size_t i = 0; i < q->sizeOfTable; i++) {
+        List current = q->table[i];
+        while (current != NULL) {
+            List next = current->quick;  // Get next before freeing current
+            
+            // Free the data associated with this list element
+            if (current->data != NULL) {
+                free(current->data);
+            }
+            
+            // Free the list element itself
+            ListFree(current);
+            
+            current = next;
+        }
+        q->table[i] = NULL;  // Clear the table entry
+    }
 }
 
 List QuickTableAdd(QuickTable q, int index, List l) {

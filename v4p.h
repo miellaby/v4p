@@ -95,7 +95,7 @@ V4pPolygonP v4p_newDisk(V4pProps t,
                         V4pCoord center_y,
                         V4pCoord radius);
 V4pPolygonP v4p_clone(V4pPolygonP p);
-V4pPolygonP v4p_concrete(V4pPolygonP p, V4pCollide i);
+V4pPolygonP v4p_concrete(V4pPolygonP p, V4pCollide collisionLayer);
 V4pPolygonP v4p_intoList(V4pPolygonP p, V4pPolygonP* list);
 Boolean v4p_outOfList(V4pPolygonP p, V4pPolygonP* list);
 V4pPolygonP v4p_addSub(V4pPolygonP parent, V4pPolygonP p);
@@ -112,6 +112,7 @@ V4pColor v4p_setLayer(V4pPolygonP p, V4pLayer z);
 V4pCoord v4p_setRadius(V4pPolygonP p, V4pCoord radius);
 V4pPointP v4p_getPoints(V4pPolygonP p);
 V4pLayer v4p_getZ(V4pPolygonP p);
+V4pCollide v4p_getCollisionLayer(V4pPolygonP p);
 UInt32 v4p_getId(V4pPolygonP p);
 V4pColor v4p_getColor(V4pPolygonP p);
 V4pPolygonP v4p_getLimits(V4pPolygonP p, V4pCoord* minx, V4pCoord* maxx, V4pCoord* miny, V4pCoord* maxy);

@@ -67,7 +67,7 @@ typedef struct v4p_polygon_s {
     V4pColor color;  // V4pColor (any data needed by the drawing function)
     V4pCoord radius;  // Point radius (disk = 1 point with positive radius)
     V4pLayer z;  // Depth
-    V4pCollide i;  // Collide layer index (i may be != z)
+    V4pCollide collisionLayer;  // Collision layer index
     V4pPolygonP sub1;  // Subs list
     V4pPolygonP next;  // Subs list link
     V4pPolygonP parent;  // Parent polygon reference (for clones)
@@ -283,7 +283,7 @@ V4pPolygonP v4p_new(V4pProps t, V4pColor col, V4pLayer z) {
     V4pPolygonP p = QuickHeapAlloc(v4p->polygonHeap);
     p->props = t & ~V4P_CHANGED;
     p->z = z;
-    p->i = (V4pCollide) -1;
+    p->collisionLayer = (V4pCollide) -1;
     p->color = col;
     p->radius = 0;
     p->point1 = NULL; 
@@ -552,6 +552,11 @@ UInt32 v4p_getId(V4pPolygonP p) {
     return p->id;
 }
 
+// returns a polygon collision layer
+V4pCollide v4p_getCollisionLayer(V4pPolygonP p) {
+    return p->collisionLayer;
+}
+
 // returns a polygon points list
 V4pPointP v4p_getPoints(V4pPolygonP p) {
     return p->point1;
@@ -634,8 +639,8 @@ V4pPolygonP v4p_destroyPointFrom(V4pPolygonP p, V4pPointP s) {
 }
 
 // set the polygon colliding layer
-V4pPolygonP v4p_concrete(V4pPolygonP p, V4pCollide i) {
-    p->i = i;
+V4pPolygonP v4p_concrete(V4pPolygonP p, V4pCollide collisionLayer) {
+    p->collisionLayer = collisionLayer;
     return p;
 }
 
@@ -1216,7 +1221,7 @@ Boolean v4p_render() {
     int zMax;
     UInt16 bz, bi;  // Bit-word of layers & collides
     UInt16 mi;  // Masques
-    V4pCollide i, colli1, colli2;
+    V4pCollide collisionLayer, colli1, colli2;
     int nColli;
     V4pPolygonP pColli[16];
     Boolean sortNeeded;
@@ -1373,18 +1378,18 @@ Boolean v4p_render() {
                 collisionCallback(colli1, colli2, y, px_collide, b->x, pColli[colli1], pColli[colli2]);
             }
             px_collide = b->x;
-            i = p->i;
-            mi = (i == (V4pCollide) -1 ? (UInt16) 0 : (UInt16) 1 << (i & 15));
+            collisionLayer = p->collisionLayer;
+            mi = (collisionLayer == (V4pCollide) -1 ? (UInt16) 0 : (UInt16) 1 << (collisionLayer & 15));
             if (layers[z]) {
                 if (mi) {
-                    pColli[i] = p;
+                    pColli[collisionLayer] = p;
                     if (! (bi & mi)) {
                         bi |= mi;
                         nColli++;
                         if (nColli == 1) {
-                            colli1 = i;
+                            colli1 = collisionLayer;
                         } else if (nColli == 2) {
-                            colli2 = i;
+                            colli2 = collisionLayer;
                         }
                     }
                 }
@@ -1392,12 +1397,12 @@ Boolean v4p_render() {
                 if (bi & mi) {
                     bi ^= mi;
                     nColli--;
-                    if (nColli == 1 && i == colli1) {
+                    if (nColli == 1 && collisionLayer == colli1) {
                         colli1 = colli2;
                     } else if (nColli == 2) {
-                        if (i == colli1) {
+                        if (collisionLayer == colli1) {
                             colli1 = floorLog2(bi ^ (1 << colli2));
-                        } else if (i == colli2) {
+                        } else if (collisionLayer == colli2) {
                             colli2 = floorLog2(bi ^ (1 << colli1));
                         }
                     }
