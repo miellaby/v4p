@@ -6,8 +6,8 @@
 #include "lowmath.h"
 
 #define STRESS_AMOUNT 10
-V4pPolygonP pCol;
-V4pPolygonP pColMatrix[STRESS_AMOUNT * 2][STRESS_AMOUNT];
+V4pPolygonP proto;
+V4pPolygonP textMatrix[STRESS_AMOUNT * 2][STRESS_AMOUNT];
 
 int iu = 0;
 int diu = STRESS_AMOUNT;
@@ -21,16 +21,16 @@ Boolean g4p_onInit() {
 
     v4p_setBGColor(V4P_BLUE);
 
-    pCol = v4p_new(V4P_ABSOLUTE, V4P_RED, 10);
+    proto = v4p_new(V4P_ABSOLUTE, V4P_RED, 10);
     qfontDefinePolygonFromString("PORTEZ CE VIEUX WHISKY AU JUGE BLOND QUI FUME",
-                                 pCol,
+                                 proto,
                                  -v4p_displayWidth / 2,
                                  -v4p_displayWidth / 32,
                                  v4p_displayWidth / 16,
                                  v4p_displayWidth / 16,
                                  12);
     qfontDefinePolygonFromString("THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG",
-                                 pCol,
+                                 proto,
                                  -v4p_displayWidth / 2,
                                  v4p_displayWidth / 32 + 12,
                                  v4p_displayWidth / 16,
@@ -39,9 +39,9 @@ Boolean g4p_onInit() {
 
     for (j = 0; j < STRESS_AMOUNT * 2; j++) {
         for (k = 0; k < STRESS_AMOUNT; k++) {
-            pColMatrix[j][k] = v4p_addClone(pCol);
-            v4p_transformClone(pCol,
-                               pColMatrix[j][k],
+            textMatrix[j][k] = v4p_addClone(proto);
+            v4p_transformClone(proto,
+                               textMatrix[j][k],
                                v4p_displayWidth * (2 + 2 * k - STRESS_AMOUNT) * 2,
                                v4p_displayHeight * (1 + j - STRESS_AMOUNT / 2) / 3,
                                0,

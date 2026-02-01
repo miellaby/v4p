@@ -6,8 +6,8 @@
 #define SPACING 30
 #define GRID_SIZE 4
 
-V4pPolygonP original_box;
-V4pPolygonP box_matrix[GRID_SIZE][GRID_SIZE];
+V4pPolygonP proto;
+V4pPolygonP boxMatrix[GRID_SIZE][GRID_SIZE];
 
 Boolean g4p_onInit() {
     int j, k;
@@ -18,9 +18,9 @@ Boolean g4p_onInit() {
     v4p_setBGColor(V4P_BLACK);  // Black background
 
     // Create original box
-    original_box = v4p_new(V4P_ABSOLUTE, V4P_RED, 5);
-    v4p_rect(original_box, 0, 0, BOX_SIZE, BOX_SIZE);
-    v4p_setAnchorToCenter(original_box);  // Set anchor to center for rotation
+    proto = v4p_new(V4P_ABSOLUTE, V4P_RED, 5);
+    v4p_rect(proto, 0, 0, BOX_SIZE, BOX_SIZE);
+    v4p_setAnchorToCenter(proto);  // Set anchor to center for rotation
 
     // Create grid of clones using parent-aware methods (now default)
     for (j = 0; j < GRID_SIZE; j++) {
@@ -29,10 +29,10 @@ Boolean g4p_onInit() {
             y = j * SPACING;
 
             // Use standard cloning method (now sets parent automatically)
-            box_matrix[j][k] = v4p_addClone(original_box);
+            boxMatrix[j][k] = v4p_addClone(proto);
 
             // Set different colors for visualization
-            v4p_setColor(box_matrix[j][k], (j * GRID_SIZE + k) * 16);
+            v4p_setColor(boxMatrix[j][k], (j * GRID_SIZE + k) * 16);
         }
     }
 
@@ -49,7 +49,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
     for (j = 0; j < GRID_SIZE; j++) {
         for (k = 0; k < GRID_SIZE; k++) {
             // Transform clones using parent-aware method
-            v4p_transform(box_matrix[j][k],
+            v4p_transform(boxMatrix[j][k],
                           k * SPACING,
                           j * SPACING + (i / 4) % 20,
                           (j * k * 2) + (i / 8),

@@ -3,8 +3,8 @@
 #include "v4pi.h"
 
 #define STRESS_AMOUNT 12
-V4pPolygonP pCol;
-V4pPolygonP pColMatrix[STRESS_AMOUNT][STRESS_AMOUNT];
+V4pPolygonP proto;
+V4pPolygonP squaresMatrix[STRESS_AMOUNT][STRESS_AMOUNT];
 
 int iu = 0;
 int diu = STRESS_AMOUNT;
@@ -17,8 +17,8 @@ Boolean g4p_onInit() {
     v4p_init();
     v4p_setBGColor(V4P_BLUE);
 
-    pCol = v4p_new(V4P_ABSOLUTE, V4P_RED, 10);
-    v4p_rect(pCol,
+    proto = v4p_new(V4P_ABSOLUTE, V4P_RED, 10);
+    v4p_rect(proto,
              -v4p_displayWidth / 3 + v4p_displayWidth,
              -v4p_displayHeight / 3,
              v4p_displayWidth / 3,
@@ -26,8 +26,8 @@ Boolean g4p_onInit() {
 
     for (j = 0; j < STRESS_AMOUNT; j++) {
         for (k = 0; k < STRESS_AMOUNT; k++) {
-            pColMatrix[j][k] = v4p_addClone(pCol);
-            // v4p_transformClone (pCol, pColMatrix[j][k], v4p_displayWidth * (k
+            squaresMatrix[j][k] = v4p_addClone(proto);
+            // v4p_transformClone (proto, squaresMatrix[j][k], v4p_displayWidth * (k
             // - STRESS_AMOUNT / 2), v4p_displayWidth * (j - STRESS_AMOUNT / 2),
             // 10, 0);
         }
@@ -56,8 +56,8 @@ Boolean g4p_onTick(Int32 deltaTime) {
     if (liu & 1)
         for (j = 0; j < STRESS_AMOUNT; j++) {
             for (k = 0; k < STRESS_AMOUNT; k++) {
-                v4p_transformClone(pCol,
-                                   pColMatrix[j][k],
+                v4p_transformClone(proto,
+                                   squaresMatrix[j][k],
                                    v4p_displayWidth * (1 + k - STRESS_AMOUNT / 2) / 2,
                                    v4p_displayWidth * (1 + j - STRESS_AMOUNT / 2) / 2,
                                    (j * k) + i / 16,
