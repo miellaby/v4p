@@ -4,7 +4,7 @@
 #include <SDL/SDL.h>
 #include <stdlib.h>
 #include "lowmath.h"  // For computeCosSin()
-#include "addons/game_engine/collision_points.h"
+#include "addons/game_engine/collision.h"
 #include "backends/v4pi.h"  // For v4pi_debug
 
 #define MAX_ASTEROIDS 10
@@ -231,7 +231,7 @@ Boolean g4p_onInit() {
     v4p_setBGColor(V4P_BLACK);
     
     // Set collision point callback
-    g4p_setCollisionPointCallback(asteroids_onCollisionPoint);
+    g4p_setCollisionCallback(asteroids_onCollisionPoint);
     
     // Create ship
     V4pPolygonP ship_proto = createShipPrototype();

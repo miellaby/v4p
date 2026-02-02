@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "v4p.h"
 #include "addons/game_engine/g4p.h"
-#include "addons/game_engine/collision_points.h"
+#include "addons/game_engine/collision.h"
 
 // Test state
 static int collision_callback_count = 0;
@@ -20,7 +20,7 @@ Boolean g4p_onInit() {
     printf("=== COLLISION POINTS TEST ===\n");
     
     // Set collision point callback
-    g4p_setCollisionPointCallback(test_collision_point_callback);
+    g4p_setCollisionCallback(test_collision_point_callback);
     
     // Create some polygons that should collide
     poly1 = v4p_addNew(V4P_RELATIVE, V4P_RED, 10);

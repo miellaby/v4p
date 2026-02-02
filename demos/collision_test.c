@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "v4p.h"
-#include "collision_points.h"
+#include "collision.h"
 #include "g4p.h"
 
 // Simple test to demonstrate collision debugging
@@ -14,7 +14,7 @@ Boolean g4p_onInit() {
     v4p_setBGColor(V4P_GREEN);
     
     // Initialize collision system
-    g4p_resetCollisionPoints();
+    g4p_resetCollisions();
 
     // Set default callback if none is set
     v4p_setCollisionCallback(g4p_onCollide);
@@ -46,13 +46,13 @@ Boolean g4p_onFrame() {
     frame_count++;
     
     // Reset collisions
-    g4p_resetCollisionPoints();
+    g4p_resetCollisions();
 
     // Render frame (this should trigger collision detection)
     v4p_render();
     
     // Finalize collisions
-    g4p_finalizeCollisionPoints();
+    g4p_finalizeCollisions();
     
     // Print results after first frame
     if (frame_count == 1) {

@@ -112,7 +112,7 @@ Boolean g4p_onInit() {
     v4p_disable(pGrid);
 
     // Set collision point callback
-    g4p_setCollisionPointCallback(g4p_onCollisionPoint);
+    g4p_setCollisionCallback(g4p_onCollisionPoint);
 
     return success;
 }

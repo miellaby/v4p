@@ -21,24 +21,24 @@ typedef struct collision_point_data_s {
 } CollisionPointData;
 
 // Callback function type for collision point finalization
-typedef void (*CollisionPointCallback)(V4pPolygonP p1, V4pPolygonP p2, V4pCoord avg_x, V4pCoord avg_y, UInt16 count);
+typedef void (*G4pCollisionCallback)(V4pPolygonP p1, V4pPolygonP p2, V4pCoord avg_x, V4pCoord avg_y, UInt16 count);
 
 // Initialize collision point system
 typedef struct collision_points_system_s {
     QuickTable table;     // QuickTable to store collision point data
     size_t table_size;   // Size of the QuickTable
-    CollisionPointCallback callback; // Callback function for finalization
+    G4pCollisionCallback callback; // Callback function for finalization
 } CollisionPointsSystem;
 
 // Function prototypes
-void g4p_initCollisionPoints(size_t table_size);
-void g4p_resetCollisionPoints();
-void g4p_finalizeCollisionPoints();
-void g4p_destroyCollisionPoints();
-void g4p_setCollisionPointCallback(CollisionPointCallback callback);
+void g4p_initCollisions(size_t table_size);
+void g4p_resetCollisions();
+void g4p_finalizeCollisions();
+void g4p_destroyCollisions();
+void g4p_setCollisionCallback(G4pCollisionCallback callback);
 
 // Get average collision point for a polygon pair
-Boolean g4p_getAverageCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord* avg_x, V4pCoord* avg_y);
+Boolean g4p_getCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord* avg_x, V4pCoord* avg_y);
 
 // Add collision point data for a polygon pair
 void g4p_addCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord x, V4pCoord y);

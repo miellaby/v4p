@@ -4,7 +4,7 @@
  * G4P (Game 4 Pocket) Engine
  */
 #include "v4p.h"
-#include "collision_points.h"
+#include "collision.h"
 
 // Engine State
 typedef struct g4pState_s {

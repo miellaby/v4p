@@ -1,4 +1,4 @@
-#include "collision_points.h"
+#include "collision.h"
 #include "g4p.h"
 #include "v4pi.h"
 #include "quick/sortable.h"
@@ -31,7 +31,7 @@ static int hash_polygon_pair(V4pPolygonP p1, V4pPolygonP p2) {
 }
 
 // Initialize collision points system
-void g4p_initCollisionPoints(size_t table_size) {
+void g4p_initCollisions(size_t table_size) {
     if (g4p_collision_points_system.table != NULL) {
         v4pi_debug("Collision points system already initialized\n");
         return;
@@ -49,7 +49,7 @@ void g4p_initCollisionPoints(size_t table_size) {
 }
 
 // Reset collision points data
-void g4p_resetCollisionPoints() {
+void g4p_resetCollisions() {
     if (!g4p_collision_points_system.table) {
         return;
     }
@@ -60,7 +60,7 @@ void g4p_resetCollisionPoints() {
 }
 
 // Finalize collision points - compute averages and call callback
-void g4p_finalizeCollisionPoints() {
+void g4p_finalizeCollisions() {
     if (!g4p_collision_points_system.table) {
         return;
     }
@@ -99,7 +99,7 @@ void g4p_finalizeCollisionPoints() {
 }
 
 // Destroy collision points system
-void g4p_destroyCollisionPoints() {
+void g4p_destroyCollisions() {
     if (g4p_collision_points_system.table) {
         QuickTableDelete(g4p_collision_points_system.table);
         g4p_collision_points_system.table = NULL;
@@ -110,13 +110,13 @@ void g4p_destroyCollisionPoints() {
 }
 
 // Set callback function for collision point finalization
-void g4p_setCollisionPointCallback(CollisionPointCallback callback) {
+void g4p_setCollisionCallback(G4pCollisionCallback callback) {
     g4p_collision_points_system.callback = callback;
     v4pi_debug("Collision point callback set to %p\n", (void*)callback);
 }
 
 // Get average collision point for a polygon pair
-Boolean g4p_getAverageCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord* avg_x, V4pCoord* avg_y) {
+Boolean g4p_getCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord* avg_x, V4pCoord* avg_y) {
     if (!g4p_collision_points_system.table || !p1 || !p2) {
         return false;
     }

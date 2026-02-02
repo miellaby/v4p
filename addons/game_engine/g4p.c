@@ -3,7 +3,7 @@
 #include "v4p_ll.h"
 #include "v4pi.h"
 #include "g4pi.h"
-#include "collision_points.h"
+#include "collision.h"
 
 // The game 4 pocket states holds basic up-to-date data
 G4pState g4p_state;
@@ -54,7 +54,7 @@ int g4p_main(int argc, char* argv[]) {
         g4pi_init();
 
         // Initialize collision points system with a reasonable table size
-        g4p_initCollisionPoints(64);
+        g4p_initCollisions(64);
 
         // Set default callback
         v4p_setCollisionCallback(g4p_onCollide);
@@ -87,13 +87,13 @@ int g4p_main(int argc, char* argv[]) {
             rc |= g4pi_pollEvents();
 
             // Reset collision data before rendering
-            g4p_resetCollisionPoints();
+            g4p_resetCollisions();
 
             // render a frame
             rc |= g4p_onFrame();
 
             // Finalize collision data after rendering
-            g4p_finalizeCollisionPoints();
+            g4p_finalizeCollisions();
 
             // calculate sleep time to maintain target frame rate
             afterTime = g4p_getTicks();
@@ -111,7 +111,7 @@ int g4p_main(int argc, char* argv[]) {
         g4p_onQuit();
 
         // Cleanup collision points system
-        g4p_destroyCollisionPoints();
+        g4p_destroyCollisions();
 
         // Cleanup
         g4pi_destroy();
