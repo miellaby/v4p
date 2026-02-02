@@ -1,8 +1,6 @@
-# Project
+## Project
 
-C-based 2D vector graphic engine.
-
-It targets tiny MPU with nothing more than a video ram buffer. Integer maths. Binary ops. No dependencies.
+V4P is a C-based 2D vector graphic engine targeting tiny devices with nothing more than a video ram buffer. Integer maths and binary ops only. No dependencies.
 
 ## Dev
 
