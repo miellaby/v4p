@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include "v4p.h"
 #include "addons/game_engine/g4p.h"
-#include "addons/game_engine/collision.h"
 #include "addons/game_engine/collision_points.h"
 
 // Test state
@@ -20,9 +19,6 @@ V4pPolygonP poly3 = NULL;
 Boolean g4p_onInit() {
     printf("=== COLLISION POINTS TEST ===\n");
     
-    // Initialize collision points system
-    g4p_initCollisionPoints(32);
-    
     // Set collision point callback
     g4p_setCollisionPointCallback(test_collision_point_callback);
     
@@ -32,9 +28,9 @@ Boolean g4p_onInit() {
     poly3 = v4p_addNew(V4P_RELATIVE, V4P_YELLOW, 12);
     
     // they collide on different layers
-    v4p_concrete(poly1, 1);
-    v4p_concrete(poly2, 2);
-    v4p_concrete(poly3, 3);
+    v4p_setCollisionMask(poly1, 1);
+    v4p_setCollisionMask(poly2, 2);
+    v4p_setCollisionMask(poly3, 4);
     
     // Make them overlap to trigger collisions
     v4p_rect(poly1, 100, 100, 200, 200);  // Red square
@@ -78,11 +74,11 @@ Boolean g4p_onFrame() {
             printf("✗ FAILURE: Collision point callback was not called!\n");
         }
         
-        // Test v4p_getCollisionLayer function
-        printf("\nTesting v4p_getCollisionLayer():\n");
-        printf("  poly1 (red) layer: %d (expected: 1)\n", v4p_getCollisionLayer(poly1));
-        printf("  poly2 (blue) layer: %d (expected: 2)\n", v4p_getCollisionLayer(poly2));
-        printf("  poly3 (yellow) layer: %d (expected: 3)\n", v4p_getCollisionLayer(poly3));
+        // Test v4p_getCollisionMask function
+        printf("\nTesting v4p_getCollisionMask():\n");
+        printf("  poly1 (red) layer: %d (expected: 1)\n", v4p_getCollisionMask(poly1));
+        printf("  poly2 (blue) layer: %d (expected: 2)\n", v4p_getCollisionMask(poly2));
+        printf("  poly3 (yellow) layer: %d (expected: 4)\n", v4p_getCollisionMask(poly3));
     }
     
     return success;
@@ -94,7 +90,7 @@ void g4p_onQuit() {
 }
 
 // Custom collision callback that also tests collision points
-void custom_collision_callback(V4pCollide i1, V4pCollide i2, V4pCoord py, 
+void custom_collision_callback(V4pCollisionLayer i1, V4pCollisionLayer i2, V4pCoord py, 
                                V4pCoord x1, V4pCoord x2, V4pPolygonP p1, V4pPolygonP p2) {
     collision_callback_count++;
     
@@ -116,15 +112,15 @@ void test_collision_point_callback(V4pPolygonP p1, V4pPolygonP p2, V4pCoord avg_
            (void*)p1, (void*)p2, avg_x, avg_y, count);
     
     // Verify we can get collision layers
-    V4pCollide layer1 = v4p_getCollisionLayer(p1);
-    V4pCollide layer2 = v4p_getCollisionLayer(p2);
+    V4pCollisionMask layer1 = v4p_getCollisionMask(p1);
+    V4pCollisionMask layer2 = v4p_getCollisionMask(p2);
     
     printf("  Collision layers: %d vs %d\n", layer1, layer2);
 }
 
 int main(int argc, char* argv[]) {
     // Set our custom collision callback
-    v4p_setCollideCallback(custom_collision_callback);
+    v4p_setCollisionCallback(custom_collision_callback);
     
     // Run the game engine
     return g4p_main(argc, argv);

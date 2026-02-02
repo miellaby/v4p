@@ -55,7 +55,7 @@
 // Forward declarations
 V4pPolygonP v4p_computeLimits(V4pPolygonP p);
 
-static V4pCollideCallback collisionCallback = NULL;
+static V4pCollisionCallback collisionCallback = NULL;
 
 #define YHASH_SIZE 512
 #define YHASH_MASK 511
@@ -67,7 +67,7 @@ typedef struct v4p_polygon_s {
     V4pColor color;  // V4pColor (any data needed by the drawing function)
     V4pCoord radius;  // Point radius (disk = 1 point with positive radius)
     V4pLayer z;  // Depth
-    V4pCollide collisionLayer;  // Collision layer index
+    V4pCollisionLayer collisionMask;  // Collision mask
     V4pPolygonP sub1;  // Subs list
     V4pPolygonP next;  // Subs list link
     V4pPolygonP parent;  // Parent polygon reference (for clones)
@@ -274,16 +274,10 @@ void v4p_quit() {
 
 // Create a polygon
 V4pPolygonP v4p_new(V4pProps t, V4pColor col, V4pLayer z) {
-    // Ensure v4p context is initialized
-    if (v4p == NULL) {
-        v4pi_error("v4p_new: v4p context not initialized. Call v4p_init() first.");
-        return NULL;
-    }
-
     V4pPolygonP p = QuickHeapAlloc(v4p->polygonHeap);
     p->props = t & ~V4P_CHANGED;
     p->z = z;
-    p->collisionLayer = (V4pCollide) -1;
+    p->collisionMask = 0;
     p->color = col;
     p->radius = 0;
     p->point1 = NULL;
@@ -383,7 +377,7 @@ Boolean v4p_outOfList(V4pPolygonP p, V4pPolygonP* list) {
             pl = pl->next;
         }
         if (! pl) {
-            return (v4pi_error("polygon lost"), failure);
+            return (v4p_error("polygon lost"), failure);
         }
         ppl->next = p->next;
     }
@@ -552,9 +546,9 @@ UInt32 v4p_getId(V4pPolygonP p) {
     return p->id;
 }
 
-// returns a polygon collision layer
-V4pCollide v4p_getCollisionLayer(V4pPolygonP p) {
-    return p->collisionLayer;
+// returns a polygon collision mask
+V4pCollisionMask v4p_getCollisionMask(V4pPolygonP p) {
+    return p->collisionMask;
 }
 
 // returns a polygon points list
@@ -642,9 +636,9 @@ V4pPolygonP v4p_destroyPointFrom(V4pPolygonP p, V4pPointP s) {
     return p;
 }
 
-// set the polygon colliding layer
-V4pPolygonP v4p_concrete(V4pPolygonP p, V4pCollide collisionLayer) {
-    p->collisionLayer = collisionLayer;
+// set the polygon collision mask
+V4pPolygonP v4p_setCollisionMask(V4pPolygonP p, V4pCollisionMask collisionMask) {
+    p->collisionMask = collisionMask;
     return p;
 }
 
@@ -1377,10 +1371,10 @@ Boolean v4p_render() {
             // only collisions between pairs in layer order are reported
             UInt16 bitmask = concreteBitmask;
             if (bitmask > 0) {
-                V4pCollide topLayer = floorLog2(bitmask);
+                V4pCollisionLayer topLayer = floorLog2(bitmask);
                 UInt16 bitmaskMinusTop = bitmask & (~((UInt16) 1 << topLayer));
                 while (bitmaskMinusTop > 0) {  // Collision with concrete layers
-                    V4pCollide secondLayer = floorLog2(bitmaskMinusTop);
+                    V4pCollisionLayer secondLayer = floorLog2(bitmaskMinusTop);
                     V4pPolygonP topConcrete = concretePolygons[topLayer];
                     V4pPolygonP secondConcrete = concretePolygons[secondLayer];
                     // Note collisionCallback != NULL since bitmask != 0
@@ -1423,8 +1417,8 @@ Boolean v4p_render() {
 
             if (collisionCallback != NULL) {
                 px_collide = b->x;
-                V4pCollide cl = p->collisionLayer;
-                if (cl != (V4pCollide) -1) {
+                V4pCollisionLayer cl = p->collisionMask;
+                if (cl != (V4pCollisionLayer) -1) {
                     UInt16 bit_c = (UInt16) 1 << (cl & 15);
                     if (openedPolygons[z] == p) {
                         concretePolygons[cl] = p;
@@ -1451,7 +1445,7 @@ Boolean v4p_render() {
     v4p->openedAEList = NULL;
 
     if (yu != v4p->yvu1 - v4p->divyvub) {
-        v4pi_error("problem %d != %d", (int) yu, (int) v4p->yvu1 - v4p->divyvub);
+        v4p_error("problem %d != %d", (int) yu, (int) v4p->yvu1 - v4p->divyvub);
     }
 
     v4p->changes = 0;
@@ -1468,6 +1462,6 @@ V4pPolygonP v4p_rect(V4pPolygonP p, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCo
 }
 
 // Set the collision callback
-void v4p_setCollideCallback(V4pCollideCallback callback) {
+void v4p_setCollisionCallback(V4pCollisionCallback callback) {
     collisionCallback = callback;
 }

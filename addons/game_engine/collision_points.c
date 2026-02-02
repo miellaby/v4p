@@ -41,7 +41,7 @@ void g4p_initCollisionPoints(size_t table_size) {
     g4p_collision_points_system.table = QuickTableNew(table_size);
     
     if (!g4p_collision_points_system.table) {
-        v4pi_error("Failed to create collision points QuickTable\n");
+        v4p_error("Failed to create collision points QuickTable\n");
         return;
     }
     

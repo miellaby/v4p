@@ -15,3 +15,11 @@ typedef struct stuffing_s* Stuffing;
 #define false 0
 #define failure true
 #define success false
+
+// Debug and error functions
+#if defined(DEBUG) || defined(V4P_LL_C)
+    void v4pi_debug(char* formatString, ...);
+#else
+    #define v4pi_debug(...) ((void)0)
+#endif
+Boolean v4p_error(char* s, ...);

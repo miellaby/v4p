@@ -1,8 +1,8 @@
+#define V4P_LL_C
 #include "v4p_ll.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
-
 static FILE* traceFile = NULL;
 
 static void initTraceFile() {
@@ -27,7 +27,7 @@ void v4pi_debug(char* formatString, ...) {
 }
 
 // error logging helper
-Boolean v4pi_error(char* formatString, ...) {
+Boolean v4p_error(char* formatString, ...) {
     va_list args;
     va_start(args, formatString);
     initTraceFile();

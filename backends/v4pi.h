@@ -49,12 +49,4 @@ Boolean v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c);
 // Finalize after last scanline rendered
 Boolean v4pi_end();
 
-// Debug and error functions
-#ifdef DEBUG
-    void v4pi_debug(char* formatString, ...);
-#else
-    #define v4pi_debug(...) ((void)0)
-#endif
-Boolean v4pi_error(char* s, ...);
-
 #endif  // V4PI

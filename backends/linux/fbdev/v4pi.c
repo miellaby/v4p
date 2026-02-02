@@ -44,7 +44,7 @@ static void init_palette() {
     palette.transp = NULL;
 
     if (! palette.red || ! palette.green || ! palette.blue) {
-        v4pi_error("Failed to allocate palette memory\n");
+        v4p_error("Failed to allocate palette memory\n");
         exit(1);
     }
 
@@ -154,25 +154,25 @@ Boolean v4pi_init(int quality, Boolean fullscreen) {
     int vt_num = 1;
 
     if (console_fd == -1) {
-        v4pi_error("Error opening /dev/console");
+        v4p_error("Error opening /dev/console");
         return failure;
     }
 
     if (ioctl(console_fd, VT_ACTIVATE, vt_num) == -1) {
-        v4pi_error("Error switching virtual terminal");
+        v4p_error("Error switching virtual terminal");
         close(console_fd);
         return failure;
     }
 
     if (ioctl(console_fd, VT_WAITACTIVE, vt_num) == -1) {
-        v4pi_error("Error waiting for virtual terminal switch");
+        v4p_error("Error waiting for virtual terminal switch");
         close(console_fd);
         return failure;
     }
 
     // Set the console to graphics mode
     if (ioctl(console_fd, KDSETMODE, KD_GRAPHICS) == -1) {
-        v4pi_error("Error setting console to graphics mode");
+        v4p_error("Error setting console to graphics mode");
         close(console_fd);
         return failure;
     }
@@ -181,20 +181,20 @@ Boolean v4pi_init(int quality, Boolean fullscreen) {
     // Open the framebuffer device
     int fbfd = open("/dev/fb0", O_RDWR);
     if (fbfd == -1) {
-        v4pi_error("v4pi_init failed, cannot open framebuffer device\n");
+        v4p_error("v4pi_init failed, cannot open framebuffer device\n");
         return failure;
     }
 
     // Get variable screen information
     if (ioctl(fbfd, FBIOGET_VSCREENINFO, &v4pi_defaultContextSingleton.vinfo)) {
-        v4pi_error("v4pi_init failed, cannot get variable screen info\n");
+        v4p_error("v4pi_init failed, cannot get variable screen info\n");
         close(fbfd);
         return failure;
     }
 
     // Get fixed screen information
     if (ioctl(fbfd, FBIOGET_FSCREENINFO, &v4pi_defaultContextSingleton.finfo)) {
-        v4pi_error("v4pi_init failed, cannot get fixed screen info\n");
+        v4p_error("v4pi_init failed, cannot get fixed screen info\n");
         close(fbfd);
         return failure;
     }
@@ -206,7 +206,7 @@ Boolean v4pi_init(int quality, Boolean fullscreen) {
         if (ioctl(fbfd, FBIOPUT_VSCREENINFO, &v4pi_defaultContextSingleton.vinfo)) {
             // Can't set 8-bit mode, revert to original
             v4pi_defaultContextSingleton.vinfo = original_vinfo;
-            v4pi_error("Warning: Cannot set 8-bit color mode, using %d-bit\n",
+            v4p_error("Warning: Cannot set 8-bit color mode, using %d-bit\n",
                        v4pi_defaultContextSingleton.vinfo.bits_per_pixel);
         }
     }
@@ -228,7 +228,7 @@ Boolean v4pi_init(int quality, Boolean fullscreen) {
                                              fbfd,
                                              0);
     if (v4pi_defaultContextSingleton.surface == MAP_FAILED) {
-        v4pi_error("v4pi_init failed, cannot map framebuffer\n");
+        v4p_error("v4pi_init failed, cannot map framebuffer\n");
         close(fbfd);
         return failure;
     }
@@ -236,7 +236,7 @@ Boolean v4pi_init(int quality, Boolean fullscreen) {
     // Set palette if we're in 8-bit mode
     if (v4pi_defaultContextSingleton.vinfo.bits_per_pixel == 8) {
         if (ioctl(fbfd, FBIOPUTCMAP, &palette)) {
-            v4pi_error("Warning: Cannot set palette\n");
+            v4p_error("Warning: Cannot set palette\n");
         }
     }
 
@@ -314,11 +314,11 @@ void v4pi_destroy() {
     // Reopen the console to switch back to text mode
     int console_fd = open("/dev/console", O_RDWR);
     if (console_fd == -1) {
-        v4pi_error("Error reopening /dev/console");
+        v4p_error("Error reopening /dev/console");
     } else {
         // Set the console back to text mode
         if (ioctl(console_fd, KDSETMODE, KD_TEXT) == -1) {
-            v4pi_error("Error setting console to text mode");
+            v4p_error("Error setting console to text mode");
             close(console_fd);
         }
         close(console_fd);

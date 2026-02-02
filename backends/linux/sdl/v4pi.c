@@ -127,7 +127,7 @@ Boolean v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
 Boolean v4pi_init(int quality, Boolean fullscreen) {
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        v4pi_error("v4pi_init failed, SDL error: '%s'\n", SDL_GetError());
+        v4p_error("v4pi_init failed, SDL error: '%s'\n", SDL_GetError());
         return failure;
     }
 

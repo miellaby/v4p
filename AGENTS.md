@@ -50,7 +50,7 @@ make demos # or demos/single_demo
 
 ## Debug
 
-v4p_error and v4p_debug may be used for tracing, but v4p_debug is enabled only with DEBUG=1 build.
+v4p_error and v4pi_debug may be used for tracing, but v4pi_debug is enabled only with DEBUG=1 build.
 Build with V=1 to see the compilation steps.
 
 ## Coding a demo/app with v4p AND g4p

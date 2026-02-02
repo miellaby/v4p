@@ -138,7 +138,7 @@ CORE_SRCS = \
 BACKEND_SRCS = backends/$(TARGET)/$(BACKEND)/v4pi.c
 
 # Addons
-GAME_ENGINE_SRCS = addons/game_engine/g4p.c addons/game_engine/g4pi.c addons/game_engine/collision.c addons/game_engine/collision_points.c
+GAME_ENGINE_SRCS = addons/game_engine/g4p.c addons/game_engine/g4pi.c addons/game_engine/collision_points.c
 QFONT_SRCS = addons/qfont/qfont.c
 V4PSERIAL_SRCS = addons/v4pserial/v4pserial.c
 LUAGAME_SRCS = addons/luagame/luagame.c

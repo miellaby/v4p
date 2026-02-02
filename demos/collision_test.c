@@ -1,28 +1,31 @@
 #include <stdio.h>
 #include "v4p.h"
-#include "collision.h"
+#include "collision_points.h"
+#include "g4p.h"
 
 // Simple test to demonstrate collision debugging
-int main(int argc, char* argv[]) {
-    printf("=== COLLISION TEST ===\n");
+
+// Stub callbacks required by the game engine
+Boolean g4p_onInit() {
+    printf("=== COLLISION TEST INIT ===\n");
     
     // Initialize the system
     v4p_init2(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);
     v4p_setBGColor(V4P_GREEN);
     
     // Initialize collision system
-    g4p_initCollide();
+    g4p_resetCollisionPoints();
 
     // Set default callback if none is set
-    v4p_setCollideCallback(g4p_onCollide);
+    v4p_setCollisionCallback(g4p_onCollide);
 
     // Create some polygons that should collide
     V4pPolygonP poly1 = v4p_addNew(V4P_RELATIVE, V4P_RED, 10);
     V4pPolygonP poly2 = v4p_addNew(V4P_RELATIVE, V4P_BLUE, 11);
 
     // they collide on layer 1
-    v4p_concrete(poly1, 1);
-    v4p_concrete(poly2, 2);
+    v4p_setCollisionMask(poly1, 1);
+    v4p_setCollisionMask(poly2, 2);
 
     // Make them overlap to trigger collisions
     v4p_rect(poly1, 100, 100, 200, 200);  // Red square
@@ -30,42 +33,42 @@ int main(int argc, char* argv[]) {
     
     printf("Created overlapping polygons: red=%p, blue=%p\n", (void*)poly1, (void*)poly2);
     
-    printf("\n=== RENDERING SINGLE FRAME ===\n");
+    return success;
+}
+
+Boolean g4p_onTick(Int32 deltaTime) {
+    // No physics needed for this test
+    return success;
+}
+
+Boolean g4p_onFrame() {
+    static int frame_count = 0;
+    frame_count++;
     
     // Reset collisions
-    g4p_resetCollide();
-    
+    g4p_resetCollisionPoints();
+
     // Render frame (this should trigger collision detection)
     v4p_render();
     
     // Finalize collisions
-    g4p_finalizeCollide();
+    g4p_finalizeCollisionPoints();
     
-    // Check if any collisions were detected
-    printf("\n=== COLLISION RESULTS ===\n");
-    int collision_found = 0;
-    for (int collisionLayer = 0; collisionLayer < 16; collisionLayer++) {
-        if (g4p_collides[collisionLayer].q > 0) {
-            collision_found = 1;
-            printf("Collision detected on index %d: q=%d, x=%d, y=%d, poly=%p\n", 
-                   collisionLayer, g4p_collides[collisionLayer].q, g4p_collides[collisionLayer].x, g4p_collides[collisionLayer].y, (void*)g4p_collides[collisionLayer].poly);
-            
-            // Check if it's one of our test polygons
-            if (g4p_collides[collisionLayer].poly == poly1) {
-                printf("  -> Collision with RED polygon!\n");
-            } else if (g4p_collides[collisionLayer].poly == poly2) {
-                printf("  -> Collision with BLUE polygon!\n");
-            }
-        }
+    // Print results after first frame
+    if (frame_count == 1) {
+        printf("\n=== TEST COMPLETE ===\n");
     }
     
-    if (!collision_found) {
-        printf("No collisions detected\n");
-    }
-    
+    return success;
+}
+
+void g4p_onQuit() {
     // Clean up
     v4p_quit();
-    
-    printf("\n=== TEST COMPLETE ===\n");
-    return 0;
+}
+
+int main(int argc, char* argv[]) {
+    printf("=== COLLISION TEST ===\n");
+    printf("Running collision detection test...\n");
+    return g4p_main(argc, argv);
 }

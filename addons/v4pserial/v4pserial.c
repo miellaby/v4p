@@ -103,7 +103,7 @@ char* v4p_encodePoints(V4pPolygonP p, int scale) {
         if (l % 32 >= 28) {
             s = (char*) realloc(s, (64 + l - l % 32) * sizeof(char));
             if (! s) {
-                v4pi_error("full Heap");
+                v4p_error("full Heap");
                 return NULL;
             }
         }
@@ -120,11 +120,11 @@ V4pPolygonP v4p_decodePolygon(char* s, int scale) {
     int i = 0;
     if (strlen(s) < 6)
         return NULL;
-    t = v4p_parseHexDigit(s[i]) << 4 + v4p_parseHexDigit(s[i + 1]);
+    t = (v4p_parseHexDigit(s[i]) << 4) + v4p_parseHexDigit(s[i + 1]);
     i = 2;
-    col = v4p_parseHexDigit(s[i]) << 4 + v4p_parseHexDigit(s[i + 1]);
+    col = (v4p_parseHexDigit(s[i]) << 4) + v4p_parseHexDigit(s[i + 1]);
     i = 4;
-    z = v4p_parseHexDigit(s[i]) << 4 + v4p_parseHexDigit(s[i + 1]);
+    z = (v4p_parseHexDigit(s[i]) << 4) + v4p_parseHexDigit(s[i + 1]);
     p = v4p_new(t, col, z);
     return v4p_decodePoints(p, s + 6, scale);
 }
@@ -157,7 +157,7 @@ char* v4p_encodePolygon(V4pPolygonP p, int scale) {
         return NULL;
     } else {
         s = (char*) realloc(s, 7 + strlen(sss));
-        strcpy(ss, sss);
+        strcat(s, sss);
         free(sss);
         return s;
     }
@@ -201,6 +201,7 @@ V4pPolygonP v4p_decodeSVGPath(V4pPolygonP p, char* s, int scale) {
                     }
                 }
                 // there is no break here, NEXT case also handled hereafter
+                __attribute__((fallthrough));
             case INIT:
                 if ((c == 'M' || c == 'm') && knowFirstPoint)
                     v4p_addJump(p);

@@ -7,7 +7,8 @@
 #include "v4p_color.h"
 
 typedef UInt16 V4pLayer;  // Rendering layer (< 16)
-typedef UInt16 V4pCollide;  // Collision layer (< 16)
+typedef UInt16 V4pCollisionLayer;  // Collision layer (< 16)
+typedef UInt16 V4pCollisionMask; // Collision mask (<= 0xFFFF)
 
 typedef UInt16 V4pFlag;
 #define V4P_STANDARD (V4pFlag) 0
@@ -95,7 +96,7 @@ V4pPolygonP v4p_newDisk(V4pProps t,
                         V4pCoord center_y,
                         V4pCoord radius);
 V4pPolygonP v4p_clone(V4pPolygonP p);
-V4pPolygonP v4p_concrete(V4pPolygonP p, V4pCollide collisionLayer);
+V4pPolygonP v4p_setCollisionMask(V4pPolygonP p, V4pCollisionMask collisionMask);
 V4pPolygonP v4p_intoList(V4pPolygonP p, V4pPolygonP* list);
 Boolean v4p_outOfList(V4pPolygonP p, V4pPolygonP* list);
 V4pPolygonP v4p_addSub(V4pPolygonP parent, V4pPolygonP p);
@@ -112,7 +113,7 @@ V4pColor v4p_setLayer(V4pPolygonP p, V4pLayer z);
 V4pCoord v4p_setRadius(V4pPolygonP p, V4pCoord radius);
 V4pPointP v4p_getPoints(V4pPolygonP p);
 V4pLayer v4p_getZ(V4pPolygonP p);
-V4pCollide v4p_getCollisionLayer(V4pPolygonP p);
+V4pCollisionMask v4p_getCollisionMask(V4pPolygonP p);
 UInt32 v4p_getId(V4pPolygonP p);
 V4pColor v4p_getColor(V4pPolygonP p);
 V4pPolygonP v4p_getLimits(V4pPolygonP p, V4pCoord* minx, V4pCoord* maxx, V4pCoord* miny, V4pCoord* maxy);
@@ -159,8 +160,8 @@ Boolean v4p_destroy(V4pPolygonP p);
 Boolean v4p_destroyFromScene(V4pPolygonP p);
 
 // Collision detection when rendering
-typedef void (*V4pCollideCallback)(V4pCollide i1,
-                                   V4pCollide i2,
+typedef void (*V4pCollisionCallback)(V4pCollisionLayer i1,
+                                   V4pCollisionLayer i2,
                                    V4pCoord py,
                                    V4pCoord x1,
                                    V4pCoord x2,
@@ -168,6 +169,6 @@ typedef void (*V4pCollideCallback)(V4pCollide i1,
                                    V4pPolygonP p2);
 
 // Collision callback function (see game engine implmentation)
-void v4p_setCollideCallback(V4pCollideCallback f);
+void v4p_setCollisionCallback(V4pCollisionCallback f);
 
 #endif

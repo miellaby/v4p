@@ -166,13 +166,13 @@ static Boolean createWindow(V4piContextP vd, int width, int height) {
     /* Allocate memory */
     if (! (size_hints = XAllocSizeHints()) || ! (wm_hints = XAllocWMHints())
         || ! (class_hints = XAllocClassHint())) {
-        v4pi_error("couldn't allocate memory.\n");
+        v4p_error("couldn't allocate memory.\n");
     }
 
     /*  Set hints for window manager */
     if (XStringListToTextProperty(&applicationName, 1, &windowName) == 0
         || XStringListToTextProperty(&applicationName, 1, &iconName) == 0) {
-        v4pi_error("xlib structure allocation failed.\n");
+        v4p_error("xlib structure allocation failed.\n");
         return failure;
     }
 
@@ -214,7 +214,7 @@ static Boolean createWindow(V4piContextP vd, int width, int height) {
 
     char* buffer = (char*) malloc(width * height * (depth <= 8 ? 1 : 4));
     if (! buffer) {
-        v4pi_error("malloc failed \n");
+        v4p_error("malloc failed \n");
         return failure;
     }
     XImage* i = XCreateImage(d, DefaultVisual(d, s), depth, ZPixmap, 0, buffer, width, height, 8, 0);
@@ -240,7 +240,7 @@ Boolean v4pi_init(int quality, Boolean fullscreen) {
     /* connect to X server */
     Display* d = XOpenDisplay(NULL);
     if (d == NULL) {
-        v4pi_error("Cannot open display\n");
+        v4p_error("Cannot open display\n");
         exit(EXIT_FAILURE);
     }
 
@@ -268,7 +268,7 @@ Boolean v4pi_init(int quality, Boolean fullscreen) {
         // v4pi_debug ("color allocation %02X %02X %02X %08lX\n", (int)c.V4P_RED,
         // (int)c.V4P_GREEN, (int)c.V4P_BLUE, (unsigned long)c.pixel);
         if (! (rcx = XAllocColor(d, cmap, &c))) {
-            v4pi_error("Can't allocate color\n");
+            v4p_error("Can't allocate color\n");
             exit(EXIT_FAILURE);
         }
         // v4pi_debug ("color allocation %02X %02X %02X %08lX\n", (int)c.V4P_RED,
@@ -287,7 +287,7 @@ Boolean v4pi_init(int quality, Boolean fullscreen) {
 V4piContextP v4pi_newContext(int width, int height) {
     V4piContextP c = (V4piContextP) malloc(sizeof(V4piContext));
     if (! c) {
-        v4pi_error("malloc failed \n");
+        v4p_error("malloc failed \n");
         return 0;
     }
     c->w = v4pi_defaultContextSingleton.w;
@@ -297,7 +297,7 @@ V4piContextP v4pi_newContext(int width, int height) {
     c->depth = v4pi_defaultContextSingleton.depth;
     char* buffer = (char*) malloc(width * height * (c->depth <= 8 ? 1 : 4));
     if (! buffer) {
-        v4pi_error("malloc failed \n");
+        v4p_error("malloc failed \n");
         return 0;
     }
     c->b = buffer;

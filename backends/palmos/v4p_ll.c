@@ -10,7 +10,7 @@ void v4pi_debug(char* formatString, ...) {
     WinDrawChars(text, StrLen(text), 0, 0);
 }
 
-Boolean v4pi_error(char* formatString, ...) {
+Boolean v4p_error(char* formatString, ...) {
     va_list args;
     Char text[0x100];
     va_start(args, formatString);

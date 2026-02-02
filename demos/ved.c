@@ -56,6 +56,16 @@ typedef enum { idle, push, edit } GuiStatus;
 int spotNb;
 GuiStatus guiStatus;
 
+// Collision point callback
+V4pPolygonP polygonUnderPen=NULL;
+void g4p_onCollisionPoint(V4pPolygonP p1,
+                          V4pPolygonP p2,
+                          V4pCoord avg_x,
+                          V4pCoord avg_y,
+                          UInt16 count) {
+    polygonUnderPen = p2;    
+}
+
 Boolean g4p_onInit() {
     v4p_init2(quality, fullscreen);
     v4p_setBGColor(V4P_GREEN);
@@ -100,6 +110,9 @@ Boolean g4p_onInit() {
     pSelGrid = v4p_addNewSub(pGrid, V4P_RELATIVE, V4P_RED, 15);
     v4p_rect(pSelGrid, -xvu - 2, -yvu - 2, -xvu + 2, -yvu + 2);
     v4p_disable(pGrid);
+
+    // Set collision point callback
+    g4p_setCollisionPointCallback(g4p_onCollisionPoint);
 
     return success;
 }
@@ -188,14 +201,14 @@ Boolean g4p_onTick(Int32 deltaTime) {
                 } else if (sel == bGrid && currentPoint) {
                     v4p_movePoint(focus, currentPoint, xs, ys);
 
-                } else if (g4p_collides[2].q > 0) {
+                } else if (polygonUnderPen) {
                     if (sel == bScroll) {
-                        focus = g4p_collides[2].poly;
+                        focus = polygonUnderPen;
                         xpen0 = xs;
                         ypen0 = ys;
                     } else if (sel == bGrid) {
                         if (! focus) {
-                            focus = g4p_collides[2].poly;
+                            focus = polygonUnderPen;
                             s = v4p_getPoints(focus);
                             mindist = gaugeDist(s->x - x, s->y - y);
                             currentPoint = s;
@@ -210,7 +223,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
                             }
                         }
                     } else
-                        focus = g4p_collides[2].poly;
+                        focus = polygonUnderPen;
                 } else if (sel == bScroll) {  // scroll fond
                     if (focus) {
                         v4p_transform(focus, xs - xpen0, ys - ypen0, 0, 0, 256, 256);
@@ -260,7 +273,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
                     if (sel == bAddition) {
                         if (spotNb == 0) {
                             currentPolygon = v4p_addNew(V4P_STANDARD, currentColor, currentZ);
-                            v4p_concrete(currentPolygon, 0);
+                            v4p_setCollisionMask(currentPolygon, 1);
                         }
                         currentPoint = v4p_addPoint(currentPolygon, xs, ys);
                         if (spotNb < 64) {
@@ -274,7 +287,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
                              g4p_state.ypen - 1,
                              g4p_state.xpen + 1,
                              g4p_state.ypen + 1);
-                    v4p_concrete(brush, 2);
+                    v4p_setCollisionMask(brush, 2);
                     xpen0 = g4p_state.xpen;
                     ypen0 = g4p_state.ypen;
                     guiStatus = edit;
@@ -319,6 +332,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
 }
 
 Boolean g4p_onFrame() {
+    polygonUnderPen = NULL;
     v4p_render();
     return success;
 }

@@ -69,7 +69,7 @@ V4pCoord v4p_displayHeight = 0;
 #define CHECK_DRM_ERROR(cond, msg) \
     do { \
         if (cond) { \
-            v4pi_error("DRM error: %s - %s", msg, strerror(errno)); \
+            v4p_error("DRM error: %s - %s", msg, strerror(errno)); \
             return -1; \
         } \
     } while (0)
@@ -158,7 +158,7 @@ static int create_dumb_buffer(uint32_t width, uint32_t height, uint32_t bpp,
     create.bpp = bpp;
 
     if (drmIoctl(drm_context.fd, DRM_IOCTL_MODE_CREATE_DUMB, &create) < 0) {
-        v4pi_error("Failed to create dumb buffer: %s", strerror(errno));
+        v4p_error("Failed to create dumb buffer: %s", strerror(errno));
         return -1;
     }
 
@@ -176,13 +176,13 @@ static uint8_t* map_dumb_buffer(uint32_t handle, uint32_t size) {
 
     map.handle = handle;
     if (drmIoctl(drm_context.fd, DRM_IOCTL_MODE_MAP_DUMB, &map) < 0) {
-        v4pi_error("Failed to map dumb buffer: %s", strerror(errno));
+        v4p_error("Failed to map dumb buffer: %s", strerror(errno));
         return NULL;
     }
 
     memory = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, drm_context.fd, map.offset);
     if (memory == MAP_FAILED) {
-        v4pi_error("Failed to mmap dumb buffer: %s", strerror(errno));
+        v4p_error("Failed to mmap dumb buffer: %s", strerror(errno));
         return NULL;
     }
 
@@ -237,7 +237,7 @@ static int set_drm_mode() {
                       offsets,
                       &fb_id,
                       0) < 0) {
-        v4pi_error("Failed to create DRM framebuffer: %s", strerror(errno));
+        v4p_error("Failed to create DRM framebuffer: %s", strerror(errno));
         return -1;
     }
 
@@ -250,7 +250,7 @@ static int set_drm_mode() {
                        &drm_context.connector->connector_id,
                        1,
                        &drm_context.mode) < 0) {
-        v4pi_error("Failed to set CRTC mode: %s", strerror(errno));
+        v4p_error("Failed to set CRTC mode: %s", strerror(errno));
         
         // Try without specifying connector (some DRM drivers prefer this)
         v4pi_debug("Trying to set CRTC mode without connector specification");
@@ -262,7 +262,7 @@ static int set_drm_mode() {
                            NULL,
                            1,
                            &drm_context.mode) < 0) {
-            v4pi_error("Failed to set CRTC mode (alternative method): %s", strerror(errno));
+            v4p_error("Failed to set CRTC mode (alternative method): %s", strerror(errno));
             drmModeRmFB(drm_context.fd, fb_id);
             return -1;
         }

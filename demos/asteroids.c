@@ -137,7 +137,7 @@ void createAsteroid() {
     asteroid_angle[asteroid_count] = rotation_deg;
     
     v4p_transform(asteroids[asteroid_count], x, y, rotation_deg * 256.f / 360.f, 0, 256, 256);
-    v4p_concrete(asteroids[asteroid_count], 2); // Asteroids are on layer 2
+    v4p_setCollisionMask(asteroids[asteroid_count], 2); // Asteroids are on layer 2
     
     asteroid_count++;
 }
@@ -157,7 +157,7 @@ void fireBullet() {
     bullet_angle[bullet_count] = ship_angle;
     
     v4p_transform(bullets[bullet_count], bullet_x[bullet_count], bullet_y[bullet_count], ship_angle * 256.f / 360.f, 0, 256, 256);
-    v4p_concrete(bullets[bullet_count], 3); // Bullets are on layer 3
+    v4p_setCollisionMask(bullets[bullet_count], 4); // Bullets are on layer 3
     
     bullet_count++;
 }
@@ -167,16 +167,16 @@ void fireBullet() {
 // Collision point callback for finalized averages
 void asteroids_onCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord avg_x, V4pCoord avg_y, UInt16 count) {
     // Get collision layers for both polygons
-    V4pCollide layer1 = v4p_getCollisionLayer(p1);
-    V4pCollide layer2 = v4p_getCollisionLayer(p2);
+    V4pCollisionMask mask1 = v4p_getCollisionMask(p1);
+    V4pCollisionMask mask2 = v4p_getCollisionMask(p2);
     
     // Classify collision based on layers
-    Boolean isBullet1 = (layer1 == 3);
-    Boolean isAsteroid1 = (layer1 == 2);
+    Boolean isBullet1 = (mask1 == 4); // Bullet mask is 4
+    Boolean isAsteroid1 = (mask1 == 2); // Asteroid mask is 2
     Boolean isShip1 = (p1 == ship);
     
-    Boolean isBullet2 = (layer2 == 3);
-    Boolean isAsteroid2 = (layer2 == 2);
+    Boolean isBullet2 = (mask2 == 4); // Bullet mask is 4
+    Boolean isAsteroid2 = (mask2 == 2); // Asteroid mask is 2
     Boolean isShip2 = (p2 == ship);
 
     // Bullet-asteroid collision
@@ -230,16 +230,13 @@ Boolean g4p_onInit() {
                  v4p_displayWidth / 2, v4p_displayHeight / 2);
     v4p_setBGColor(V4P_BLACK);
     
-    // Initialize collision points system
-    g4p_initCollisionPoints(64);
-    
     // Set collision point callback
     g4p_setCollisionPointCallback(asteroids_onCollisionPoint);
     
     // Create ship
     V4pPolygonP ship_proto = createShipPrototype();
     ship = v4p_addClone(ship_proto);
-    v4p_concrete(ship, 1); // Ship is on layer 1
+    v4p_setCollisionMask(ship, 1); // Ship is on layer 1
 
     // Create initial asteroids
     for (int i = 0; i < 3; i++) {
