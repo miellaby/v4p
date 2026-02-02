@@ -43,13 +43,13 @@
  * screen corner)
  */
 #include <stdlib.h>
+#include <string.h>
 #include "v4p.h"
 #include "lowmath.h"
 #include "quickheap.h"
 #include "sortable.h"
 #include "quicktable.h"
 #include "v4pi.h"
-#include <stdio.h>
 #include "assert.h"
 
 // Forward declarations
@@ -82,7 +82,7 @@ typedef struct v4p_polygon_s {
 typedef struct activeEdge_s {
     V4pPolygonP p;  // Parent polygon
     V4pCoord x0, y0, x1, y1;  // Vector coordinates; absolute or relative depending
-                           // on the belonging list
+                              // on the belonging list
     V4pCoord x0v, y0v, x1v, y1v;  // Vector coordinates in view
     // Bresenham algorithm variables
     V4pCoord x;  // Current x
@@ -215,7 +215,7 @@ V4pContextP v4p_contextNew() {
     v4p->modyvub = 0;
     v4p->scaling = 0;
     v4p->changes = 255;  // All memoization caches to be reset
-    v4p->nextId = 0; // to number polygons uniquely
+    v4p->nextId = 0;  // to number polygons uniquely
 
     return v4p;
 }
@@ -246,7 +246,7 @@ Boolean v4p_init2(int quality, Boolean fullscreen) {
     if (v4pi_init(quality, fullscreen)) {
         return failure;
     }
-    
+
     if (! v4p_defaultScene) {
         v4p_defaultScene = v4p_sceneNew();
     }
@@ -279,14 +279,14 @@ V4pPolygonP v4p_new(V4pProps t, V4pColor col, V4pLayer z) {
         v4pi_error("v4p_new: v4p context not initialized. Call v4p_init() first.");
         return NULL;
     }
-    
+
     V4pPolygonP p = QuickHeapAlloc(v4p->polygonHeap);
     p->props = t & ~V4P_CHANGED;
     p->z = z;
     p->collisionLayer = (V4pCollide) -1;
     p->color = col;
     p->radius = 0;
-    p->point1 = NULL; 
+    p->point1 = NULL;
     p->sub1 = NULL;
     p->next = NULL;
     p->parent = NULL;  // No parent by default
@@ -311,11 +311,11 @@ V4pPolygonP v4p_addNew(V4pProps t, V4pColor col, V4pLayer z) {
 
 // Create a disk
 V4pPolygonP v4p_newDisk(V4pProps t,
-                     V4pColor col,
-                     V4pLayer z,
-                     V4pCoord center_x,
-                     V4pCoord center_y,
-                     V4pCoord radius) {
+                        V4pColor col,
+                        V4pLayer z,
+                        V4pCoord center_x,
+                        V4pCoord center_y,
+                        V4pCoord radius) {
     V4pPolygonP p = v4p_new(t, col, z);
     p->radius = radius;
     v4p_addPoint(p, center_x, center_y);
@@ -324,23 +324,23 @@ V4pPolygonP v4p_newDisk(V4pProps t,
 
 // Combo DiskNew+SceneAdd
 V4pPolygonP v4p_sceneAddNewDisk(V4pSceneP s,
-                             V4pProps t,
-                             V4pColor col,
-                             V4pLayer z,
-                             V4pCoord center_x,
-                             V4pCoord center_y,
-                             V4pCoord radius) {
+                                V4pProps t,
+                                V4pColor col,
+                                V4pLayer z,
+                                V4pCoord center_x,
+                                V4pCoord center_y,
+                                V4pCoord radius) {
     V4pPolygonP p = v4p_newDisk(t, col, z, center_x, center_y, radius);
     v4p_sceneAdd(s, p);
     return p;
 }
 
 V4pPolygonP v4p_addNewDisk(V4pProps t,
-                        V4pColor col,
-                        V4pLayer z,
-                        V4pCoord center_x,
-                        V4pCoord center_y,
-                        V4pCoord radius) {
+                           V4pColor col,
+                           V4pLayer z,
+                           V4pCoord center_x,
+                           V4pCoord center_y,
+                           V4pCoord radius) {
     return v4p_sceneAddNewDisk(v4p->scene, t, col, z, center_x, center_y, radius);
 }
 
@@ -573,7 +573,11 @@ V4pColor v4p_getColor(V4pPolygonP p) {
 }
 
 // get the polygon limits (bounding box)
-V4pPolygonP v4p_getLimits(V4pPolygonP p, V4pCoord *minx, V4pCoord *maxx, V4pCoord *miny, V4pCoord *maxy) {
+V4pPolygonP v4p_getLimits(V4pPolygonP p,
+                          V4pCoord* minx,
+                          V4pCoord* maxx,
+                          V4pCoord* miny,
+                          V4pCoord* maxy) {
     if (p->miny == V4P_NIL) {
         v4p_computeLimits(p);
     }
@@ -685,7 +689,7 @@ Boolean v4p_addNewCircleEdges(V4pPolygonP p, V4pPointP c) {
     v4pi_debug("CIRCLE: Creating circle edges for point (%d, %d), radius=%d\n", x, y, r);
 
     V4pPoint top = { x: x, y: y - r }, bottom_left = { x: x - r, y: y + r },
-          bottom_right = { x: x + r, y: y + r };
+             bottom_right = { x: x + r, y: y + r };
 
     v4pi_debug("CIRCLE: Circle bounding box - top:(%d,%d), left:(%d,%d), "
                "right:(%d,%d)\n",
@@ -722,16 +726,16 @@ V4pPolygonP v4p_destroyActiveEdges(V4pPolygonP p) {
 
 // Called by v4p_transformClone ()
 V4pPolygonP v4p_recPolygonTransformClone(Boolean estSub,
-                                      V4pPolygonP p,
-                                      V4pPolygonP c,
-                                      V4pCoord dx,
-                                      V4pCoord dy,
-                                      int angle,
-                                      V4pLayer dz,
-                                      V4pCoord anchor_x,
-                                      V4pCoord anchor_y,
-                                      V4pCoord zoom_x,
-                                      V4pCoord zoom_y) {
+                                         V4pPolygonP p,
+                                         V4pPolygonP c,
+                                         V4pCoord dx,
+                                         V4pCoord dy,
+                                         int angle,
+                                         V4pLayer dz,
+                                         V4pCoord anchor_x,
+                                         V4pCoord anchor_y,
+                                         V4pCoord zoom_x,
+                                         V4pCoord zoom_y) {
     V4pPointP sp, sc;
     V4pCoord x, y, x2, y2, tx, ty;
 
@@ -805,13 +809,13 @@ V4pPolygonP v4p_recPolygonTransformClone(Boolean estSub,
 // Transform a clone c of a polygon p so that points(c) =
 // transfo(points(p),delta-x/y, turn-angle)
 V4pPolygonP v4p_transformClone(V4pPolygonP p,
-                            V4pPolygonP c,
-                            V4pCoord dx,
-                            V4pCoord dy,
-                            int angle,
-                            V4pLayer dz,
-                            V4pCoord zoom_x,
-                            V4pCoord zoom_y) {
+                               V4pPolygonP c,
+                               V4pCoord dx,
+                               V4pCoord dy,
+                               int angle,
+                               V4pLayer dz,
+                               V4pCoord zoom_x,
+                               V4pCoord zoom_y) {
     /* a voir: ratiox et ratioy :
        cosa:=(cosa*ratiox) shr 7;
        sina:=(sina*ratioy) shr 7;
@@ -834,12 +838,12 @@ V4pPolygonP v4p_transformClone(V4pPolygonP p,
 
 // Transform a polygon
 V4pPolygonP v4p_transform(V4pPolygonP p,
-                       V4pCoord dx,
-                       V4pCoord dy,
-                       int angle,
-                       V4pLayer dz,
-                       V4pCoord zoom_x,
-                       V4pCoord zoom_y) {
+                          V4pCoord dx,
+                          V4pCoord dy,
+                          int angle,
+                          V4pLayer dz,
+                          V4pCoord zoom_x,
+                          V4pCoord zoom_y) {
     if (p->parent) {  // If this polygon has a parent
         // Transform relatively to parent
         return v4p_transformClone(p->parent, p, dx, dy, angle, dz, zoom_x, zoom_y);
@@ -989,7 +993,7 @@ V4pPolygonP v4p_buildActiveEdgeList(V4pPolygonP p) {
     if (! (p->props & V4P_CHANGED)) {
         // This polygon has not changed. Let's try to be smart
         if (p->props & V4P_RELATIVE) {  // This polygon is defined in view
-                                    // coordinates. No change.
+            // coordinates. No change.
             return p;
         } else if (! (v4p->changes & V4P_CHANGED_VIEW)) {
             // Polygon coordinates are absolute but the view window didn't
@@ -1209,22 +1213,21 @@ List v4p_openActiveEdge(V4pCoord yl, V4pCoord yu) {
 // Render a scene
 Boolean v4p_render() {
     List l, pl;
-    V4pPolygonP p, polyVisible;
+    V4pPolygonP p;
+    V4pLayer z; // p->z
     ActiveEdgeP b;
-    V4pCoord y, px, px_collide;
+    V4pCoord y; // scanline.y
+    V4pCoord px, px_collide;
 
     V4pCoord yu;
     int su, ou1, ou2, ru1, ru2;
 
-    V4pLayer z;
-    V4pPolygonP layers[16];
-    int zMax;
-    UInt16 bz, bi;  // Bit-word of layers & collides
-    UInt16 mi;  // Masques
-    V4pCollide collisionLayer, colli1, colli2;
-    int nColli;
-    V4pPolygonP pColli[16];
-    Boolean sortNeeded;
+    V4pPolygonP openedPolygons[16];  // Active polygon per layer
+    UInt16 openBitmask;  // Bitmask of layers with active polygon
+    V4pPolygonP visiblePolygon;  // Visible (opened at top) polygon
+
+    V4pPolygonP concretePolygons[16];  // Concrete active polygon per layer
+    UInt16 concreteBitmask;  // Bitmask of layer with active concrete polygon
 
     v4pi_setContext(v4p->display);
 
@@ -1247,7 +1250,7 @@ Boolean v4p_render() {
 
     // Scan-line loop
     for (y = 0; y < v4p_displayHeight; y++) {
-        sortNeeded = false;
+        Boolean sortNeeded = false;
 
         if (su >= 0) {
             su += ru2;
@@ -1339,72 +1342,95 @@ Boolean v4p_render() {
                                                    : newlyOpenedAEList);
         }
 
-        // Reset layers
-        bz = 0;
-        polyVisible = &(v4p->dummyBgPoly);
-        zMax = -1;
+        // Reset opened polygons
+        memset(openedPolygons, 0, sizeof(openedPolygons));
+        openBitmask = 0;
 
-        // Reset collides
-        bi = 0;
-        nColli = 0;
+        // Reset concrete polygons
+        memset(concretePolygons, 0, sizeof(concretePolygons));
+        concreteBitmask = 0;
 
-        // Loop among scanline slices
+        // Reset visible polygon
+        int zMax = -1; // background
+        visiblePolygon  = &(v4p->dummyBgPoly);  // background
+
+        // Loop among active edges
         px = px_collide = 0;
-        for (l = v4p->openedAEList; l; l = ListNext(l)) {  // Loop ActiveEdge ouvert / x
-            // pb = b ;
+        for (l = v4p->openedAEList; l; l = ListNext(l)) {
             b = (ActiveEdgeP) ListData(l);
             p = b->p;
             z = p->z & 15;
-            bz ^= ((UInt16) 1 << z);
-            // If (b->x > 1000) v4pi_debug ("problem %d %d %d", (int)b->x,
-            // (int)px, (pb ? pb->x : -1)); If (px > b->x) v4pi_error ("pb slice
-            // %d %d %d", (int)y, (int)px, (int)b->x);
-            if ((int) z >= zMax) {
-                if (px < v4p_displayWidth && b->x > 0) {
-                    v4pi_slice(y, imax(px, 0), imin(b->x, v4p_displayWidth), polyVisible->color);
-                }
-                px = b->x;
-                if ((int) z > zMax) {
-                    polyVisible = layers[z] = p;
-                    zMax = z;
-                } else {  // z == zMax
-                    zMax = floorLog2(bz);
-                    polyVisible = (zMax >= 0 ? layers[zMax] : &(v4p->dummyBgPoly));
-                }
-            } else {  // z < zMax
-                layers[z] = p;
-            }
-            if (nColli > 1 && collisionCallback != NULL) {
-                collisionCallback(colli1, colli2, y, px_collide, b->x, pColli[colli1], pColli[colli2]);
-            }
-            px_collide = b->x;
-            collisionLayer = p->collisionLayer;
-            mi = (collisionLayer == (V4pCollide) -1 ? (UInt16) 0 : (UInt16) 1 << (collisionLayer & 15));
-            if (layers[z]) {
-                if (mi) {
-                    pColli[collisionLayer] = p;
-                    if (! (bi & mi)) {
-                        bi |= mi;
-                        nColli++;
-                        if (nColli == 1) {
-                            colli1 = collisionLayer;
-                        } else if (nColli == 2) {
-                            colli2 = collisionLayer;
-                        }
+
+            if ((int) z >= zMax) {  // edge not hidden by upper layers
+                if (b->x > 0) {  // slice before current edge
+                    if (px < v4p_displayWidth) {
+                        v4pi_slice(y,
+                                   imax(px, 0),
+                                   imin(b->x, v4p_displayWidth),
+                                   visiblePolygon->color);
                     }
+                    px = b->x;
                 }
+            }
+
+            // Check collisions between concrete polygons
+            // only collisions between pairs in layer order are reported
+            UInt16 bitmask = concreteBitmask;
+            if (bitmask > 0) {
+                V4pCollide topLayer = floorLog2(bitmask);
+                UInt16 bitmaskMinusTop = bitmask & (~((UInt16) 1 << topLayer));
+                while (bitmaskMinusTop > 0) {  // Collision with concrete layers
+                    V4pCollide secondLayer = floorLog2(bitmaskMinusTop);
+                    V4pPolygonP topConcrete = concretePolygons[topLayer];
+                    V4pPolygonP secondConcrete = concretePolygons[secondLayer];
+                    // Note collisionCallback != NULL since bitmask != 0
+                    collisionCallback(topLayer,
+                                    secondLayer,
+                                    y,
+                                    px_collide,
+                                    b->x,
+                                    topConcrete,
+                                    secondConcrete);
+                    bitmask = bitmaskMinusTop;
+                    topLayer = secondLayer;
+                    bitmaskMinusTop = bitmask & (~((UInt16) 1 << topLayer));
+                }
+            }
+
+            UInt16 bit_z = (UInt16) 1 << z;
+            openBitmask ^= bit_z;
+            if (openBitmask & bit_z) {
+                // Entering polygon - set as visible for this layer
+                openedPolygons[z] = p;
             } else {
-                if (bi & mi) {
-                    bi ^= mi;
-                    nColli--;
-                    if (nColli == 1 && collisionLayer == colli1) {
-                        colli1 = colli2;
-                    } else if (nColli == 2) {
-                        if (collisionLayer == colli1) {
-                            colli1 = floorLog2(bi ^ (1 << colli2));
-                        } else if (collisionLayer == colli2) {
-                            colli2 = floorLog2(bi ^ (1 << colli1));
-                        }
+                // Leaving polygon - clear the layer
+                openedPolygons[z] = NULL;
+            }
+
+            if ((int) z > zMax) {  // new top polygon
+                visiblePolygon = p;
+                zMax = z;
+            } else if (z == zMax) {  // leaving polygon at zMax
+                // Find new top polygon
+                if (openBitmask == 0) {  // No visible polygon
+                    zMax = -1;
+                    visiblePolygon = &(v4p->dummyBgPoly);  // Background polygon
+                } else {  // Find highest visible polygon
+                    zMax = floorLog2(openBitmask);
+                    visiblePolygon = openedPolygons[zMax];
+                }
+            }
+
+            if (collisionCallback != NULL) {
+                px_collide = b->x;
+                V4pCollide cl = p->collisionLayer;
+                if (cl != (V4pCollide) -1) {
+                    UInt16 bit_c = (UInt16) 1 << (cl & 15);
+                    if (openedPolygons[z] == p) {
+                        concretePolygons[cl] = p;
+                        concreteBitmask |= bit_c;
+                    } else {
+                        concreteBitmask ^= bit_c;
                     }
                 }
             }
@@ -1413,7 +1439,7 @@ Boolean v4p_render() {
 
         // Last slice
         if (px < v4p_displayWidth) {
-            v4pi_slice(y, imax(0, px), v4p_displayWidth, polyVisible->color);
+            v4pi_slice(y, imax(0, px), v4p_displayWidth, visiblePolygon->color);
         }
 
     }  // Y loop ;
