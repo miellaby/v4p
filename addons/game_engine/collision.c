@@ -174,8 +174,6 @@ void g4p_addCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord x, V4pCoord 
         if (data) {
             uint32_t data_id1 = v4p_getId(data->p1);
             uint32_t data_id2 = v4p_getId(data->p2);
-            
-            // Direct ID comparison is faster than pointer comparison
             if ((data_id1 == id1 && data_id2 == id2) || (data_id1 == id2 && data_id2 == id1)) {
                 // Found existing data, update it
                 data->x_sum += x;

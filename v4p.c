@@ -473,6 +473,16 @@ V4pProps v4p_removeProp(V4pPolygonP p, V4pProps i) {
     return (p->props &= ~i);
 }
 
+// Set polygon coordinate system (relative = TRUE for view-related, FALSE for scene-absolute)
+V4pProps v4p_setRelative(V4pPolygonP p, Boolean relative) {
+    v4p_changed(p);
+    if (relative) {
+        return (p->props |= V4P_RELATIVE);
+    } else {
+        return (p->props &= ~V4P_RELATIVE);
+    }
+}
+
 // Add a polygon point
 V4pPointP v4p_addPoint(V4pPolygonP p, V4pCoord x, V4pCoord y) {
     V4pPointP s = QuickHeapAlloc(v4p->pointHeap);
@@ -533,11 +543,13 @@ V4pCoord v4p_setRadius(V4pPolygonP p, V4pCoord radius) {
 
 // set polygon color
 V4pColor v4p_setColor(V4pPolygonP p, V4pColor c) {
+    // Not changed because not affecting geometry
     return p->color = c;
 }
 
-// set polygon color
+// set polygon layer (z-depth)
 V4pColor v4p_setLayer(V4pPolygonP p, V4pLayer z) {
+    // Not changed because not affecting geometry
     return p->z = z;
 }
 

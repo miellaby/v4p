@@ -13,7 +13,6 @@
 
 // SWIG1.x doesn't accept casted litterals
 #undef V4P_STANDARD
-#undef V4P_COMPLEMENT
 #undef V4P_UNVISIBLE
 #undef V4P_TRANSLUCENT
 #undef V4P_ABSOLUTE
@@ -23,7 +22,6 @@
 #undef V4P_CHANGED
 #undef V4P_NIL
 %constant unsigned V4P_STANDARD=0;
-%constant unsigned V4P_COMPLEMENT=1;
 %constant unsigned V4P_UNVISIBLE=2;
 %constant unsigned V4P_TRANSLUCENT=4;
 %constant unsigned V4P_ABSOLUTE=0;

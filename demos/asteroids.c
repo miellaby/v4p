@@ -29,6 +29,9 @@ V4pPolygonP ship;
 V4pPolygonP asteroids[MAX_ASTEROIDS];
 V4pPolygonP bullets[MAX_BULLETS];
 static V4pPolygonP score_poly = NULL;  // Score display polygon
+#define MAX_LIVES 5
+V4pPolygonP life_indicators[MAX_LIVES];  // Life indicators (small ships)
+int life_count = 0;
 
 // Track positions and angles for objects we can't query
 float bullet_x[MAX_BULLETS];
@@ -60,7 +63,7 @@ int asteroids_to_remove_count = 0;
 V4pPolygonP getShipPrototypeSingleton() {
     static V4pPolygonP proto = NULL;
     if (proto == NULL) {
-        proto = v4p_new(V4P_ABSOLUTE, V4P_WHITE, 1);
+        proto = v4p_new(V4P_ABSOLUTE, V4P_WHITE, 0);
         // Create a simple triangle for the ship using v4p_addPoint
         v4p_addPoint(proto, 0, -20);  // Top point
         v4p_addPoint(proto, -10, 20); // Bottom right
@@ -93,12 +96,54 @@ V4pPolygonP getAsteroidPrototypeSingleton() {
 V4pPolygonP createBulletPrototype() {
     static V4pPolygonP proto = NULL;
     if (proto == NULL) {
-        proto = v4p_new(V4P_ABSOLUTE, V4P_YELLOW, 3);
+        proto = v4p_new(V4P_ABSOLUTE, V4P_YELLOW, 0);
         // Create a simple square for the bullet
         v4p_rect(proto, -BULLET_SIZE/2, -BULLET_SIZE/2, BULLET_SIZE, BULLET_SIZE);
         v4p_setAnchorToCenter(proto);
     }
     return proto;
+}
+
+// Initialize life indicators
+void initLifeIndicators() {
+    // Clear any existing life indicators
+    for (int i = 0; i < life_count; i++) {
+        if (life_indicators[i]) {
+            v4p_destroyFromScene(life_indicators[i]);
+            life_indicators[i] = NULL;
+        }
+    }
+    life_count = 0;
+    
+    // Create life indicators based on current lives
+    V4pPolygonP ship_proto = getShipPrototypeSingleton();
+    
+    for (int i = 0; i < lives && i < MAX_LIVES; i++) {
+        // Create a small ship for life indicator
+        life_indicators[i] = v4p_addClone(ship_proto);
+        v4p_setRelative(life_indicators[i], true);
+        
+        // Position in top-right corner, spaced out
+        float x = v4p_displayWidth - 30 - (i * 25);
+        float y = 20;
+        
+        // Scale down to make them smaller
+        
+        v4p_transform(life_indicators[i], x, y, 0, 0, 128, 128); // 50% scale
+        
+        life_count = i + 1;
+    }
+}
+
+// Remove a life indicator
+void removeLifeIndicator() {
+    if (life_count > 0) {
+        life_count--;
+        if (life_indicators[life_count]) {
+            v4p_destroyFromScene(life_indicators[life_count]);
+            life_indicators[life_count] = NULL;
+        }
+    }
 }
 
 // Create a new asteroid
@@ -107,6 +152,7 @@ void createAsteroid() {
     
     V4pPolygonP asteroid_proto = getAsteroidPrototypeSingleton();
     asteroids[asteroid_count] = v4p_addClone(asteroid_proto);
+    v4p_setLayer(asteroids[asteroid_count], asteroid_count % 13 + 1);
     
     // Position asteroid randomly around the edges
     int side = rand() % 4;
@@ -212,6 +258,7 @@ void asteroids_onCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord avg_x, 
         if (invulnerability_timer == 0) {
             // Ship hit asteroid
             lives--;
+            removeLifeIndicator();
             
             if (lives <= 0) {
                 game_over = true;
@@ -240,11 +287,14 @@ Boolean g4p_onInit() {
     ship = v4p_addClone(ship_proto);
     v4p_setCollisionMask(ship, 1); // Ship is on layer 1
 
+    // Initialize life indicators
+    initLifeIndicators();
+
     // Create score display polygon
     score_poly = v4p_addNew(V4P_RELATIVE, V4P_WHITE, 15);
     
     // Create initial asteroids
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 1; i++) {
         createAsteroid();
     }
     

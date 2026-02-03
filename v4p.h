@@ -12,7 +12,6 @@ typedef UInt16 V4pCollisionMask; // Collision mask (<= 0xFFFF)
 
 typedef UInt16 V4pFlag;
 #define V4P_STANDARD (V4pFlag) 0
-#define V4P_COMPLEMENT (V4pFlag) 1  // substracte/add a region to parent
 #define V4P_UNVISIBLE (V4pFlag) 2  // invisibles help to gather polygons
 #define V4P_TRANSLUCENT (V4pFlag) 4  // to be done
 #define V4P_ABSOLUTE (V4pFlag) 0
@@ -105,6 +104,7 @@ Boolean v4p_destroyFromParent(V4pPolygonP parent, V4pPolygonP p);
 V4pPolygonP v4p_destroyPointFrom(V4pPolygonP p, V4pPointP s);
 V4pProps v4p_putProp(V4pPolygonP p, V4pProps i);
 V4pProps v4p_removeProp(V4pPolygonP p, V4pProps i);
+V4pProps v4p_setRelative(V4pPolygonP p, Boolean relative);
 V4pPointP v4p_addPoint(V4pPolygonP p, V4pCoord x, V4pCoord y);
 V4pPointP v4p_addJump(V4pPolygonP p);
 V4pPointP v4p_movePoint(V4pPolygonP p, V4pPointP s, V4pCoord x, V4pCoord y);
