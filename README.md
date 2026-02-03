@@ -1,44 +1,38 @@
 
-## V4P - Vectors For Pocket - : a minimalistic layered polygons scan-conversion engine.
+# V4P  - Vectors For Pocket -  Minimal Vector Graphics Engine
 
-## Demo Video
+**Ultra-lightweight 2D vector graphics engine** for resource-constrained devices.
 
-https://www.youtube.com/watch?v=W7DSjBT2Jfk
+## Key Features
 
-### Introduction
+- **Tiny footprint**: ~1000 instructions, no dependencies
+- **Integer-only math**: No floating point, no hardware requirements
+- **Embeddable**: Easy integration into any GUI/game project
+- **Efficient algorithm**: Bresenham-like scanline polygon conversion
+- **Collision detection**: Nice side-effect
+- **Memory ultra-efficient**: No Z-buffer/S-buffer needed
 
-V4P is a ridiculously short piece of C code. Its main engine weights ~1000 instructions.
+## Demo
 
-V4P targets very light platforms without any advanced hardware resources.
+[![V4P Demo Video](https://img.youtube.com/vi/W7DSjBT2Jfk/0.jpg)](https://www.youtube.com/watch?v=W7DSjBT2Jfk)
 
-V4P may be easily embedeed in any GUI or Game development library or application.
+## Integration
 
-V4P has no technical dependencies. It even brings its own integer-only maths routines.
+Simply add V4P C files to your project and implement a horizontal line drawing function (e.g., memset-like video buffer operation).
 
-To integrate V4P in your projet, just code the horizontal line drawing function. A memset()-like function in a video buffer will do the job in most cases.
+## Technical Details
 
-Beside rendering vectorized graphic scene, V4P may help you detect collisions (WIP).
+- **Algorithm**: Scanline-based polygon rendering with incremental active edge computation
+- **Sorting**: Quick-sorted lists for efficient rendering
+- **Collision**: Bit-based computation for pixel-perfect detection
+- **Platforms**: Originally developed for Palm OS, easily adaptable to embedded linux and tiny devices
 
-### How to use
+## Limitations
 
-V4P is provided as a set of C files that you should directly add to your project.
-
-### Technical overview
-
-The underlying algorithm of V4P may be sumed up:*Bresenham-like iterative scanline and active edge cross-over computation based polygon scan conversion algorithm*
- 
-Additionaly,
-* most V4P sorted lists are quick-sorted.
-* Bit-based computation helps V4P to find collides and the top polygon under every pixel.
-* V4P is very memory efficient. It doesn't relay on a Z-buffer, not even an "S-buffer" (as depicted here: http://www.gamedev.net/reference/articles/article668.asp).
-
-V4P was developped with Palm OS 4 gcc based SDK and tested on an ancient PDA . It has been proven to be adaptable after few tweak on any embedeed linux devices.
-
-###  What V4P can't do
-* anti-aliasing (a naive implementation through down-scaling)
-* transparent polygons (needs a deep change in the pixel parent election code)
-* curves
-* deep z depth range (only 16 layers for now because of bit-based operations)
-* accurate cos/sin/atan/dist routines
-* scene partial refresh and related optimisations
+- No anti-aliasing (downscaling workaround possible)
+- No translucent polygons (requires algorithm changes)
+- No curve support (polygons and discs only)
+- Limited to 16 layers (bit-based operations)
+- Basic approximated trigonometry functions
+- No partial scene refresh optimizations
 
