@@ -45,6 +45,12 @@ int g4pi_pollEvents() {
                     g4p_state.key = (Uint16) keypressed;
                     break;
                 }
+            case SDL_KEYUP:
+                if (g4p_state.key == event.key.keysym.sym) {
+                    g4p_state.key = 0;
+                }
+                break;
+
             case SDL_MOUSEBUTTONDOWN:
                 g4p_state.buttons[0] = 1;
                 break;

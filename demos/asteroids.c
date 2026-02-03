@@ -3,11 +3,13 @@
 #include "v4pserial.h"
 #include <SDL/SDL.h>
 #include <stdlib.h>
+#include <math.h>    // For fabs()
 #include "lowmath.h"  // For computeCosSin()
 #include "addons/game_engine/collision.h"
+#include "addons/qfont/qfont.h"  // For score display
 #include "backends/v4pi.h"  // For v4pi_debug
 
-#define MAX_ASTEROIDS 10
+#define MAX_ASTEROIDS 15
 #define MAX_BULLETS 5
 #define SHIP_SIZE 28
 #define ASTEROID_SIZE 50
@@ -26,6 +28,7 @@ void getSinCosFromDegrees(float degrees, int* sina, int* cosa) {
 V4pPolygonP ship;
 V4pPolygonP asteroids[MAX_ASTEROIDS];
 V4pPolygonP bullets[MAX_BULLETS];
+static V4pPolygonP score_poly = NULL;  // Score display polygon
 
 // Track positions and angles for objects we can't query
 float bullet_x[MAX_BULLETS];
@@ -42,10 +45,10 @@ int asteroid_count = 0;
 int bullet_count = 0;
 float ship_angle = 0;
 float ship_x = 0, ship_y = 0;
+float ship_speed_x = 0, ship_speed_y = 0;  // Ship's speed/moment vector
 Boolean thrusting = false;
 Boolean game_over = false;
-Boolean ship_invulnerable = false;
-int invulnerability_timer = 0;
+int invulnerability_timer = 120;
 
 // Objects to remove (can't remove in callback)
 V4pPolygonP bullets_to_remove[MAX_BULLETS];
@@ -54,7 +57,7 @@ V4pPolygonP asteroids_to_remove[MAX_ASTEROIDS];
 int asteroids_to_remove_count = 0;
 
 // Ship prototype
-V4pPolygonP createShipPrototype() {
+V4pPolygonP getShipPrototypeSingleton() {
     static V4pPolygonP proto = NULL;
     if (proto == NULL) {
         proto = v4p_new(V4P_ABSOLUTE, V4P_WHITE, 1);
@@ -68,10 +71,10 @@ V4pPolygonP createShipPrototype() {
 }
 
 // Asteroid prototype
-V4pPolygonP createAsteroidPrototype() {
+V4pPolygonP getAsteroidPrototypeSingleton() {
     static V4pPolygonP proto = NULL;
     if (proto == NULL) {
-        proto = v4p_new(V4P_ABSOLUTE, V4P_GRAY, 2);
+        proto = v4p_new(V4P_ABSOLUTE, V4P_MAROON, 2);
         // Create a simple octagon for the asteroid using v4p_addPoint
         v4p_addPoint(proto, 50, 0);
         v4p_addPoint(proto, 35, 35);
@@ -102,7 +105,7 @@ V4pPolygonP createBulletPrototype() {
 void createAsteroid() {
     if (asteroid_count >= MAX_ASTEROIDS) return;
     
-    V4pPolygonP asteroid_proto = createAsteroidPrototype();
+    V4pPolygonP asteroid_proto = getAsteroidPrototypeSingleton();
     asteroids[asteroid_count] = v4p_addClone(asteroid_proto);
     
     // Position asteroid randomly around the edges
@@ -206,7 +209,7 @@ void asteroids_onCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord avg_x, 
     
     // Ship-asteroid collision
     if ((isShip1 && isAsteroid2) || (isShip2 && isAsteroid1)) {
-        if (!ship_invulnerable) {
+        if (invulnerability_timer == 0) {
             // Ship hit asteroid
             lives--;
             
@@ -217,8 +220,7 @@ void asteroids_onCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord avg_x, 
                 ship_x = 0;
                 ship_y = 0;
                 ship_angle = 90;
-                ship_invulnerable = true;
-                invulnerability_timer = 120; // 2 seconds at 60 FPS
+                invulnerability_timer = 120; // 4 seconds at 60 FPS
             }
         }
     }
@@ -226,18 +228,21 @@ void asteroids_onCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord avg_x, 
 
 Boolean g4p_onInit() {
     v4p_init2(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);
-    v4p_setView(-v4p_displayWidth / 2, -v4p_displayHeight / 2,
-                 v4p_displayWidth / 2, v4p_displayHeight / 2);
+    v4p_setView(-0.44 * v4p_displayWidth, -0.44 * v4p_displayHeight,
+                 v4p_displayWidth * 0.44, v4p_displayHeight * 0.44);
     v4p_setBGColor(V4P_BLACK);
     
     // Set collision point callback
     g4p_setCollisionCallback(asteroids_onCollisionPoint);
     
     // Create ship
-    V4pPolygonP ship_proto = createShipPrototype();
+    V4pPolygonP ship_proto = getShipPrototypeSingleton();
     ship = v4p_addClone(ship_proto);
     v4p_setCollisionMask(ship, 1); // Ship is on layer 1
 
+    // Create score display polygon
+    score_poly = v4p_addNew(V4P_RELATIVE, V4P_WHITE, 15);
+    
     // Create initial asteroids
     for (int i = 0; i < 3; i++) {
         createAsteroid();
@@ -247,14 +252,30 @@ Boolean g4p_onInit() {
 }
 
 Boolean g4p_onTick(Int32 deltaTime) {
-    // Handle invulnerability timer
-    if (ship_invulnerable) {
+    static int totalTime = 0;
+    totalTime += deltaTime;
+    int level = 3 + score / 1000;
+
+    // remember last key press
+    static UInt16 last_key = 0;
+
+    // Handle invulnerability timer and blinking effect
+    if (invulnerability_timer > 0) {
         invulnerability_timer--;
         if (invulnerability_timer <= 0) {
-            ship_invulnerable = false;
+            // Make sure ship is visible when invulnerability ends
+            v4p_enable(ship);
+        } else {
+            // Create blinking effect using totalTime modulo
+            // Blink every 8 frames (4 frames visible, 4 frames invisible)
+            if ((totalTime / 200) % 2 == 0) {
+                v4p_enable(ship);
+            } else {
+                v4p_disable(ship);
+            }
         }
     }
-    
+
     // Remove marked objects
     for (int i = 0; i < bullets_to_remove_count; i++) {
         for (int j = 0; j < bullet_count; j++) {
@@ -294,26 +315,50 @@ Boolean g4p_onTick(Int32 deltaTime) {
     
     // Handle input
     if (g4p_state.key == SDLK_LEFT) {
-        ship_angle -= 1.f;
+        ship_angle -= 3.f;
     }
     if (g4p_state.key == SDLK_RIGHT) {
-        ship_angle += 1.f;
+        ship_angle += 3.f;
     }
     
     thrusting = false;
     if (g4p_state.key == SDLK_UP) {
         thrusting = true;
-        // Move ship forward using v4p's trigonometric system
+        // Apply thrust in the direction the ship is facing
         int sina, cosa;
         getSinCosFromDegrees(ship_angle, &sina, &cosa);
-        ship_x += (sina / 256.0f) * 2.;
-        ship_y -= (cosa / 256.0f) * 2.;
+        ship_speed_x += (sina / 256.0f) * 0.1f;  // Accelerate in thrust direction
+        ship_speed_y -= (cosa / 256.0f) * 0.1f;
     }
     
+    // Apply friction/deceleration when no thrust
+    if (g4p_state.key != SDLK_UP) {
+        ship_speed_x *= 0.98f;  // Slow down gradually
+        ship_speed_y *= 0.98f;
+        
+        // Small threshold to stop completely
+        if (fabs(ship_speed_x) < 0.01f) ship_speed_x = 0;
+        if (fabs(ship_speed_y) < 0.01f) ship_speed_y = 0;
+    }
+    
+    // Apply the speed vector to ship position
+    ship_x += ship_speed_x;
+    ship_y += ship_speed_y;
+    
+    // Space bar: fire bullet AND apply extra thrust
     if (g4p_state.key == SDLK_SPACE) {
-        fireBullet();
+        if (last_key != SDLK_SPACE) {
+            fireBullet();
+        }
+        
+        // Apply extra thrust when space bar is held down
+        int sina, cosa;
+        getSinCosFromDegrees(ship_angle, &sina, &cosa);
+        ship_speed_x += (sina / 256.0f) * 0.2f;  // Stronger acceleration on space
+        ship_speed_y -= (cosa / 256.0f) * 0.2f;
     }
-    
+    last_key = g4p_state.key;
+
     // Update ship position and rotation (convert degrees to V4P format)
     v4p_transform(ship, ship_x, ship_y, ship_angle * 256.f / 360.f, 0, 256, 256);
     
@@ -348,17 +393,33 @@ Boolean g4p_onTick(Int32 deltaTime) {
     
     // Update asteroids - rotate them
     for (int i = 0; i < asteroid_count; i++) {
-        // Rotate asteroid slightly
-        asteroid_angle[i] += 1.f;
-        
         // Move asteroid forward slightly
         int sina, cosa;
         getSinCosFromDegrees(asteroid_angle[i], &sina, &cosa);
         asteroid_x[i] += (sina / 256.0f) * 0.5f;
         asteroid_y[i] -= (cosa / 256.0f) * 0.5f;
-        
+
+        // Wrap asteroid around screen edges
+        if (asteroid_x[i] < -v4p_displayWidth / 2) {
+            asteroid_x[i] = v4p_displayWidth / 2;
+        } else if (asteroid_x[i] > v4p_displayWidth / 2) {
+            asteroid_x[i] = -v4p_displayWidth / 2;
+        }
+
+        if (asteroid_y[i] < -v4p_displayHeight / 2) {
+            asteroid_y[i] = v4p_displayHeight / 2;
+        } else if (asteroid_y[i] > v4p_displayHeight / 2) {
+            asteroid_y[i] = -v4p_displayHeight / 2;
+        }
+
+        if (ship_y < -v4p_displayHeight / 2) {
+            ship_y = v4p_displayHeight / 2;
+        } else if (ship_y > v4p_displayHeight / 2) {
+            ship_y = -v4p_displayHeight / 2;
+        }
+
         // Update asteroid transform
-        v4p_transform(asteroids[i], asteroid_x[i], asteroid_y[i], asteroid_angle[i] * 256.f / 360.f, 0, 256, 256);
+        v4p_transform(asteroids[i], asteroid_x[i], asteroid_y[i], (asteroid_angle[i] + totalTime * 0.01f) * 256.f / 360.f, 0, 256, 256);
     }
     
     // Wrap ship around screen edges
@@ -375,9 +436,19 @@ Boolean g4p_onTick(Int32 deltaTime) {
     }
 
     // Create new asteroid to keep game going
-    if (asteroid_count < MAX_ASTEROIDS && rand() % 60 == 0) {
+    if (asteroid_count < (level % MAX_ASTEROIDS) && rand() % 60 == 0) {
         createAsteroid();
     }
+
+    // Update score display
+    if (score_poly) {
+        // Remove and destroy the old score polygon
+        v4p_destroyFromScene(score_poly);
+    }
+    
+    // Create new score polygon with current score
+    score_poly = v4p_addNew(V4P_RELATIVE, V4P_BLUE, 15 /* top layer */);
+    qfontDefinePolygonFromInt(score, score_poly, 10, 10, 20, 20, 5);
 
     return game_over ? failure : success;  // Return failure to exit when game is over
 }

@@ -1,10 +1,6 @@
 ## Project
 
-V4P is a C-based 2D vector graphic engine targeting tiny devices with nothing more than a video ram buffer. Integer maths and binary ops only. No dependencies.
-
-## Dev
-
-You avoid guards and prefer a crash-early design pattern.
+V4P is a C-based 2D vector graphic engine targeting tiny devices with nothing more than a video buffer. Integer maths and binary ops only. No dependencies. Its companion lib G4P helps create interactive animated apps/games/demos...
 
 ## Build
 
@@ -43,15 +39,17 @@ make demos # or demos/single_demo
 - `libv4p.a`: Build core library
 - `addons`: Build all addons
 - `demos`: Build all demos
-- `install`: Install to system
-- `uninstall`: Remove installation
 - `clean`: Clean build artifacts
 - `help`: Show usage information
 
+## V4P dev
+
+You prefer a crash-early design pattern (guards are useless), integer/binary ops, and fixed-points math on computer-friendly units rather than floats, like: 100% = 256, 360° = 256, etc.
+
 ## Debug
 
-v4p_error and v4pi_debug may be used for tracing, but v4pi_debug is enabled only with DEBUG=1 build.
-Build with V=1 to see the compilation steps.
+v4p_error and v4pi_debug may be used for tracing. Note v4pi_debug is enabled only in DEBUG=1 builds.
+Build with V=1 to see compilation steps.
 
 ## Coding a demo/app with v4p AND g4p
 
@@ -93,6 +91,9 @@ Boolean g4p_onInit() {
     v4p_init();
     v4p_setBGColor(V4P_BLACK);
     // add polys to the scene (use the cloning pattern to make transform easier)
+    // - a new poly has no points and some func may add batch of points at once (rect, qfont, ...)
+    // - remember to add polys to the scene unless they are out-of-shelf prototypes (use v4p_addNew for simple case)
+    // - temporarly hide/show polygon with v4p_disable/enable
     return success;
 }
 

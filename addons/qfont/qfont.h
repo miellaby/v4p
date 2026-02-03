@@ -21,4 +21,13 @@ V4pPolygonP qfontDefinePolygonFromString(char* s,
                                       V4pCoord height,
                                       V4pCoord interleave);
 
+// Function to draw an integer as digits
+V4pPolygonP qfontDefinePolygonFromInt(int value,
+                                     V4pPolygonP poly,
+                                     V4pCoord x,
+                                     V4pCoord y,
+                                     V4pCoord width,
+                                     V4pCoord height,
+                                     V4pCoord interleave);
+
 #endif  // QFONT_H
