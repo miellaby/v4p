@@ -25,8 +25,9 @@ typedef void (*G4pCollisionCallback)(V4pPolygonP p1, V4pPolygonP p2, V4pCoord av
 
 // Initialize collision point system
 typedef struct collision_points_system_s {
-    QuickTable table;     // QuickTable to store collision point data
+    QuickTable table;     // QuickTable to access collision point data
     size_t table_size;   // Size of the QuickTable
+    QuickHeap data_heap;  // QuickHeap for efficient collision data storage
     G4pCollisionCallback callback; // Callback function for finalization
 } CollisionPointsSystem;
 

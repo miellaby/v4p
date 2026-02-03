@@ -31,18 +31,12 @@ void QuickTableReset(QuickTable q) {
     memset(q->table, 0, sizeof(List) * q->sizeOfTable);
 }
 
+// Free all List elements in the table (but not their data) and clear the table
 void QuickTableResetAndFree(QuickTable q) {
-    // Free all List elements and their data in the table
     for (size_t i = 0; i < q->sizeOfTable; i++) {
         List current = q->table[i];
         while (current != NULL) {
             List next = current->quick;  // Get next before freeing current
-            
-            // Free the data associated with this list element
-            if (current->data != NULL) {
-                free(current->data);
-            }
-            
             // Free the list element itself
             ListFree(current);
             

@@ -4,9 +4,9 @@
 #include "quick/sortable.h"
 #include <stdlib.h>
 #include <stdint.h>  // for uintptr_t
-
+#include <assert.h>
 // Global collision points system
-static CollisionPointsSystem g4p_collision_points_system = {NULL, 0, NULL};
+static CollisionPointsSystem g4p_collision_points_system = {NULL, 0, NULL, NULL};
 
 // Hash function to generate a key for polygon pair (p1, p2)
 // Uses polygon IDs for more efficient and stable hashing
@@ -45,6 +45,13 @@ void g4p_initCollisions(size_t table_size) {
         return;
     }
     
+    // Initialize QuickHeap for collision data storage
+    g4p_collision_points_system.data_heap = QuickHeapNew(sizeof(CollisionPointData));
+    if (!g4p_collision_points_system.data_heap) {
+        v4p_error("Failed to create collision data QuickHeap\n");
+        return;
+    }
+    
     v4pi_debug("Collision points system initialized with table size %zu\n", table_size);
 }
 
@@ -55,7 +62,14 @@ void g4p_resetCollisions() {
     }
     
     // Clear all entries in the QuickTable and free associated memory
+    // Using QuickHeap for data storage and QuickHeapReset for efficient clearing
     QuickTableResetAndFree(g4p_collision_points_system.table);
+    
+    // Reset the QuickHeap to clear all collision data efficiently
+    if (g4p_collision_points_system.data_heap) {
+        QuickHeapReset(g4p_collision_points_system.data_heap);
+    }
+    
     v4pi_debug("Collision points system reset\n");
 }
 
@@ -101,11 +115,18 @@ void g4p_finalizeCollisions() {
 // Destroy collision points system
 void g4p_destroyCollisions() {
     if (g4p_collision_points_system.table) {
+        g4p_resetCollisions();
         QuickTableDelete(g4p_collision_points_system.table);
         g4p_collision_points_system.table = NULL;
         g4p_collision_points_system.table_size = 0;
         g4p_collision_points_system.callback = NULL;
         v4pi_debug("Collision points system destroyed\n");
+    }
+    
+    // Clean up the QuickHeap
+    if (g4p_collision_points_system.data_heap) {
+        QuickHeapDelete(g4p_collision_points_system.data_heap);
+        g4p_collision_points_system.data_heap = NULL;
     }
 }
 
@@ -159,8 +180,7 @@ void g4p_addCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord x, V4pCoord 
     if (!g4p_collision_points_system.table || !p1 || !p2) {
         return;
     }
-    
-    // Get polygon IDs for efficient comparison
+
     uint32_t id1 = v4p_getId(p1);
     uint32_t id2 = v4p_getId(p2);
     
@@ -192,7 +212,8 @@ void g4p_addCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord x, V4pCoord 
         return;
     }
     
-    CollisionPointData* new_data = (CollisionPointData*)malloc(sizeof(CollisionPointData));
+    // Allocate collision data from QuickHeap instead of malloc
+    CollisionPointData* new_data = (CollisionPointData*)QuickHeapAlloc(g4p_collision_points_system.data_heap);
     if (!new_data) {
         ListFree(new_list);
         return;
