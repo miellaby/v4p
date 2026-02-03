@@ -1429,14 +1429,25 @@ Boolean v4p_render() {
 
             if (collisionCallback != NULL) {
                 px_collide = b->x;
-                V4pCollisionLayer cl = p->collisionMask;
-                if (cl != (V4pCollisionLayer) -1) {
-                    UInt16 bit_c = (UInt16) 1 << (cl & 15);
+                if (p->collisionMask != 0) {
+                    V4pCollisionMask mask = p->collisionMask;
                     if (openedPolygons[z] == p) {
+                        concreteBitmask |= mask;
+
+                        // Store polygon in the primary collision layer
+                        V4pCollisionLayer cl = floorLog2(mask);
                         concretePolygons[cl] = p;
-                        concreteBitmask |= bit_c;
+
+                        // If there are additional bits set in the mask, handle them
+                        V4pCollisionMask remaining_mask = mask & ~((V4pCollisionMask)1 << cl);
+                        while (remaining_mask != 0) {
+                            V4pCollisionLayer additional_cl = floorLog2(remaining_mask);
+                            concretePolygons[additional_cl] = p;
+                            remaining_mask &= ~((V4pCollisionMask)1 << additional_cl);
+                        }
                     } else {
-                        concreteBitmask ^= bit_c;
+                        // Clear the collision mask bits when polygon is no longer active
+                        concreteBitmask &= ~mask;
                     }
                 }
             }
