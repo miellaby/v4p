@@ -98,7 +98,8 @@ endif
 # ============================================
 
 # Base flags
-CFLAGS  = -Wall -Wextra -std=c99
+CPPFLAGS = -Iaddons/game_engine -Iaddons/v4pserial -Iaddons/qfont -I/usr/include/lua5.1
+CFLAGS  = -Wall -Wextra -std=c99 -fPIC
 LDFLAGS =
 LDLIBS  =
 
@@ -138,7 +139,7 @@ CORE_SRCS = \
 BACKEND_SRCS = backends/$(TARGET)/$(BACKEND)/v4pi.c
 
 # Addons
-GAME_ENGINE_SRCS = addons/game_engine/g4p.c addons/game_engine/g4pi.c addons/game_engine/collision.c
+GAME_ENGINE_SRCS = addons/game_engine/g4p.c addons/game_engine/$(TARGET)/$(BACKEND)/g4pi.c addons/game_engine/collision.c
 QFONT_SRCS = addons/qfont/qfont.c
 V4PSERIAL_SRCS = addons/v4pserial/v4pserial.c
 LUAGAME_SRCS = addons/luagame/luagame.c
@@ -151,7 +152,6 @@ LUAGAME_SRCS = addons/luagame/luagame.c
 %.o: %.c
 	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
-# Pattern rule for files in subdirectories
 %/%.o: %/%.c
 	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
@@ -192,8 +192,11 @@ demos: $(DEMO_TARGETS)
 
 clean:
 	$(Q)$(RM) *.o *.a
-	$(Q)$(RM) addons/*.o addons/*.a
-	$(Q)$(RM) $(patsubst demos/%.c,demos/%.o,$(wildcard demos/*.c))
+	$(Q)$(RM) quick/*.o
+	$(Q)$(RM) backends/*.o backends/*/*.o
+	$(Q)$(RM) addons/*/*.o
+	$(Q)$(RM) addons/*/*.a
+	$(Q)$(RM) demos/*.o
 	$(Q)$(RM) $(patsubst demos/%.c,demos/%,$(wildcard demos/*.c))
 
 install: libv4p.a

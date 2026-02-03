@@ -15,9 +15,6 @@ extern V4piContextP v4pi_defaultContext;
 /** current display context */
 extern V4piContextP v4pi_context;
 
-/** current dimensions of current display */
-extern V4pCoord v4p_displayWidth, v4p_displayHeight;  // Current display size
-
 /** Initialize the implementation and a default context */
 Boolean v4pi_init(int quality, Boolean fullscreen);
 

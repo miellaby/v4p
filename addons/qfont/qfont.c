@@ -107,7 +107,7 @@ V4pPolygonP qfontDefinePolygonFromString(char* s,
                                       V4pCoord interleave) {
     char c;
     int i;
-    for (i = 0; c = s[i]; i++) {
+    for (i = 0; (c = s[i]); i++) {
         qfontDefinePolygonFromChar(c, poly, x, y, width, height);
         x += width + interleave;
     }

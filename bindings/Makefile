@@ -79,7 +79,7 @@ endif
 # ============================================
 
 # Base flags
-CFLAGS  = -Wall -Wextra -std=c99
+CFLAGS  = -Wall -Wextra -std=c99 -fPIC
 LDFLAGS =
 LDLIBS  =
 
@@ -131,7 +131,7 @@ v4p_wrap.c: v4p.i
 	$(Q)$(SWIG) $(SWIG_OPTS) -lua -o $@ $<
 
 lua/v4p.so: v4p_wrap.c
-	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) $(LUA_CFLAGS) -shared -o $@ $< $(LUA_LDFLAGS) -static -L.. -L/../addons/game_engine -lv4p -lg4p
+	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) $(LUA_CFLAGS) -shared -o $@ $< $(LUA_LDFLAGS) -L.. -L../addons/game_engine -lv4p -lg4p
 
 # ============================================
 # TARGETS

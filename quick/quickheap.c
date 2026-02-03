@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-QuickHeap QuickHeapNew(int sizeOfItem) {
+QuickHeap QuickHeapNew(unsigned int sizeOfItem) {
     QuickHeap p = (QuickHeap) malloc(sizeof(QuickHeapS));
     QuickHeapS newHeap = QuickHeapInitializerFor(void*);
     newHeap.sizeOfItem = (sizeOfItem < sizeof(void*) ? sizeof(void*) : sizeOfItem);
@@ -13,7 +13,7 @@ QuickHeap QuickHeapNew(int sizeOfItem) {
     return p;
 }
 
-QuickHeap QuickHeapReservedNew(int sizeOfItem, int maxSize) {
+QuickHeap QuickHeapReservedNew(unsigned int sizeOfItem, unsigned int maxSize) {
     QuickHeap p = (QuickHeap) malloc(sizeof(QuickHeapS));
     QuickHeapS newHeap = QuickHeapInitializerFor(void*);
     newHeap.sizeOfItem = (sizeOfItem < sizeof(void*) ? sizeof(void*) : sizeOfItem);
@@ -27,7 +27,7 @@ QuickHeap QuickHeapReservedNew(int sizeOfItem, int maxSize) {
 
 // Call this function to reserve more memory than the default 128 bytes chunk
 // It will improve performance of QuickHeapFree and index based functions
-void QuickHeapReserve(QuickHeap q, int reservedSize) {
+void QuickHeapReserve(QuickHeap q, unsigned int reservedSize) {
     if (q->maxSize) {
         return;
     }
