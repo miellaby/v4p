@@ -10,7 +10,7 @@
 
 #define MAX_ASTEROIDS 15
 #define MAX_BULLETS 5
-#define SHIP_SIZE 28
+#define SHIP_SIZE 16
 #define ASTEROID_SIZE 50
 #define BULLET_SIZE 5
 
@@ -36,9 +36,11 @@ int life_count = 0;
 float bullet_x[MAX_BULLETS];
 float bullet_y[MAX_BULLETS];
 float bullet_angle[MAX_BULLETS];
+int bullet_ttl[MAX_BULLETS];  // Time To Live for each bullet (in frames)
 float asteroid_x[MAX_ASTEROIDS];
 float asteroid_y[MAX_ASTEROIDS];
 float asteroid_angle[MAX_ASTEROIDS];
+float asteroid_speed[MAX_ASTEROIDS];  // Individual speed for each asteroid
 int asteroid_size[MAX_ASTEROIDS];  // 0=big, 1=medium, 2=small
 
 // Game state
@@ -89,23 +91,41 @@ V4pPolygonP getShipPrototypeSingleton() {
     return proto;
 }
 
-// Asteroid prototype
+// Get a rock prototype in different shapes
 V4pPolygonP getAsteroidPrototypeSingleton() {
-    static V4pPolygonP proto = NULL;
-    if (proto == NULL) {
-        proto = v4p_new(V4P_ABSOLUTE, V4P_MAROON, 2);
-        // Create a simple octagon for the asteroid using v4p_addPoint
-        v4p_addPoint(proto, 50, 0);
-        v4p_addPoint(proto, 35, 35);
-        v4p_addPoint(proto, 0, 50);
-        v4p_addPoint(proto, -35, 35);
-        v4p_addPoint(proto, -50, 0);
-        v4p_addPoint(proto, -35, -35);
-        v4p_addPoint(proto, 0, -50);
-        v4p_addPoint(proto, 35, -35);
-        v4p_setAnchorToCenter(proto);
+    static V4pPolygonP prototypes[2] = {NULL, NULL};
+    static int initialized = 0;
+    
+    if (!initialized) {
+        // Prototype 1: Octagon (original)
+        prototypes[0] = v4p_new(V4P_ABSOLUTE, V4P_MAROON, 2);
+        v4p_addPoint(prototypes[0], 45, 0);
+        v4p_addPoint(prototypes[0], 35, 35);
+        v4p_addPoint(prototypes[0], 0, 50);
+        v4p_addPoint(prototypes[0], -35, 35);
+        v4p_addPoint(prototypes[0], -50, 0);
+        v4p_addPoint(prototypes[0], -35, -35);
+        v4p_addPoint(prototypes[0], 0, -50);
+        v4p_addPoint(prototypes[0], 35, -35);
+        v4p_setAnchorToCenter(prototypes[0]);
+
+        prototypes[1] = v4p_new(V4P_ABSOLUTE, V4P_MAROON, 2);
+        v4p_addPoint(prototypes[1], 20, 0);
+        v4p_addPoint(prototypes[1], 20, 5);
+        v4p_addPoint(prototypes[1], 35, 35);
+        v4p_addPoint(prototypes[1], 0, 50);
+        v4p_addPoint(prototypes[1], -30, 35);
+        v4p_addPoint(prototypes[1], -50, 0);
+        v4p_addPoint(prototypes[1], -35, -35);
+        v4p_addPoint(prototypes[1], 0, -50);
+        v4p_addPoint(prototypes[1], 35, -35);
+        v4p_setAnchorToCenter(prototypes[1]);
+
+        initialized = 1;
     }
-    return proto;
+    
+    // Return a random prototype
+    return prototypes[rand() % 2];
 }
 
 // Bullet prototype
@@ -245,7 +265,8 @@ void createAsteroid() {
     V4pPolygonP asteroid_proto = getAsteroidPrototypeSingleton();
     asteroids[asteroid_count] = v4p_addClone(asteroid_proto);
     v4p_setLayer(asteroids[asteroid_count], asteroid_count % 13 + 1);
-    
+    v4p_setColor(asteroids[asteroid_count], 139 + v4p_getId(asteroids[asteroid_count]) % 14);
+
     // Position asteroid randomly around the edges
     int side = rand() % 4;
     float x, y;
@@ -276,6 +297,7 @@ void createAsteroid() {
     asteroid_x[asteroid_count] = x;
     asteroid_y[asteroid_count] = y;
     asteroid_angle[asteroid_count] = rotation_deg;
+    asteroid_speed[asteroid_count] = 0.3f + (rand() % 5) * 0.1f; // Random speed between 0.3 and 0.8
     asteroid_size[asteroid_count] = 0; // Default size is big (0)
     
     v4p_transform(asteroids[asteroid_count], x, y, rotation_deg * 256.f / 360.f, 0, 256, 256);
@@ -294,9 +316,10 @@ void resetGameState() {
         }
     }
     asteroid_count = 0;
-    // Clear asteroid sizes array
+    // Clear asteroid sizes and speeds arrays
     for (int i = 0; i < MAX_ASTEROIDS; i++) {
         asteroid_size[i] = 0;
+        asteroid_speed[i] = 0.0f;
     }
     
     for (int i = 0; i < bullet_count; i++) {
@@ -331,7 +354,6 @@ void resetGameState() {
 
 // Fire a bullet
 void fireBullet() {
-    if (bullet_count >= MAX_BULLETS) return;
     
     V4pPolygonP bullet_proto = createBulletPrototype();
     bullets[bullet_count] = v4p_addClone(bullet_proto);
@@ -342,6 +364,7 @@ void fireBullet() {
     bullet_x[bullet_count] = ship_x + (sina / 256.0f) * SHIP_SIZE;
     bullet_y[bullet_count] = ship_y - (cosa / 256.0f) * SHIP_SIZE;
     bullet_angle[bullet_count] = ship_angle;
+    bullet_ttl[bullet_count] = 80; // 1 second + at 60 FPS
     
     v4p_transform(bullets[bullet_count], bullet_x[bullet_count], bullet_y[bullet_count], ship_angle * 256.f / 360.f, 0, 256, 256);
     v4p_setCollisionMask(bullets[bullet_count], 4); // Bullets are on layer 3
@@ -517,6 +540,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
                             V4pPolygonP asteroid_proto = getAsteroidPrototypeSingleton();
                             asteroids[asteroid_count] = v4p_addClone(asteroid_proto);
                             v4p_setLayer(asteroids[asteroid_count], asteroid_count % 13 + 1);
+                            v4p_setColor(asteroids[asteroid_count], 139 + v4p_getId(asteroids[asteroid_count]) % 14);
                             
                             // Calculate split angle: -90° for k=0, +90° for k=1 relative to original asteroid angle
                             float split_angle = asteroid_angle[j] + (k == 0 ? -90.0f : 90.0f);
@@ -531,6 +555,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
                             asteroid_angle[asteroid_count] = asteroid_angle[j] + (12 + (rand() % 52)) * (k - 1); // Randomize angle
                             
                             asteroid_size[asteroid_count] = size + 1; // Increase size (0->1, 1->2)
+                            asteroid_speed[asteroid_count] = 0.3f + (rand() % 5) * 0.1f; // Random speed between 0.3 and 0.8
                             v4p_setCollisionMask(asteroids[asteroid_count], 2); // Asteroids are on layer 2
                             asteroid_count++;
                         }
@@ -605,17 +630,19 @@ Boolean g4p_onTick(Int32 deltaTime) {
         ship_x += ship_speed_x;
         ship_y += ship_speed_y;
 
-        // Space bar: fire bullet AND apply extra thrust
+        // Space bar: fire bullet AND apply extra opposite thrust
         if (g4p_state.buttons[G4P_SPACE]) {  // Space button
             if (!last_space_pressed) {
-                fireBullet();
-            }
+                if (bullet_count < MAX_BULLETS) {
+                    fireBullet();
 
-            // Apply extra thrust when space bar is held down
-            int sina, cosa;
-            getSinCosFromDegrees(ship_angle, &sina, &cosa);
-            ship_speed_x += (sina / 256.0f) * 0.2f;  // Stronger acceleration on space
-            ship_speed_y -= (cosa / 256.0f) * 0.2f;
+                    // Apply thrust in the opposite direction of the bullet for recoil effect
+                    int sina, cosa;
+                    getSinCosFromDegrees(ship_angle, &sina, &cosa);
+                    ship_speed_x -= (sina / 256.0f) * 0.2f;  // Stronger acceleration on space
+                    ship_speed_y += (cosa / 256.0f) * 0.2f;
+                }
+            }
         }
         last_space_pressed = g4p_state.buttons[G4P_SPACE];
 
@@ -649,9 +676,22 @@ Boolean g4p_onTick(Int32 deltaTime) {
         // Update bullet position
         v4p_transform(bullets[i], bullet_x[i], bullet_y[i], bullet_angle[i] * 256.f / 360.f, 0, 256, 256);
 
-        // Remove bullets that go off screen
-        if (bullet_x[i] < -v4p_displayWidth/2 - 50 || bullet_x[i] > v4p_displayWidth/2 + 50 ||
-            bullet_y[i] < -v4p_displayHeight/2 - 50 || bullet_y[i] > v4p_displayHeight/2 + 50) {
+        // Wrap bullets around screen edges (like asteroids)
+        if (bullet_x[i] < -v4p_displayWidth / 2) {
+            bullet_x[i] = v4p_displayWidth / 2;
+        } else if (bullet_x[i] > v4p_displayWidth / 2) {
+            bullet_x[i] = -v4p_displayWidth / 2;
+        }
+
+        if (bullet_y[i] < -v4p_displayHeight / 2) {
+            bullet_y[i] = v4p_displayHeight / 2;
+        } else if (bullet_y[i] > v4p_displayHeight / 2) {
+            bullet_y[i] = -v4p_displayHeight / 2;
+        }
+
+        // Decrement bullet TTL and remove when expired
+        bullet_ttl[i]--;
+        if (bullet_ttl[i] <= 0) {
             v4p_destroyFromScene(bullets[i]);
             // Shift remaining bullets
             for (int j = i; j < bullet_count - 1; j++) {
@@ -659,6 +699,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
                 bullet_x[j] = bullet_x[j + 1];
                 bullet_y[j] = bullet_y[j + 1];
                 bullet_angle[j] = bullet_angle[j + 1];
+                bullet_ttl[j] = bullet_ttl[j + 1];
             }
             bullet_count--;
             i--; // Adjust index after removal
@@ -667,11 +708,11 @@ Boolean g4p_onTick(Int32 deltaTime) {
 
     // Update asteroids
     for (int i = 0; i < asteroid_count; i++) {
-        // Move asteroid forward slightly
+        // Move asteroid forward with individual speed
         int sina, cosa;
         getSinCosFromDegrees(asteroid_angle[i], &sina, &cosa);
-        asteroid_x[i] += (sina / 256.0f) * 0.5f;
-        asteroid_y[i] -= (cosa / 256.0f) * 0.5f;
+        asteroid_x[i] += (sina / 256.0f) * asteroid_speed[i];
+        asteroid_y[i] -= (cosa / 256.0f) * asteroid_speed[i];
 
         // Wrap asteroid around screen edges
         if (asteroid_x[i] < -v4p_displayWidth / 2) {
@@ -700,7 +741,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
         v4p_transform(asteroids[i],
                         asteroid_x[i],
                         asteroid_y[i],
-                        (asteroid_angle[i] + totalTime * 0.01f) * 256.f / 360.f,
+                        (asteroid_angle[i] + totalTime * 0.02f) * 256.f / 360.f,
                         0,
                         scale,
                         scale);
