@@ -99,7 +99,7 @@ V4pPolygonP getAsteroidPrototypeSingleton() {
     if (!initialized) {
         // Prototype 1: Octagon (original)
         prototypes[0] = v4p_new(V4P_ABSOLUTE, V4P_MAROON, 2);
-        v4p_addPoint(prototypes[0], 45, 0);
+        v4p_addPoint(prototypes[0], 45 /* 50 */, 0);
         v4p_addPoint(prototypes[0], 35, 35);
         v4p_addPoint(prototypes[0], 0, 50);
         v4p_addPoint(prototypes[0], -35, 35);
@@ -110,7 +110,7 @@ V4pPolygonP getAsteroidPrototypeSingleton() {
         v4p_setAnchorToCenter(prototypes[0]);
 
         prototypes[1] = v4p_new(V4P_ABSOLUTE, V4P_MAROON, 2);
-        v4p_addPoint(prototypes[1], 20, 0);
+        v4p_addPoint(prototypes[1], 20, -5);
         v4p_addPoint(prototypes[1], 20, 5);
         v4p_addPoint(prototypes[1], 35, 35);
         v4p_addPoint(prototypes[1], 0, 50);
