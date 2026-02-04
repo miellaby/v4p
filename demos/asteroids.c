@@ -540,7 +540,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
                             V4pPolygonP asteroid_proto = getAsteroidPrototypeSingleton();
                             asteroids[asteroid_count] = v4p_addClone(asteroid_proto);
                             v4p_setLayer(asteroids[asteroid_count], asteroid_count % 13 + 1);
-                            v4p_setColor(asteroids[asteroid_count], 139 + v4p_getId(asteroids[asteroid_count]) % 14);
+                            v4p_setColor(asteroids[asteroid_count], v4p_getColor(asteroids[j]));
                             
                             // Calculate split angle: -90° for k=0, +90° for k=1 relative to original asteroid angle
                             float split_angle = asteroid_angle[j] + (k == 0 ? -90.0f : 90.0f);
