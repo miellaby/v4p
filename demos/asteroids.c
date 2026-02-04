@@ -39,6 +39,7 @@ float bullet_angle[MAX_BULLETS];
 float asteroid_x[MAX_ASTEROIDS];
 float asteroid_y[MAX_ASTEROIDS];
 float asteroid_angle[MAX_ASTEROIDS];
+int asteroid_size[MAX_ASTEROIDS];  // 0=big, 1=medium, 2=small
 
 // Game state
 typedef enum {
@@ -275,6 +276,7 @@ void createAsteroid() {
     asteroid_x[asteroid_count] = x;
     asteroid_y[asteroid_count] = y;
     asteroid_angle[asteroid_count] = rotation_deg;
+    asteroid_size[asteroid_count] = 0; // Default size is big (0)
     
     v4p_transform(asteroids[asteroid_count], x, y, rotation_deg * 256.f / 360.f, 0, 256, 256);
     v4p_setCollisionMask(asteroids[asteroid_count], 2); // Asteroids are on layer 2
@@ -292,6 +294,10 @@ void resetGameState() {
         }
     }
     asteroid_count = 0;
+    // Clear asteroid sizes array
+    for (int i = 0; i < MAX_ASTEROIDS; i++) {
+        asteroid_size[i] = 0;
+    }
     
     for (int i = 0; i < bullet_count; i++) {
         if (bullets[i]) {
@@ -363,10 +369,22 @@ void asteroids_onCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord avg_x, 
     // Bullet-asteroid collision
     if ((isBullet1 && isAsteroid2) || (isBullet2 && isAsteroid1)) {
         // Bullet hit asteroid
-        score += 100;
-        
         V4pPolygonP bullet = isBullet1 ? p1 : p2;
         V4pPolygonP asteroid = isAsteroid1 ? p1 : p2;
+        
+        // Find the asteroid size for scoring
+        int asteroid_score = 100; // default for big asteroids
+        for (int i = 0; i < asteroid_count; i++) {
+            if (asteroids[i] == asteroid) {
+                if (asteroid_size[i] == 1) { // medium
+                    asteroid_score = 150;
+                } else if (asteroid_size[i] == 2) { // small
+                    asteroid_score = 200;
+                }
+                break;
+            }
+        }
+        score += asteroid_score;
         
         // Mark bullet for removal
         for (int i = 0; i < bullet_count; i++) {
@@ -488,6 +506,37 @@ Boolean g4p_onTick(Int32 deltaTime) {
     for (int i = 0; i < asteroids_to_remove_count; i++) {
         for (int j = 0; j < asteroid_count; j++) {
             if (asteroids[j] == asteroids_to_remove[i]) {
+                // Get the size of the asteroid being removed
+                int size = asteroid_size[j];
+                
+                // Only split if it's not already the smallest size
+                if (size < 2 && asteroid_count + 2 <= MAX_ASTEROIDS) {
+                    // Create 2 smaller asteroids
+                    for (int k = 0; k < 2; k++) {
+                        if (asteroid_count < MAX_ASTEROIDS) {
+                            V4pPolygonP asteroid_proto = getAsteroidPrototypeSingleton();
+                            asteroids[asteroid_count] = v4p_addClone(asteroid_proto);
+                            v4p_setLayer(asteroids[asteroid_count], asteroid_count % 13 + 1);
+                            
+                            // Calculate split angle: -90° for k=0, +90° for k=1 relative to original asteroid angle
+                            float split_angle = asteroid_angle[j] + (k == 0 ? -90.0f : 90.0f);
+                            
+                            // Position new asteroid by moving 30 pixels in the split direction
+                            int sina, cosa;
+                            getSinCosFromDegrees(split_angle, &sina, &cosa);
+                            asteroid_x[asteroid_count] = asteroid_x[j] + (sina / 256.0f) * 30;
+                            asteroid_y[asteroid_count] = asteroid_y[j] - (cosa / 256.0f) * 30;
+                            
+                            // Set the asteroid's movement angle (keep some randomization for variety)
+                            asteroid_angle[asteroid_count] = asteroid_angle[j] + (12 + (rand() % 52)) * (k - 1); // Randomize angle
+                            
+                            asteroid_size[asteroid_count] = size + 1; // Increase size (0->1, 1->2)
+                            v4p_setCollisionMask(asteroids[asteroid_count], 2); // Asteroids are on layer 2
+                            asteroid_count++;
+                        }
+                    }
+                }
+                
                 v4p_destroyFromScene(asteroids[j]);
                 // Shift remaining asteroids
                 for (int k = j; k < asteroid_count - 1; k++) {
@@ -495,6 +544,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
                     asteroid_x[k] = asteroid_x[k + 1];
                     asteroid_y[k] = asteroid_y[k + 1];
                     asteroid_angle[k] = asteroid_angle[k + 1];
+                    asteroid_size[k] = asteroid_size[k + 1];
                 }
                 asteroid_count--;
                 break;
@@ -636,14 +686,24 @@ Boolean g4p_onTick(Int32 deltaTime) {
             asteroid_y[i] = -v4p_displayHeight / 2;
         }
 
+        // Scale down smaller asteroids
+        int scale;
+        if (asteroid_size[i] == 2) {  // small
+            scale = 64;  // 25% size
+        } else if (asteroid_size[i] == 1) { // medium
+            scale = 128;  // 50% size
+        } else {
+            scale = 256; // 100% size for big asteroids
+        }
+
         // Update asteroid transform rotating slowly
         v4p_transform(asteroids[i],
                         asteroid_x[i],
                         asteroid_y[i],
                         (asteroid_angle[i] + totalTime * 0.01f) * 256.f / 360.f,
                         0,
-                        256,
-                        256);
+                        scale,
+                        scale);
     }
 
     // Create new asteroid to keep game going
