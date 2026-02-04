@@ -42,6 +42,13 @@ float asteroid_y[MAX_ASTEROIDS];
 float asteroid_angle[MAX_ASTEROIDS];
 
 // Game state
+typedef enum {
+    GAME_MODE_TITLE,
+    GAME_MODE_PLAYING,
+    GAME_MODE_GAMEOVER
+} GameMode;
+
+GameMode game_mode = GAME_MODE_TITLE;
 int score = 0;
 int lives = 3;
 int asteroid_count = 0;
@@ -58,6 +65,15 @@ V4pPolygonP bullets_to_remove[MAX_BULLETS];
 int bullets_to_remove_count = 0;
 V4pPolygonP asteroids_to_remove[MAX_ASTEROIDS];
 int asteroids_to_remove_count = 0;
+
+// Title/Gameover mode text
+V4pPolygonP title_poly = NULL;
+V4pPolygonP gameover_poly = NULL;
+V4pPolygonP press_space_poly = NULL;
+
+// Long press detection for spacebar
+int space_press_timer = 0;
+#define LONG_PRESS_THRESHOLD 60  // About 1 second at 60 FPS
 
 // Ship prototype
 V4pPolygonP getShipPrototypeSingleton() {
@@ -146,6 +162,82 @@ void removeLifeIndicator() {
     }
 }
 
+// Create title screen text
+void createTitleScreen() {
+    // Clear any existing title text
+    if (title_poly) {
+        v4p_destroyFromScene(title_poly);
+        title_poly = NULL;
+    }
+    if (press_space_poly) {
+        v4p_destroyFromScene(press_space_poly);
+        press_space_poly = NULL;
+    }
+    
+    // Create title text - centered on screen
+    title_poly = v4p_addNew(V4P_RELATIVE, V4P_WHITE, 15);
+    qfontDefinePolygonFromString("ASTEROIDS", title_poly, 
+                                v4p_displayWidth / 2 - 40,  // Center horizontally
+                                v4p_displayHeight / 2 - 10,  // Center vertically
+                                12, 12, 2);
+    
+    // Create press space text - centered below title
+    press_space_poly = v4p_addNew(V4P_RELATIVE, V4P_YELLOW, 15);
+    qfontDefinePolygonFromString("LONG PRESS SPACE", press_space_poly,
+                                v4p_displayWidth / 2 - 50,  // Center horizontally
+                                v4p_displayHeight / 2 + 10,   // Below title
+                                8, 8, 1);
+}
+
+// Create gameover screen text
+void createGameOverScreen() {
+    // Clear any existing gameover text
+    if (gameover_poly) {
+        v4p_destroyFromScene(gameover_poly);
+        gameover_poly = NULL;
+    }
+    if (press_space_poly) {
+        v4p_destroyFromScene(press_space_poly);
+        press_space_poly = NULL;
+    }
+    
+    // Create gameover text - centered on screen
+    gameover_poly = v4p_addNew(V4P_RELATIVE, V4P_RED, 15);
+    qfontDefinePolygonFromString("GAME OVER", gameover_poly,
+                                v4p_displayWidth / 2 - 40,  // Center horizontally
+                                v4p_displayHeight / 2 - 10,  // Center vertically
+                                12, 12, 2);
+    
+    // Create press space text - centered below gameover
+    press_space_poly = v4p_addNew(V4P_RELATIVE, V4P_YELLOW, 15);
+    qfontDefinePolygonFromString("LONG PRESS SPACE",
+                                 press_space_poly,
+                                 v4p_displayWidth / 2 - 50,  // Center horizontally
+                                 v4p_displayHeight / 2 + 10,  // Below gameover
+                                 8,
+                                 8,
+                                 1);
+}
+
+// Clear title/gameover screen
+void clearTitleGameOverScreen() {
+    if (title_poly) {
+        v4p_destroyFromScene(title_poly);
+        title_poly = NULL;
+    }
+    if (gameover_poly) {
+        v4p_destroyFromScene(gameover_poly);
+        gameover_poly = NULL;
+    }
+    if (press_space_poly) {
+        v4p_destroyFromScene(press_space_poly);
+        press_space_poly = NULL;
+    }
+}
+
+// Forward declaration for resetGameState
+void resetGameState();
+
 // Create a new asteroid
 void createAsteroid() {
     if (asteroid_count >= MAX_ASTEROIDS) return;
@@ -189,6 +281,47 @@ void createAsteroid() {
     v4p_setCollisionMask(asteroids[asteroid_count], 2); // Asteroids are on layer 2
     
     asteroid_count++;
+}
+
+// Reset game state for new game
+void resetGameState() {
+    // Clear all game objects
+    for (int i = 0; i < asteroid_count; i++) {
+        if (asteroids[i]) {
+            v4p_destroyFromScene(asteroids[i]);
+            asteroids[i] = NULL;
+        }
+    }
+    asteroid_count = 0;
+    
+    for (int i = 0; i < bullet_count; i++) {
+        if (bullets[i]) {
+            v4p_destroyFromScene(bullets[i]);
+            bullets[i] = NULL;
+        }
+    }
+    bullet_count = 0;
+    
+    // Reset ship position and state
+    ship_x = 0;
+    ship_y = 0;
+    ship_angle = 90;
+    ship_speed_x = 0;
+    ship_speed_y = 0;
+    
+    // Reset game state
+    lives = 3;
+    score = 0;
+    game_over = false;
+    invulnerability_timer = 120;
+    
+    // Reinitialize life indicators
+    initLifeIndicators();
+    
+    // Create initial asteroids
+    for (int i = 0; i < 1; i++) {
+        createAsteroid();
+    }
 }
 
 // Fire a bullet
@@ -286,6 +419,7 @@ Boolean g4p_onInit() {
     V4pPolygonP ship_proto = getShipPrototypeSingleton();
     ship = v4p_addClone(ship_proto);
     v4p_setCollisionMask(ship, 1); // Ship is on layer 1
+    v4p_disable(ship); // Start with ship disabled in title mode
 
     // Initialize life indicators
     initLifeIndicators();
@@ -293,10 +427,9 @@ Boolean g4p_onInit() {
     // Create score display polygon
     score_poly = v4p_addNew(V4P_RELATIVE, V4P_WHITE, 15);
     
-    // Create initial asteroids
-    for (int i = 0; i < 1; i++) {
-        createAsteroid();
-    }
+    // Start in title mode
+    game_mode = GAME_MODE_TITLE;
+    createTitleScreen();
     
     return success;
 }
@@ -309,21 +442,29 @@ Boolean g4p_onTick(Int32 deltaTime) {
     // remember last key press
     static UInt16 last_key = 0;
 
-    // Handle invulnerability timer and blinking effect
-    if (invulnerability_timer > 0) {
-        invulnerability_timer--;
-        if (invulnerability_timer <= 0) {
-            // Make sure ship is visible when invulnerability ends
-            v4p_enable(ship);
-        } else {
-            // Create blinking effect using totalTime modulo
-            // Blink every 8 frames (4 frames visible, 4 frames invisible)
-            if ((totalTime / 200) % 2 == 0) {
-                v4p_enable(ship);
-            } else {
-                v4p_disable(ship);
+    // Handle mode switching based on spacebar long press
+    if (g4p_state.key == SDLK_SPACE) {
+        space_press_timer++;
+        
+        // Long press detected - switch modes
+        if (space_press_timer >= LONG_PRESS_THRESHOLD) {
+            if (game_mode == GAME_MODE_TITLE) {
+                // Start new game from title screen
+                game_mode = GAME_MODE_PLAYING;
+                clearTitleGameOverScreen();
+                v4p_enable(ship); // Enable ship for gameplay
+                resetGameState(); // Reset game state
+            } else if (game_mode == GAME_MODE_GAMEOVER) {
+                // Restart game from gameover screen
+                game_mode = GAME_MODE_PLAYING;
+                clearTitleGameOverScreen();
+                v4p_enable(ship); // Enable ship for gameplay
+                resetGameState(); // Reset game state
             }
+            space_press_timer = 0; // Reset timer
         }
+    } else {
+        space_press_timer = 0; // Reset timer if spacebar released
     }
 
     // Remove marked objects
@@ -362,69 +503,103 @@ Boolean g4p_onTick(Int32 deltaTime) {
         }
     }
     asteroids_to_remove_count = 0;
-    
-    // Handle input
-    if (g4p_state.key == SDLK_LEFT) {
-        ship_angle -= 3.f;
-    }
-    if (g4p_state.key == SDLK_RIGHT) {
-        ship_angle += 3.f;
-    }
-    
-    thrusting = false;
-    if (g4p_state.key == SDLK_UP) {
-        thrusting = true;
-        // Apply thrust in the direction the ship is facing
-        int sina, cosa;
-        getSinCosFromDegrees(ship_angle, &sina, &cosa);
-        ship_speed_x += (sina / 256.0f) * 0.1f;  // Accelerate in thrust direction
-        ship_speed_y -= (cosa / 256.0f) * 0.1f;
-    }
-    
-    // Apply friction/deceleration when no thrust
-    if (g4p_state.key != SDLK_UP) {
-        ship_speed_x *= 0.98f;  // Slow down gradually
-        ship_speed_y *= 0.98f;
-        
-        // Small threshold to stop completely
+
+    if (game_mode == GAME_MODE_PLAYING) {
+        // In title/gameover mode, disable ship controls and logic
+
+        // Handle invulnerability timer and blinking effect
+        if (invulnerability_timer > 0) {
+            invulnerability_timer--;
+            if (invulnerability_timer <= 0) {
+                // Make sure ship is visible when invulnerability ends
+                v4p_enable(ship);
+            } else {
+                // Create blinking effect using totalTime modulo
+                // Blink every 8 frames (4 frames visible, 4 frames invisible)
+                if ((totalTime / 200) % 2 == 0) {
+                    v4p_enable(ship);
+                } else {
+                    v4p_disable(ship);
+                }
+            }
+        }
+
+        // Handle input
+        if (g4p_state.key == SDLK_LEFT) {
+            ship_angle -= 3.f;
+        }
+        if (g4p_state.key == SDLK_RIGHT) {
+            ship_angle += 3.f;
+        }
+
+        thrusting = false;
+        if (g4p_state.key == SDLK_UP) {
+            thrusting = true;
+            // Apply thrust in the direction the ship is facing
+            int sina, cosa;
+            getSinCosFromDegrees(ship_angle, &sina, &cosa);
+            ship_speed_x += (sina / 256.0f) * 0.1f;  // Accelerate in thrust direction
+            ship_speed_y -= (cosa / 256.0f) * 0.1f;
+        }
+
+        // Apply friction/deceleration when no thrust
+        if (g4p_state.key != SDLK_UP) {
+            ship_speed_x *= 0.98f;  // Slow down gradually
+            ship_speed_y *= 0.98f;
+
+            // Small threshold to stop completely
         if (fabs(ship_speed_x) < 0.01f) ship_speed_x = 0;
         if (fabs(ship_speed_y) < 0.01f) ship_speed_y = 0;
-    }
-    
-    // Apply the speed vector to ship position
-    ship_x += ship_speed_x;
-    ship_y += ship_speed_y;
-    
-    // Space bar: fire bullet AND apply extra thrust
-    if (g4p_state.key == SDLK_SPACE) {
-        if (last_key != SDLK_SPACE) {
-            fireBullet();
         }
-        
-        // Apply extra thrust when space bar is held down
-        int sina, cosa;
-        getSinCosFromDegrees(ship_angle, &sina, &cosa);
-        ship_speed_x += (sina / 256.0f) * 0.2f;  // Stronger acceleration on space
-        ship_speed_y -= (cosa / 256.0f) * 0.2f;
-    }
-    last_key = g4p_state.key;
 
-    // Update ship position and rotation (convert degrees to V4P format)
-    v4p_transform(ship, ship_x, ship_y, ship_angle * 256.f / 360.f, 0, 256, 256);
-    
+        // Apply the speed vector to ship position
+        ship_x += ship_speed_x;
+        ship_y += ship_speed_y;
+
+        // Space bar: fire bullet AND apply extra thrust
+        if (g4p_state.key == SDLK_SPACE) {
+            if (last_key != SDLK_SPACE) {
+                fireBullet();
+            }
+
+            // Apply extra thrust when space bar is held down
+            int sina, cosa;
+            getSinCosFromDegrees(ship_angle, &sina, &cosa);
+            ship_speed_x += (sina / 256.0f) * 0.2f;  // Stronger acceleration on space
+            ship_speed_y -= (cosa / 256.0f) * 0.2f;
+        }
+        last_key = g4p_state.key;
+
+        // Wrap ship around screen edges
+        if (ship_x < -v4p_displayWidth / 2) {
+            ship_x = v4p_displayWidth / 2;
+        } else if (ship_x > v4p_displayWidth / 2) {
+            ship_x = -v4p_displayWidth / 2;
+        }
+
+        if (ship_y < -v4p_displayHeight / 2) {
+            ship_y = v4p_displayHeight / 2;
+        } else if (ship_y > v4p_displayHeight / 2) {
+            ship_y = -v4p_displayHeight / 2;
+        }
+
+        // Update ship position and rotation (convert degrees to V4P format)
+        v4p_transform(ship, ship_x, ship_y, ship_angle * 256.f / 360.f, 0, 256, 256);
+    }
+
     // Update bullets - move them forward
     for (int i = 0; i < bullet_count; i++) {
         // Move bullet in its own direction
         int sina, cosa;
         getSinCosFromDegrees(bullet_angle[i], &sina, &cosa);
-        
+
         // Move bullet forward
         bullet_x[i] += (sina / 256.0f) * 5.;
         bullet_y[i] -= (cosa / 256.0f) * 5.;
-        
+
         // Update bullet position
         v4p_transform(bullets[i], bullet_x[i], bullet_y[i], bullet_angle[i] * 256.f / 360.f, 0, 256, 256);
-        
+
         // Remove bullets that go off screen
         if (bullet_x[i] < -v4p_displayWidth/2 - 50 || bullet_x[i] > v4p_displayWidth/2 + 50 ||
             bullet_y[i] < -v4p_displayHeight/2 - 50 || bullet_y[i] > v4p_displayHeight/2 + 50) {
@@ -440,8 +615,8 @@ Boolean g4p_onTick(Int32 deltaTime) {
             i--; // Adjust index after removal
         }
     }
-    
-    // Update asteroids - rotate them
+
+    // Update asteroids
     for (int i = 0; i < asteroid_count; i++) {
         // Move asteroid forward slightly
         int sina, cosa;
@@ -462,31 +637,18 @@ Boolean g4p_onTick(Int32 deltaTime) {
             asteroid_y[i] = -v4p_displayHeight / 2;
         }
 
-        if (ship_y < -v4p_displayHeight / 2) {
-            ship_y = v4p_displayHeight / 2;
-        } else if (ship_y > v4p_displayHeight / 2) {
-            ship_y = -v4p_displayHeight / 2;
-        }
-
-        // Update asteroid transform
-        v4p_transform(asteroids[i], asteroid_x[i], asteroid_y[i], (asteroid_angle[i] + totalTime * 0.01f) * 256.f / 360.f, 0, 256, 256);
-    }
-    
-    // Wrap ship around screen edges
-    if (ship_x < -v4p_displayWidth/2) {
-        ship_x = v4p_displayWidth/2;
-    } else if (ship_x > v4p_displayWidth/2) {
-        ship_x = -v4p_displayWidth/2;
-    }
-    
-    if (ship_y < -v4p_displayHeight/2) {
-        ship_y = v4p_displayHeight/2;
-    } else if (ship_y > v4p_displayHeight/2) {
-        ship_y = -v4p_displayHeight/2;
+        // Update asteroid transform rotating slowly
+        v4p_transform(asteroids[i],
+                        asteroid_x[i],
+                        asteroid_y[i],
+                        (asteroid_angle[i] + totalTime * 0.01f) * 256.f / 360.f,
+                        0,
+                        256,
+                        256);
     }
 
     // Create new asteroid to keep game going
-    if (asteroid_count < (level % MAX_ASTEROIDS) && rand() % 60 == 0) {
+    if (asteroid_count < (level < MAX_ASTEROIDS ? level : MAX_ASTEROIDS) && rand() % 60 == 0) {
         createAsteroid();
     }
 
@@ -495,12 +657,20 @@ Boolean g4p_onTick(Int32 deltaTime) {
         // Remove and destroy the old score polygon
         v4p_destroyFromScene(score_poly);
     }
-    
+
     // Create new score polygon with current score
     score_poly = v4p_addNew(V4P_RELATIVE, V4P_BLUE, 15 /* top layer */);
     qfontDefinePolygonFromInt(score, score_poly, 10, 10, 20, 20, 5);
 
-    return game_over ? failure : success;  // Return failure to exit when game is over
+    // Check if game over and switch to gameover mode
+    if (game_over && game_mode == GAME_MODE_PLAYING) {
+        game_mode = GAME_MODE_GAMEOVER;
+        v4p_disable(ship); // Disable ship in gameover mode
+        createGameOverScreen();
+        return success; // Don't exit, just show gameover screen
+    }
+
+    return success;
 }
 
 Boolean g4p_onFrame() {
