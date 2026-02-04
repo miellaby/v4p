@@ -35,7 +35,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
     int i;
 
     // Check for mouse interaction - select color based on mouse position
-    if (g4p_state.buttons[0]) {  // Mouse button pressed
+    if (g4p_state.buttons[G4P_PEN]) {  // Mouse button pressed
         int mouse_x = g4p_state.xpen;
         int mouse_y = g4p_state.ypen;
 

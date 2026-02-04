@@ -128,7 +128,7 @@ static void read_mouse_event() {
             }
         } else if (ev.type == EV_KEY) {
             if (ev.code == BTN_LEFT) {
-                g4p_state.buttons[0] = (ev.value == 1);
+                g4p_state.buttons[G4P_PEN] = (ev.value == 1);
             }
         }
     }

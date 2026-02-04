@@ -66,11 +66,11 @@ int g4pi_pollEvents() {
             break;
 
         case ButtonPress:
-            g4p_state.buttons[0] = 1;
+            g4p_state.buttons[G4P_PEN] = 1;
             break;
 
         case ButtonRelease:
-            g4p_state.buttons[0] = 0;
+            g4p_state.buttons[G4P_PEN] = 0;
             break;
 
         case MotionNotify:

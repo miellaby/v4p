@@ -1,7 +1,6 @@
 #include "g4p.h"
 #include "v4p.h"
 #include "v4pserial.h"
-#include <SDL/SDL.h>
 #include <stdlib.h>
 #include <math.h>    // For fabs()
 #include "lowmath.h"  // For computeCosSin()
@@ -439,11 +438,11 @@ Boolean g4p_onTick(Int32 deltaTime) {
     totalTime += deltaTime;
     int level = 3 + score / 1000;
 
-    // remember last key press
-    static UInt16 last_key = 0;
+    // remember last space button state
+    static Boolean last_space_pressed = false;
 
     // Handle mode switching based on spacebar long press
-    if (g4p_state.key == SDLK_SPACE) {
+    if (g4p_state.buttons[G4P_SPACE]) {  // Space button
         space_press_timer++;
         
         // Long press detected - switch modes
@@ -525,15 +524,15 @@ Boolean g4p_onTick(Int32 deltaTime) {
         }
 
         // Handle input
-        if (g4p_state.key == SDLK_LEFT) {
+        if (g4p_state.buttons[G4P_LEFT]) {  // Left Arrow
             ship_angle -= 3.f;
         }
-        if (g4p_state.key == SDLK_RIGHT) {
+        if (g4p_state.buttons[G4P_RIGHT]) {  // Right Arrow
             ship_angle += 3.f;
         }
 
         thrusting = false;
-        if (g4p_state.key == SDLK_UP) {
+        if (g4p_state.buttons[G4P_UP]) {  // Up Arrow
             thrusting = true;
             // Apply thrust in the direction the ship is facing
             int sina, cosa;
@@ -543,7 +542,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
         }
 
         // Apply friction/deceleration when no thrust
-        if (g4p_state.key != SDLK_UP) {
+        if (!g4p_state.buttons[G4P_UP]) {  // No Up Arrow
             ship_speed_x *= 0.98f;  // Slow down gradually
             ship_speed_y *= 0.98f;
 
@@ -557,8 +556,8 @@ Boolean g4p_onTick(Int32 deltaTime) {
         ship_y += ship_speed_y;
 
         // Space bar: fire bullet AND apply extra thrust
-        if (g4p_state.key == SDLK_SPACE) {
-            if (last_key != SDLK_SPACE) {
+        if (g4p_state.buttons[G4P_SPACE]) {  // Space button
+            if (!last_space_pressed) {
                 fireBullet();
             }
 
@@ -568,7 +567,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
             ship_speed_x += (sina / 256.0f) * 0.2f;  // Stronger acceleration on space
             ship_speed_y -= (cosa / 256.0f) * 0.2f;
         }
-        last_key = g4p_state.key;
+        last_space_pressed = g4p_state.buttons[G4P_SPACE];
 
         // Wrap ship around screen edges
         if (ship_x < -v4p_displayWidth / 2) {

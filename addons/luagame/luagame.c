@@ -52,8 +52,8 @@ Boolean g4p_onTick(Int32 deltaTime) {
     static char buffer[500];
     snprintf(buffer,
              500,
-             "g4p_state.buttons={%d,%d,%d,%d,%d,%d,%d,%d}; g4p_state.xpen=%d; "
-             "g4pState.ypen=%d; g4p_state.deltaTime=%d;",
+             "g4p_state.buttons={%d,%d,%d,%d,%d,%d,%d,%d,%d};"
+             " g4p_state.xpen=%d; g4p_state.ypen=%d; g4p_state.deltaTime=%d;",
              g4p_state.buttons[0],
              g4p_state.buttons[1],
              g4p_state.buttons[2],
@@ -62,6 +62,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
              g4p_state.buttons[5],
              g4p_state.buttons[6],
              g4p_state.buttons[7],
+             g4p_state.buttons[8],
              g4p_state.xpen,
              g4p_state.ypen,
              deltaTime);

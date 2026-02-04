@@ -208,14 +208,14 @@ EVENT G4p_OnTerminate(EventPtr event) {
     return false;
 }
 EVENT G4pF_OnPenDownXY(UInt16 X, UInt16 Y) {
-    g4p_state->buttons[0] = true;
+    g4p_state->buttons[G4P_PEN] = true;
     g4p_state->xpen = X - 10;
     g4p_state->ypen = Y - 10;
     return false;
 }
 
 EVENT G4pF_OnPenUpXY(UInt16 X, UInt16 Y) {
-    g4p_state->buttons[0] = false;
+    g4p_state->buttons[G4P_PEN] = false;
     return false;
 }
 

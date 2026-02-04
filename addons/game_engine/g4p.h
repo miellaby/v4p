@@ -6,11 +6,24 @@
 #include "v4p.h"
 #include "collision.h"
 
+// Button mapping enum
+typedef enum {
+    G4P_PEN = 0,    // Mouse button
+    G4P_UP = 1,     // Up Arrow
+    G4P_DOWN = 2,   // Down Arrow
+    G4P_LEFT = 3,   // Left Arrow
+    G4P_RIGHT = 4,  // Right Arrow
+    G4P_SPACE = 5,  // Space
+    G4P_SHIFT = 6,  // Shift
+    G4P_ALT = 7,    // Alt
+    G4P_CTRL = 8    // Ctrl
+} G4pButton;
+
 // Engine State
 typedef struct g4pState_s {
-    Boolean buttons[8];
+    Boolean buttons[9];  // Button states
     V4pCoord xpen, ypen;
-    UInt16 key;
+    UInt16 key;  // Legacy single key press (SDLK_* values)
 } G4pState;
 
 // Game 4 Pocket entry points

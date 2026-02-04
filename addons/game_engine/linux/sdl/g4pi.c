@@ -42,21 +42,53 @@ int g4pi_pollEvents() {
                     SDLKey keypressed = event.key.keysym.sym;
                     if (keypressed == SDLK_ESCAPE)
                         rc = 1;
-                    g4p_state.key = (Uint16) keypressed;
+                    
+                    // Map keys to buttons array
+                    switch (keypressed) {
+                        case SDLK_UP:     g4p_state.buttons[G4P_UP] = 1; break;
+                        case SDLK_DOWN:   g4p_state.buttons[G4P_DOWN] = 1; break;
+                        case SDLK_LEFT:   g4p_state.buttons[G4P_LEFT] = 1; break;
+                        case SDLK_RIGHT:  g4p_state.buttons[G4P_RIGHT] = 1; break;
+                        case SDLK_SPACE:  g4p_state.buttons[G4P_SPACE] = 1; break;
+                        case SDLK_LSHIFT:
+                        case SDLK_RSHIFT: g4p_state.buttons[G4P_SHIFT] = 1; break;
+                        case SDLK_LALT:
+                        case SDLK_RALT:   g4p_state.buttons[G4P_ALT] = 1; break;
+                        case SDLK_LCTRL:
+                        case SDLK_RCTRL:  g4p_state.buttons[G4P_CTRL] = 1; break;
+                        default:
+                            // Unmapped key, store in key field
+                            g4p_state.key = (Uint16) keypressed;
+                    }
                     break;
                 }
             case SDL_KEYUP:
-                if (g4p_state.key == event.key.keysym.sym) {
-                    g4p_state.key = 0;
+                // Clear key buttons on key up
+                switch (event.key.keysym.sym) {
+                    case SDLK_UP:     g4p_state.buttons[G4P_UP] = 0; break;
+                    case SDLK_DOWN:   g4p_state.buttons[G4P_DOWN] = 0; break;
+                    case SDLK_LEFT:   g4p_state.buttons[G4P_LEFT] = 0; break;
+                    case SDLK_RIGHT:  g4p_state.buttons[G4P_RIGHT] = 0; break;
+                    case SDLK_SPACE:  g4p_state.buttons[G4P_SPACE] = 0; break;
+                    case SDLK_LSHIFT:
+                    case SDLK_RSHIFT: g4p_state.buttons[G4P_SHIFT] = 0; break;
+                    case SDLK_LALT:
+                    case SDLK_RALT:   g4p_state.buttons[G4P_ALT] = 0; break;
+                    case SDLK_LCTRL:
+                    case SDLK_RCTRL:  g4p_state.buttons[G4P_CTRL] = 0; break;
+                    default: // Unmapped key, clear key field if it matches
+                        if (g4p_state.key == event.key.keysym.sym)
+                            g4p_state.key = 0;
+                        break;
                 }
                 break;
 
             case SDL_MOUSEBUTTONDOWN:
-                g4p_state.buttons[0] = 1;
+                g4p_state.buttons[G4P_PEN] = 1;
                 break;
 
             case SDL_MOUSEBUTTONUP:
-                g4p_state.buttons[0] = 0;
+                g4p_state.buttons[G4P_PEN] = 0;
                 break;
 
             case SDL_MOUSEMOTION:

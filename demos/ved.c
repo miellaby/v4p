@@ -133,7 +133,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
 
     if (true) {
         // v4p_setView(xvu,yvu,xvu+lvu,yvu+lvu);
-        if (g4p_state.buttons[0]) {
+        if (g4p_state.buttons[G4P_PEN]) {
             if (pen1) {
                 g4p_state.xpen = (2 * g4p_state.xpen + xpen1) / 3;
                 g4p_state.ypen = (2 * g4p_state.ypen + ypen1) / 3;
@@ -326,7 +326,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
             }  // pen up ecran;
             guiStatus = idle;
         }  // no pen
-        pen1 = g4p_state.buttons[0];
+        pen1 = g4p_state.buttons[G4P_PEN];
     }  // buffer
     return success;
 }

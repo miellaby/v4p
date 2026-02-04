@@ -47,7 +47,9 @@ int g4p_main(int argc, char* argv[]) {
         Int32 deltaTime = 0;
 
         // reset game 4 pocket state
-        g4p_state.buttons[0] = 0;
+        for (int i = 0; i < 9; i++) {
+            g4p_state.buttons[i] = 0;
+        }
         g4p_state.key = 0;
 
         // Initialize
