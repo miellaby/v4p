@@ -15,11 +15,12 @@
 #define ASTEROID_SIZE 50
 #define BULLET_SIZE 5
 
-// Helper function to get sin/cos values using v4p's 256-unit circle system
+// Helper function to get sin/cos values using v4p's 512-unit circle system
 void getSinCosFromDegrees(float degrees, int* sina, int* cosa) {
-    // Convert degrees to v4p's 256-unit circle format
-    UInt16 v4p_angle = (UInt16)(degrees * 256.0f / 360.0f);
-    computeCosSin(v4p_angle);
+    // Convert degrees to v4p's 512-unit circle format
+    // computeCosSin will handle angle wrapping via bitmasking (angle & 0x1FF)
+    int v4p_angle = (int)(degrees * 512.0f / 360.0f);
+    computeCosSin((UInt16)v4p_angle);
     *sina = lwmSina;
     *cosa = lwmCosa;
 }
@@ -316,7 +317,7 @@ void createAsteroid() {
     asteroid_speed[asteroid_count] = 0.3f + (rand() % 5) * 0.1f; // Random speed between 0.3 and 0.8
     asteroid_size[asteroid_count] = 0; // Default size is big (0)
     
-    v4p_transform(asteroids[asteroid_count], x, y, rotation_deg * 256.f / 360.f, 0, 256, 256);
+    v4p_transform(asteroids[asteroid_count], x, y, rotation_deg * 512.f / 360.f, 0, 256, 256);
     v4p_setCollisionMask(asteroids[asteroid_count], 2); // Asteroids are on layer 2
     
     asteroid_count++;
@@ -382,7 +383,7 @@ void fireBullet() {
     bullet_angle[bullet_count] = ship_angle;
     bullet_ttl[bullet_count] = 80; // 1 second + at 60 FPS
     
-    v4p_transform(bullets[bullet_count], bullet_x[bullet_count], bullet_y[bullet_count], ship_angle * 256.f / 360.f, 0, 256, 256);
+    v4p_transform(bullets[bullet_count], bullet_x[bullet_count], bullet_y[bullet_count], ship_angle * 512.f / 360.f, 0, 256, 256);
     v4p_setCollisionMask(bullets[bullet_count], 4); // Bullets are on layer 3
     
     bullet_count++;
@@ -720,7 +721,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
         }
 
         // Update ship position and rotation (convert degrees to V4P format)
-        v4p_transform(ship, ship_x, ship_y, ship_angle * 256.f / 360.f, 0, 256, 256);
+        v4p_transform(ship, ship_x, ship_y, ship_angle * 512.f / 360.f, 0, 256, 256);
     }
 
     // Update bullets - move them forward
@@ -734,7 +735,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
         bullet_y[i] -= (cosa / 256.0f) * 5.;
 
         // Update bullet position
-        v4p_transform(bullets[i], bullet_x[i], bullet_y[i], bullet_angle[i] * 256.f / 360.f, 0, 256, 256);
+        v4p_transform(bullets[i], bullet_x[i], bullet_y[i], bullet_angle[i] * 512.f / 360.f, 0, 256, 256);
 
         // Wrap bullets around screen edges (like asteroids)
         if (bullet_x[i] < -v4p_displayWidth / 2) {
@@ -801,7 +802,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
         v4p_transform(asteroids[i],
                         asteroid_x[i],
                         asteroid_y[i],
-                        (asteroid_angle[i] + totalTime * 0.02f) * 256.f / 360.f,
+                        (asteroid_angle[i] + totalTime * 0.02f) * 512.f / 360.f,
                         0,
                         scale,
                         scale);

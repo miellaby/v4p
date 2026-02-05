@@ -153,9 +153,10 @@ void particles_emit(ParticleSystem* system, float x, float y, float angle) {
     particle->scale = 1.0f;
     particle->active = true;
     
-    // Transform the particle
-    v4p_transform(particle->poly, x, y, particle->rotation_angle * 256.f / 360.f, 0, 256, 256);
-    
+    // Transform the particle - computeCosSin/v4p_transform will handle angle wrapping
+    int v4p_angle = (int)(particle->rotation_angle * 512.0f / 360.0f);
+    v4p_transform(particle->poly, x, y, (UInt16)v4p_angle, 0, 256, 256);
+
     system->active_particles++;
 }
 
@@ -183,7 +184,8 @@ void particles_iterate(ParticleSystem* system) {
         
         // Update position based on speed and move angle
         int sina, cosa;
-        UInt16 v4p_move_angle = (UInt16)(particle->move_angle * 256.0f / 360.0f);
+        // Convert to V4P angle format - computeCosSin will handle wrapping via bitmasking
+        int v4p_move_angle = (int)(particle->move_angle * 512.0f / 360.0f);
         computeCosSin(v4p_move_angle);
         sina = lwmSina;
         cosa = lwmCosa;
@@ -197,12 +199,13 @@ void particles_iterate(ParticleSystem* system) {
         // Update scale with growth
         particle->scale += particle->growth;
         
-        // Transform the particle using rotation angle for visual appearance
+        // Transform the particle using double modulo for proper V4P angle wrapping
         int scale_int = (int)(particle->scale * 256.0f);
+        int v4p_angle = ((int)(particle->rotation_angle * 512.0f / 360.0f) % 512 + 512) % 512;
         v4p_transform(particle->poly, 
                       particle->x, 
                       particle->y, 
-                      particle->rotation_angle * 256.f / 360.f, 
+                      (UInt16)v4p_angle, 
                       0, 
                       scale_int, 
                       scale_int);
