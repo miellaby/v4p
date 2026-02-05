@@ -25,6 +25,7 @@ void getSinCosFromDegrees(float degrees, int* sina, int* cosa) {
 
 // Game objects
 V4pPolygonP ship;
+V4pPolygonP ship_flame = NULL;  // Reference to the ship's flame polygon
 V4pPolygonP asteroids[MAX_ASTEROIDS];
 V4pPolygonP bullets[MAX_BULLETS];
 static V4pPolygonP score_poly = NULL;  // Score display polygon
@@ -87,6 +88,16 @@ V4pPolygonP getShipPrototypeSingleton() {
         v4p_addPoint(proto, -10, 20); // Bottom right
         v4p_addPoint(proto, 10, 20); // Bottom left
         v4p_setAnchorToCenter(proto);
+        
+        // Add flame as a subparent (will be cloned with the ship)
+        V4pPolygonP flame = v4p_addNewSub(proto, V4P_ABSOLUTE, V4P_RED, 0);
+        // Create a small triangle for the flame at the back of the ship (inverted to point downward)
+        v4p_addPoint(flame, 0, 30);   // Tip of flame (pointing downward)
+        v4p_addPoint(flame, -5, 15);  // Left base point
+        v4p_addPoint(flame, 5, 15);   // Right base point
+        v4p_setAnchorToCenter(flame);
+        // Position flame relative to ship's back
+        v4p_transform(flame, 0, 10, 0, 0, 256, 256); // Move down from ship center
     }
     return proto;
 }
@@ -459,6 +470,11 @@ Boolean g4p_onInit() {
     V4pPolygonP ship_proto = getShipPrototypeSingleton();
     ship = v4p_addClone(ship_proto);
     v4p_setCollisionMask(ship, 1); // Ship is on layer 1
+    
+    // Get reference to the flame sub-polygon using the new tree traversal functions
+    // The flame was added as the first sub-polygon in getShipPrototypeSingleton
+    ship_flame = v4p_getFirstSub(ship);
+    
     v4p_disable(ship); // Start with ship disabled in title mode
 
     // Initialize life indicators
@@ -493,12 +509,14 @@ Boolean g4p_onTick(Int32 deltaTime) {
                 game_mode = GAME_MODE_PLAYING;
                 clearTitleGameOverScreen();
                 v4p_enable(ship); // Enable ship for gameplay
+                v4p_disable(ship_flame); // Start with flame disabled
                 resetGameState(); // Reset game state
             } else if (game_mode == GAME_MODE_GAMEOVER) {
                 // Restart game from gameover screen
                 game_mode = GAME_MODE_PLAYING;
                 clearTitleGameOverScreen();
                 v4p_enable(ship); // Enable ship for gameplay
+                v4p_disable(ship_flame); // Start with flame disabled
                 resetGameState(); // Reset game state
             }
             space_press_timer = 0; // Reset timer
@@ -587,11 +605,13 @@ Boolean g4p_onTick(Int32 deltaTime) {
             if (invulnerability_timer <= 0) {
                 // Make sure ship is visible when invulnerability ends
                 v4p_enable(ship);
+                v4p_disable(ship_flame);
             } else {
                 // Create blinking effect using totalTime modulo
                 // Blink every 8 frames (4 frames visible, 4 frames invisible)
                 if ((totalTime / 200) % 2 == 0) {
                     v4p_enable(ship);
+                    v4p_disable(ship_flame);
                 } else {
                     v4p_disable(ship);
                 }
@@ -614,6 +634,16 @@ Boolean g4p_onTick(Int32 deltaTime) {
             getSinCosFromDegrees(ship_angle, &sina, &cosa);
             ship_speed_x += (sina / 256.0f) * 0.1f;  // Accelerate in thrust direction
             ship_speed_y -= (cosa / 256.0f) * 0.1f;
+            
+            // Randomly show/hide flame for flickering effect
+            if (rand() % 3 == 0) {  // About 1/3 chance to show flame each frame
+                v4p_enable(ship_flame);
+            } else {
+                v4p_disable(ship_flame);
+            }
+        } else {
+            // Hide flame when not thrusting
+            v4p_disable(ship_flame);
         }
 
         // Apply friction/deceleration when no thrust

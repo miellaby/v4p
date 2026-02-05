@@ -461,6 +461,22 @@ Boolean v4p_destroyFromParent(V4pPolygonP parent, V4pPolygonP p) {
     return v4p_outOfList(p, &parent->sub1) || v4p_destroy(p);
 }
 
+// Get the first sub-polygon of a parent
+V4pPolygonP v4p_getFirstSub(V4pPolygonP parent) {
+    if (parent) {
+        return parent->sub1;
+    }
+    return NULL;
+}
+
+// Get the next sub-polygon (sibling)
+V4pPolygonP v4p_getNextSub(V4pPolygonP current) {
+    if (current) {
+        return current->next;
+    }
+    return NULL;
+}
+
 // Set a polygon property flag
 V4pProps v4p_putProp(V4pPolygonP p, V4pProps i) {
     v4p_changed(p);

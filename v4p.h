@@ -120,6 +120,10 @@ V4pPolygonP v4p_getLimits(V4pPolygonP p, V4pCoord* minx, V4pCoord* maxx, V4pCoor
 V4pProps v4p_enable(V4pPolygonP p);
 V4pProps v4p_disable(V4pPolygonP p);
 
+// Polygon tree traversal functions
+V4pPolygonP v4p_getFirstSub(V4pPolygonP parent);
+V4pPolygonP v4p_getNextSub(V4pPolygonP current);
+
 // transformation
 V4pPolygonP v4p_transformClone(V4pPolygonP p,
                                V4pPolygonP c,
