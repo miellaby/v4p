@@ -44,20 +44,21 @@ ParticleSystem* particles_create(int max_particles, V4pPolygonP prototype) {
     
     // Pre-clone all polygons and initialize particles
     for (int i = 0; i < max_particles; i++) {
-        system->particles[i].poly = v4p_addClone(prototype);
+        system->particles[i].poly = v4p_clone(prototype);
         system->particles[i].active = false;
         system->particles[i].ttl = 0;
         system->particles[i].x = 0;
         system->particles[i].y = 0;
         system->particles[i].speed = 0;
-        system->particles[i].angle = 0;
+        system->particles[i].move_angle = 0;
+        system->particles[i].rotation_angle = 0;
         system->particles[i].acceleration = 0;
         system->particles[i].rotation_speed = 0;
         system->particles[i].growth = 0;
         system->particles[i].scale = 1.0f;
         
-        // Start with polygons removed from scene
-        v4p_disable(system->particles[i].poly);
+        // Start with polygons removed from scene (they'll be added when emitted)
+        // Note: v4p_clone doesn't add to scene, so no need to remove
     }
     
     return system;
@@ -70,7 +71,10 @@ void particles_destroy(ParticleSystem* system) {
     // Destroy all particle polygons
     for (int i = 0; i < system->max_particles; i++) {
         if (system->particles[i].poly) {
-            v4p_destroyFromScene(system->particles[i].poly);
+            // Remove from scene only if active (in scene), then destroy
+            if (system->particles[i].active)
+                v4p_remove(system->particles[i].poly);
+            v4p_destroy(system->particles[i].poly);
             system->particles[i].poly = NULL;
         }
     }
@@ -134,14 +138,15 @@ void particles_emit(ParticleSystem* system, float x, float y, float angle) {
     Particle* particle = &system->particles[particle_index];
     
     // Enable the polygon (add to scene)
-    v4p_enable(particle->poly);
+    v4p_add(particle->poly);
     
     // Set particle properties with noise
     particle->ttl = system->default_ttl;
     particle->x = x;
     particle->y = y;
     particle->speed = add_noise(system->default_speed, system->speed_noise);
-    particle->angle = add_noise(angle, system->angle_noise);
+    particle->move_angle = add_noise(angle, system->angle_noise);
+    particle->rotation_angle = add_noise(angle, system->angle_noise); // Initialize rotation to move angle
     particle->acceleration = add_noise(system->default_acceleration, system->speed_noise);
     particle->rotation_speed = add_noise(system->default_rotation_speed, system->rotation_noise);
     particle->growth = add_noise(system->default_growth, system->growth_noise);
@@ -149,7 +154,7 @@ void particles_emit(ParticleSystem* system, float x, float y, float angle) {
     particle->active = true;
     
     // Transform the particle
-    v4p_transform(particle->poly, x, y, angle * 256.f / 360.f, 0, 256, 256);
+    v4p_transform(particle->poly, x, y, particle->rotation_angle * 256.f / 360.f, 0, 256, 256);
     
     system->active_particles++;
 }
@@ -167,7 +172,7 @@ void particles_iterate(ParticleSystem* system) {
         particle->ttl--;
         if (particle->ttl <= 0) {
             // Particle has expired - remove from scene
-            v4p_disable(particle->poly);
+            v4p_remove(particle->poly);
             particle->active = false;
             system->active_particles--;
             continue;
@@ -176,28 +181,28 @@ void particles_iterate(ParticleSystem* system) {
         // Update speed with acceleration
         particle->speed += particle->acceleration;
         
-        // Update position based on speed and angle
+        // Update position based on speed and move angle
         int sina, cosa;
-        UInt16 v4p_angle = (UInt16)(particle->angle * 256.0f / 360.0f);
-        computeCosSin(v4p_angle);
+        UInt16 v4p_move_angle = (UInt16)(particle->move_angle * 256.0f / 360.0f);
+        computeCosSin(v4p_move_angle);
         sina = lwmSina;
         cosa = lwmCosa;
         
         particle->x += (sina / 256.0f) * particle->speed;
         particle->y -= (cosa / 256.0f) * particle->speed;
         
-        // Update rotation
-        particle->angle += particle->rotation_speed;
+        // Update rotation angle separately from movement angle
+        particle->rotation_angle += particle->rotation_speed;
         
         // Update scale with growth
         particle->scale += particle->growth;
         
-        // Transform the particle
+        // Transform the particle using rotation angle for visual appearance
         int scale_int = (int)(particle->scale * 256.0f);
         v4p_transform(particle->poly, 
                       particle->x, 
                       particle->y, 
-                      particle->angle * 256.f / 360.f, 
+                      particle->rotation_angle * 256.f / 360.f, 
                       0, 
                       scale_int, 
                       scale_int);

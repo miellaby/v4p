@@ -10,7 +10,8 @@ typedef struct Particle {
     int ttl;                        // Time-to-live counter
     float x, y;                     // Position
     float speed;                    // Current speed
-    float angle;                    // Current angle (degrees)
+    float move_angle;               // Movement direction angle (degrees)
+    float rotation_angle;           // Visual rotation angle (degrees)
     float acceleration;             // Acceleration
     float rotation_speed;           // Rotation speed
     float growth;                   // Growth rate

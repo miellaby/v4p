@@ -504,8 +504,8 @@ Boolean g4p_onInit() {
     
     // Explosion system - for asteroid destruction
     explosion_system = particles_create(50, particle_proto);
-    particles_set_defaults(explosion_system, 60, 3.0f, -0.1f, 5.0f, 0.0f);
-    particles_set_noise(explosion_system, 0.5f, 0.8f, 0.5f, 0.2f);
+    particles_set_defaults(explosion_system, 60, 1.5f, -0.01f, 5.0f, 0.0f);
+    particles_set_noise(explosion_system, 0.5f, 0.3f, 0.5f, 0.2f);
     
     // Thrust system - for ship engine
     thrust_system = particles_create(20, particle_proto);
