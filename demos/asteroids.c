@@ -6,6 +6,7 @@
 #include "lowmath.h"  // For computeCosSin()
 #include "addons/game_engine/collision.h"
 #include "addons/qfont/qfont.h"  // For score display
+#include "addons/particles/particles.h"  // For particle effects
 #include "backends/v4pi.h"  // For v4pi_debug
 
 #define MAX_ASTEROIDS 15
@@ -32,6 +33,10 @@ static V4pPolygonP score_poly = NULL;  // Score display polygon
 #define MAX_LIVES 5
 V4pPolygonP life_indicators[MAX_LIVES];  // Life indicators (small ships)
 int life_count = 0;
+
+// Particle systems
+ParticleSystem* explosion_system = NULL;
+ParticleSystem* thrust_system = NULL;
 
 // Track positions and angles for objects we can't query
 float bullet_x[MAX_BULLETS];
@@ -432,6 +437,13 @@ void asteroids_onCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord avg_x, 
         for (int i = 0; i < asteroid_count; i++) {
             if (asteroids[i] == asteroid) {
                 asteroids_to_remove[asteroids_to_remove_count++] = asteroid;
+                
+                // Create explosion particles at asteroid position
+                if (explosion_system) {
+                    for (int j = 0; j < 10; j++) {  // 10 particles per explosion
+                        particles_emit(explosion_system, asteroid_x[i], asteroid_y[i], asteroid_angle[i] + (rand() % 360));
+                    }
+                }
                 break;
             }
         }
@@ -486,6 +498,19 @@ Boolean g4p_onInit() {
     // Start in title mode
     game_mode = GAME_MODE_TITLE;
     createTitleScreen();
+    
+    // Initialize particle systems
+    V4pPolygonP particle_proto = particles_create_default_prototype();
+    
+    // Explosion system - for asteroid destruction
+    explosion_system = particles_create(50, particle_proto);
+    particles_set_defaults(explosion_system, 60, 3.0f, -0.1f, 5.0f, 0.0f);
+    particles_set_noise(explosion_system, 0.5f, 0.8f, 0.5f, 0.2f);
+    
+    // Thrust system - for ship engine
+    thrust_system = particles_create(20, particle_proto);
+    particles_set_defaults(thrust_system, 30, 1.5f, -0.05f, 2.0f, 0.0f);
+    particles_set_noise(thrust_system, 0.3f, 0.2f, 0.3f, 0.1f);
     
     return success;
 }
@@ -640,6 +665,11 @@ Boolean g4p_onTick(Int32 deltaTime) {
                 v4p_enable(ship_flame);
             } else {
                 v4p_disable(ship_flame);
+            }
+            
+            // Emit thrust particles
+            if (thrust_system) {
+                particles_emit(thrust_system, ship_x - (sina / 256.0f) * 15, ship_y + (cosa / 256.0f) * 15, ship_angle + 180.0f);
             }
         } else {
             // Hide flame when not thrusting
@@ -800,6 +830,14 @@ Boolean g4p_onTick(Int32 deltaTime) {
         return success; // Don't exit, just show gameover screen
     }
 
+    // Update particle systems
+    if (explosion_system) {
+        particles_iterate(explosion_system);
+    }
+    if (thrust_system) {
+        particles_iterate(thrust_system);
+    }
+
     return success;
 }
 
@@ -810,6 +848,16 @@ Boolean g4p_onFrame() {
 }
 
 void g4p_onQuit() {
+    // Clean up particle systems
+    if (explosion_system) {
+        particles_destroy(explosion_system);
+        explosion_system = NULL;
+    }
+    if (thrust_system) {
+        particles_destroy(thrust_system);
+        thrust_system = NULL;
+    }
+    
     v4p_quit();
 }
 
