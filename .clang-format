@@ -39,15 +39,13 @@ PointerAlignment: Left
 ReferenceAlignment: Left
 DerivePointerAlignment: false
 
-# Function Formatting - Modern C Standards
-# AllowAllParametersOfDeclarationOnNextLine: true
-# BinPackParameters: false
-# BinPackArguments: false
-# AlignConsecutiveDeclarations: true
-# AlignConsecutiveAssignments: true
-AllowShortFunctionsOnASingleLine: None
-AllowShortIfStatementsOnASingleLine: false
-AllowShortLoopsOnASingleLine: false
+# Function Formatting - More Compact
+AllowAllParametersOfDeclarationOnNextLine: true
+BinPackParameters: true
+BinPackArguments: true
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortLoopsOnASingleLine: true
 
 # Indentation - Modern Standards
 IndentCaseLabels: true
@@ -61,14 +59,13 @@ SpacesBeforeTrailingComments: 2
 CommentPragmas: '^ IWYU pragma:|^ TODO:|^ FIXME:'
 FixNamespaceComments: false
 
-# Line Breaking - Conservative (Fixed to prevent excessive breaking)
-PenaltyBreakBeforeFirstCallParameter: 1000  # Higher = less likely to break
-PenaltyBreakComment: 300
-# PenaltyBreakFirstLessLess: 1000
-PenaltyBreakString: 1000
-PenaltyBreakTemplateDeclaration: 1000
+# Line Breaking - More Conservative (Prevent excessive breaking)
+PenaltyBreakBeforeFirstCallParameter: 10000  # Much higher = much less likely to break
+PenaltyBreakComment: 500
+PenaltyBreakString: 10000
+PenaltyBreakTemplateDeclaration: 10000
 PenaltyExcessCharacter: 1000000
-PenaltyReturnTypeOnItsOwnLine: 1000
+PenaltyReturnTypeOnItsOwnLine: 10000
 PenaltyIndentedWhitespace: 0
 
 # Alignment - Conservative C Standards (Fixed)
@@ -89,20 +86,15 @@ ConstructorInitializerAllOnOneLineOrOnePerLine: false
 SortIncludes: Never  # Preserve manual include order
 SortUsingDeclarations: false
 
-# C-Specific Optimizations (Fixed for better function signatures)
-AllowAllArgumentsOnNextLine: true
-AllowAllParametersOfDeclarationOnNextLine: false
+# C-Specific Optimizations (More compact)
 ContinuationIndentWidth: 4
-BinPackArguments: false
 
-# Function signature formatting - keep parameters compact
-BinPackParameters: false
-ColumnLimit: 100  # Allow longer lines for function signatures
+# Function signature formatting - more compact
+ColumnLimit: 120  # Allow longer lines for function signatures
 PenaltyBreakFirstLessLess: 1000
 
 # Better function parameter handling
 AlignAfterOpenBracket: Align
-AlignConsecutiveDeclarations: false
 
 # V4P Specific Adjustments
 SpaceAfterLogicalNot: true  # Modern C standard

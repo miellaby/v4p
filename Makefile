@@ -156,11 +156,33 @@ PARTICLES_SRCS = addons/particles/particles.c
 %/%.o: %/%.c
 	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
+# Demos - build object files in demo directories
+demos/%.o: demos/%.c
+	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -Iaddons/game_engine -Iaddons/v4pserial -Iaddons/qfont -c $< -o $@
+
+# Link demos in their directories
+demos/%: demos/%.o libv4p.a libg4p.a libqfont.a libv4pserial.a libparticles.a
+	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS) -lm
+
+# Tests - build object files in demo directories
+tests/%.o: tests/%.c # Note: It is recommanded to build tests with DEBUG=1 for better diagnostics
+	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -DDEBUG=1 -Iaddons/game_engine -Iaddons/v4pserial -Iaddons/qfont -c $< -o $@
+
+# Link tests in their directories
+tests/%: tests/%.o libv4p.a libg4p.a libqfont.a libv4pserial.a libparticles.a
+	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS) -lm
+
+# ============================================
+# TARGETS
+# ============================================
+
 # Core library
 libv4p.a: $(patsubst %.c,%.o,$(CORE_SRCS)) $(patsubst %.c,%.o,$(BACKEND_SRCS))
 	$(Q)$(AR) rcs $@ $^
 
 # Addons
+addons: libg4p.a libqfont.a libv4pserial.a libluagame.a libparticles.a
+
 libg4p.a: $(patsubst %.c,%.o,$(GAME_ENGINE_SRCS))
 	$(Q)$(AR) rcs $@ $^
 
@@ -176,23 +198,12 @@ libluagame.a: $(patsubst %.c,%.o,$(LUAGAME_SRCS))
 libparticles.a: $(patsubst %.c,%.o,$(PARTICLES_SRCS))
 	$(Q)$(AR) rcs $@ $^
 
-# Demos - build object files in demo directories
-demos/%.o: demos/%.c
-	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -Iaddons/game_engine -Iaddons/v4pserial -Iaddons/qfont -c $< -o $@
-
-# Link demos in their directories
-demos/%: demos/%.o libv4p.a libg4p.a libqfont.a libv4pserial.a libparticles.a
-	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS) -lm
-
-# ============================================
-# TARGETS
-# ============================================
-
-addons: libg4p.a libqfont.a libv4pserial.a libluagame.a libparticles.a
-
 # Demos target - build all available demos
 DEMO_TARGETS := $(patsubst demos/%.c,demos/%,$(wildcard demos/*.c))
 demos: $(DEMO_TARGETS)
+
+TEST_TARGETS := $(patsubst tests/%.c,tests/%,$(wildcard tests/*.c))
+tests: $(TEST_TARGETS)
 
 clean:
 	$(Q)$(RM) *.o *.a

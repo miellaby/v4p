@@ -8,7 +8,7 @@
 
 typedef UInt16 V4pLayer;  // Rendering layer (< 16)
 typedef UInt16 V4pCollisionLayer;  // Collision layer (< 16)
-typedef UInt16 V4pCollisionMask; // Collision mask (<= 0xFFFF)
+typedef UInt16 V4pCollisionMask;  // Collision mask (<= 0xFFFF)
 
 typedef UInt16 V4pFlag;
 #define V4P_STANDARD (V4pFlag) 0
@@ -88,12 +88,7 @@ void v4p_absoluteToView(V4pCoord x, V4pCoord y, V4pCoord* xa, V4pCoord* ya);
 
 // v4p polygon
 V4pPolygonP v4p_new(V4pProps t, V4pColor col, V4pLayer z);
-V4pPolygonP v4p_newDisk(V4pProps t,
-                        V4pColor col,
-                        V4pLayer z,
-                        V4pCoord center_x,
-                        V4pCoord center_y,
-                        V4pCoord radius);
+V4pPolygonP v4p_newDisk(V4pProps t, V4pColor col, V4pLayer z, V4pCoord center_x, V4pCoord center_y, V4pCoord radius);
 V4pPolygonP v4p_clone(V4pPolygonP p);
 V4pPolygonP v4p_setCollisionMask(V4pPolygonP p, V4pCollisionMask collisionMask);
 V4pPolygonP v4p_intoList(V4pPolygonP p, V4pPolygonP* list);
@@ -125,20 +120,9 @@ V4pPolygonP v4p_getFirstSub(V4pPolygonP parent);
 V4pPolygonP v4p_getNextSub(V4pPolygonP current);
 
 // transformation
-V4pPolygonP v4p_transformClone(V4pPolygonP p,
-                               V4pPolygonP c,
-                               V4pCoord dx,
-                               V4pCoord dy,
-                               int angle,
-                               V4pLayer dz,
-                               V4pCoord zoom_x,
-                               V4pCoord zoom_y);
-V4pPolygonP v4p_transform(V4pPolygonP p,
-                          V4pCoord dx,
-                          V4pCoord dy,
-                          int angle,
-                          V4pLayer dz,
-                          V4pCoord zoom_x,
+V4pPolygonP v4p_transformClone(V4pPolygonP p, V4pPolygonP c, V4pCoord dx, V4pCoord dy, int angle, V4pLayer dz,
+                               V4pCoord zoom_x, V4pCoord zoom_y);
+V4pPolygonP v4p_transform(V4pPolygonP p, V4pCoord dx, V4pCoord dy, int angle, V4pLayer dz, V4pCoord zoom_x,
                           V4pCoord zoom_y);
 
 // anchor point management
@@ -150,12 +134,7 @@ V4pPolygonP v4p_rect(V4pPolygonP p, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCo
 V4pPolygonP v4p_add(V4pPolygonP p);
 V4pPolygonP v4p_remove(V4pPolygonP);
 V4pPolygonP v4p_sceneAddNewPoly(V4pSceneP, V4pProps t, V4pColor col, V4pLayer z);
-V4pPolygonP v4p_sceneAddNewDisk(V4pSceneP,
-                                V4pProps t,
-                                V4pColor col,
-                                V4pLayer z,
-                                V4pCoord center_x,
-                                V4pCoord center_y,
+V4pPolygonP v4p_sceneAddNewDisk(V4pSceneP, V4pProps t, V4pColor col, V4pLayer z, V4pCoord center_x, V4pCoord center_y,
                                 V4pCoord radius);
 V4pPolygonP v4p_sceneAddClone(V4pSceneP, V4pPolygonP p);
 V4pPolygonP v4p_addNew(V4pProps t, V4pColor col, V4pLayer z);
@@ -164,13 +143,8 @@ Boolean v4p_destroy(V4pPolygonP p);
 Boolean v4p_destroyFromScene(V4pPolygonP p);
 
 // Collision detection when rendering
-typedef void (*V4pCollisionCallback)(V4pCollisionLayer i1,
-                                   V4pCollisionLayer i2,
-                                   V4pCoord py,
-                                   V4pCoord x1,
-                                   V4pCoord x2,
-                                   V4pPolygonP p1,
-                                   V4pPolygonP p2);
+typedef void (*V4pCollisionCallback)(V4pCollisionLayer i1, V4pCollisionLayer i2, V4pCoord py, V4pCoord x1, V4pCoord x2,
+                                     V4pPolygonP p1, V4pPolygonP p2);
 
 // Collision callback function (see game engine implmentation)
 void v4p_setCollisionCallback(V4pCollisionCallback f);

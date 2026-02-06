@@ -42,93 +42,12 @@
  * (position on screen depends on view) Relative: in screen-referential (0,0 ==>
  * screen corner)
  */
+#define _V4P_C
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "v4p.h"
-#include "lowmath.h"
-#include "quickheap.h"
-#include "sortable.h"
-#include "quicktable.h"
-#include "v4pi.h"
-#include "assert.h"
-
-// Forward declarations
-V4pPolygonP v4p_computeLimits(V4pPolygonP p);
-
-static V4pCollisionCallback collisionCallback = NULL;
-
-#define YHASH_SIZE 512
-#define YHASH_MASK 511
-
-// Polygon type
-typedef struct v4p_polygon_s {
-    V4pProps props;  // Property flags
-    V4pPointP point1;  // List of points (only 1 for disk)
-    V4pColor color;  // V4pColor (any data needed by the drawing function)
-    V4pCoord radius;  // Point radius (disk = 1 point with positive radius)
-    V4pLayer z;  // Depth
-    V4pCollisionLayer collisionMask;  // Collision mask
-    V4pPolygonP sub1;  // Subs list
-    V4pPolygonP next;  // Subs list link
-    V4pPolygonP parent;  // Parent polygon reference (for clones)
-    V4pCoord anchor_x, anchor_y;  // Rotation anchor point (default: 0,0)
-    V4pCoord minx, maxx, miny, maxy;  // Bounding box
-    V4pCoord minyv, maxyv;  // Vertical boundaries in view coordinates
-    List ActiveEdge1;  // ActiveEdges list
-    UInt32 id;  // Unique polygon ID
-} Polygon;
-
-// ActiveEdge type
-typedef struct activeEdge_s {
-    V4pPolygonP p;  // Parent polygon
-    V4pCoord x0, y0, x1, y1;  // Vector coordinates; absolute or relative depending
-                              // on the belonging list
-    V4pCoord x0v, y0v, x1v, y1v;  // Vector coordinates in view
-    // Bresenham algorithm variables
-    V4pCoord x;  // Current x
-    V4pCoord o1;  // Offset when accumulator under limit
-    V4pCoord o2;  // Offset when accumulator cross the limit
-    V4pCoord s;  // Accumulator
-    V4pCoord h;  // Height of the edge (scanline count)
-    V4pCoord r1;  // Remaining 1
-    V4pCoord r2;  // r1 - dy
-    Boolean circle;  // Right or left edge of a circle (coordinates are its
-                     // bounding box)
-} ActiveEdge;
-
-typedef struct activeEdge_s* ActiveEdgeP;
-
-// V4P context
-typedef struct v4p_context_s {
-    V4piContextP display;
-    V4pSceneP scene;  // Scene = a polygon set
-    V4pCoord xvu0, yvu0, xvu1, yvu1;  // View corner coordinates
-    Polygon dummyBgPoly;  // Just for color
-    int debug1;
-    QuickHeap pointHeap, polygonHeap, activeEdgeHeap;
-    List openedAEList;  // ActiveEdge lists
-    QuickTable openableAETable;  // ActiveEdge Hash Table
-    V4pCoord dxvu, dyvu;  // View width and height
-    V4pCoord divxvu, modxvu, divyvu,
-        modyvu;  // Ratios screen / view in result+reminder pairs
-    V4pCoord divxvub, modxvub, divyvub,
-        modyvub;  // Ratios view / screen in result+reminder pairs
-    Boolean scaling;  // Is scaling necessary?
-    UInt32 changes;
-    UInt32 nextId;
-} V4pContext;
-
-/**
- * About screen vs view ratios:
- * divyvu == 0 when view bigger than screen (zoom out)
- * divyvub == 0 when screen bigger than view (zoom in)
- * when zoom in : yline++ ==> y-absolute may be unchanged
- * so when divyvu == 0, y-absolute comparison is avoided
- * when zoom out : yline++ ==>  y-absolute+=x where x>0
- */
-#define V4P_CHANGED_ABSOLUTE 1
-#define V4P_CHANGED_RELATIVE 2
-#define V4P_CHANGED_VIEW 4
+#include "_v4p.h"
 
 static V4pContextP v4p = NULL;  // current (selected) v4p Context
 V4pSceneP v4p_defaultScene = NULL;
@@ -146,25 +65,27 @@ V4pColor v4p_setBGColor(V4pColor bg) {
 
 // Set the view
 Boolean v4p_setView(V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1) {
-    int lineWidth = v4p_displayWidth, lineNb = v4p_displayHeight;
-
+    int dxdi = v4p_displayWidth;
+    int dydi = v4p_displayHeight;
+    int dxvu = x1 - x0;
+    int dyvu = y1 - y0;
+    if (! dxvu || ! dyvu) {
+        return failure;  // Can't divide by 0
+    }
     v4p->xvu0 = x0;
     v4p->yvu0 = y0;
     v4p->xvu1 = x1;
     v4p->yvu1 = y1;
-    v4p->dxvu = x1 - x0;
-    v4p->dyvu = y1 - y0;
-    if (! v4p->dxvu || ! v4p->dyvu) {
-        return failure;  // Can't divide by 0
-    }
-    v4p->divxvu = lineWidth / v4p->dxvu;
-    v4p->modxvu = lineWidth % v4p->dxvu;
-    v4p->divxvub = v4p->dxvu / lineWidth;
-    v4p->modxvub = v4p->dxvu % lineWidth;
-    v4p->divyvu = lineNb / v4p->dyvu;
-    v4p->modyvu = lineNb % v4p->dyvu;
-    v4p->divyvub = v4p->dyvu / lineNb;
-    v4p->modyvub = v4p->dyvu % lineNb;
+    v4p->dxvu = dxvu;
+    v4p->dyvu = dyvu;
+    v4p->divxvu = dxdi / dxvu;
+    v4p->modxvu = dxdi % dxvu;
+    v4p->divxvub = dxvu / dxdi;
+    v4p->modxvub = dxvu % dxdi;
+    v4p->divyvu = dydi / dyvu;
+    v4p->modyvu = dydi % dyvu;
+    v4p->divyvub = dyvu / dydi;
+    v4p->modyvub = dyvu % dydi;
     v4p->scaling = ! (v4p->divxvu == 1 && v4p->divyvu == 1 && v4p->modxvu == 0 && v4p->modyvu == 0);
     v4p->changes |= V4P_CHANGED_VIEW;
     return success;
@@ -304,12 +225,7 @@ V4pPolygonP v4p_addNew(V4pProps t, V4pColor col, V4pLayer z) {
 }
 
 // Create a disk
-V4pPolygonP v4p_newDisk(V4pProps t,
-                        V4pColor col,
-                        V4pLayer z,
-                        V4pCoord center_x,
-                        V4pCoord center_y,
-                        V4pCoord radius) {
+V4pPolygonP v4p_newDisk(V4pProps t, V4pColor col, V4pLayer z, V4pCoord center_x, V4pCoord center_y, V4pCoord radius) {
     V4pPolygonP p = v4p_new(t, col, z);
     p->radius = radius;
     v4p_addPoint(p, center_x, center_y);
@@ -317,23 +233,14 @@ V4pPolygonP v4p_newDisk(V4pProps t,
 }
 
 // Combo DiskNew+SceneAdd
-V4pPolygonP v4p_sceneAddNewDisk(V4pSceneP s,
-                                V4pProps t,
-                                V4pColor col,
-                                V4pLayer z,
-                                V4pCoord center_x,
-                                V4pCoord center_y,
+V4pPolygonP v4p_sceneAddNewDisk(V4pSceneP s, V4pProps t, V4pColor col, V4pLayer z, V4pCoord center_x, V4pCoord center_y,
                                 V4pCoord radius) {
     V4pPolygonP p = v4p_newDisk(t, col, z, center_x, center_y, radius);
     v4p_sceneAdd(s, p);
     return p;
 }
 
-V4pPolygonP v4p_addNewDisk(V4pProps t,
-                           V4pColor col,
-                           V4pLayer z,
-                           V4pCoord center_x,
-                           V4pCoord center_y,
+V4pPolygonP v4p_addNewDisk(V4pProps t, V4pColor col, V4pLayer z, V4pCoord center_x, V4pCoord center_y,
                            V4pCoord radius) {
     return v4p_sceneAddNewDisk(v4p->scene, t, col, z, center_x, center_y, radius);
 }
@@ -387,42 +294,33 @@ Boolean v4p_outOfList(V4pPolygonP p, V4pPolygonP* list) {
 
 static void v4p_notMoreInDisabled(V4pPolygonP p) {
     v4p_removeProp(p, V4P_IN_DISABLED);
-    if (p->next)
-        v4p_notMoreInDisabled(p->next);
-    if (p->sub1 && ! (p->props & V4P_DISABLED))
-        v4p_notMoreInDisabled(p->sub1);
+    if (p->next) v4p_notMoreInDisabled(p->next);
+    if (p->sub1 && ! (p->props & V4P_DISABLED)) v4p_notMoreInDisabled(p->sub1);
 }
 
 V4pProps v4p_enable(V4pPolygonP p) {
-    if (! (p->props & V4P_DISABLED))
-        return p->props;
+    if (! (p->props & V4P_DISABLED)) return p->props;
 
-    if (p->sub1 && ! (p->props & V4P_IN_DISABLED))
-        v4p_notMoreInDisabled(p->sub1);
+    if (p->sub1 && ! (p->props & V4P_IN_DISABLED)) v4p_notMoreInDisabled(p->sub1);
 
     return v4p_removeProp(p, V4P_DISABLED);
 }
 
 static void v4p_inDisabled(V4pPolygonP p) {
     v4p_putProp(p, V4P_IN_DISABLED);
-    if (p->next)
-        v4p_inDisabled(p->next);
-    if (p->sub1)
-        v4p_inDisabled(p->sub1);
+    if (p->next) v4p_inDisabled(p->next);
+    if (p->sub1) v4p_inDisabled(p->sub1);
 }
 
 V4pProps v4p_disable(V4pPolygonP p) {
-    if (p->props & V4P_DISABLED)
-        return p->props;
-    if (p->sub1)
-        v4p_inDisabled(p->sub1);
+    if (p->props & V4P_DISABLED) return p->props;
+    if (p->sub1) v4p_inDisabled(p->sub1);
     return v4p_putProp(p, V4P_DISABLED);
 }
 
 // Add a polygon to an other polygon subs list
 V4pPolygonP v4p_addSub(V4pPolygonP parent, V4pPolygonP p) {
-    if (parent->props & (V4P_DISABLED | V4P_IN_DISABLED))
-        v4p_inDisabled(p);
+    if (parent->props & (V4P_DISABLED | V4P_IN_DISABLED)) v4p_inDisabled(p);
     return v4p_intoList(p, &parent->sub1);
 }
 
@@ -595,11 +493,7 @@ V4pColor v4p_getColor(V4pPolygonP p) {
 }
 
 // get the polygon limits (bounding box)
-V4pPolygonP v4p_getLimits(V4pPolygonP p,
-                          V4pCoord* minx,
-                          V4pCoord* maxx,
-                          V4pCoord* miny,
-                          V4pCoord* maxy) {
+V4pPolygonP v4p_getLimits(V4pPolygonP p, V4pCoord* minx, V4pCoord* maxx, V4pCoord* miny, V4pCoord* maxy) {
     if (p->miny == V4P_NIL) {
         v4p_computeLimits(p);
     }
@@ -613,19 +507,14 @@ V4pPolygonP v4p_getLimits(V4pPolygonP p,
 // move a polygon point
 V4pPointP v4p_movePoint(V4pPolygonP p, V4pPointP s, V4pCoord x, V4pCoord y) {
     V4pCoord r = p->radius;
-    if (p->miny == V4P_NIL || ((x & y) == V4P_NIL)) {
-    } else if (s->x - r == p->minx || s->y - r == p->miny || s->x + r == p->maxx
-               || s->y + r == p->maxy) {
+    if (p->miny == V4P_NIL || (x == V4P_NIL || y == V4P_NIL)) {
+    } else if (s->x - r == p->minx || s->y - r == p->miny || s->x + r == p->maxx || s->y + r == p->maxy) {
         p->miny = V4P_NIL;  // boundaries to be computed again
     } else {
-        if (x - r < p->minx)
-            p->minx = x - r;
-        if (x + r > p->maxx)
-            p->maxx = x + r;
-        if (y - r < p->miny)
-            p->miny = y - r;
-        if (y + r > p->maxy)
-            p->maxy = y + r;
+        if (x - r < p->minx) p->minx = x - r;
+        if (x + r > p->maxx) p->maxx = x + r;
+        if (y - r < p->miny) p->miny = y - r;
+        if (y + r > p->maxy) p->maxy = y + r;
     }
     s->x = x;
     s->y = y;
@@ -646,15 +535,13 @@ V4pPolygonP v4p_destroyPointFrom(V4pPolygonP p, V4pPointP s) {
             pps = ps;
             ps = ps->next;
         }
-        if (! ps)
-            return NULL;
+        if (! ps) return NULL;
         pps->next = ps->next;
     }
 
     V4pCoord r = p->radius;
     if (p->miny != V4P_NIL
-        && (s->x - r == p->minx || s->y - r == p->miny || s->x + r == p->maxx
-            || s->y + r == p->maxy)) {
+        && (s->x - r == p->minx || s->y - r == p->miny || s->x + r == p->maxx || s->y + r == p->maxy)) {
         p->miny = V4P_NIL;  // boundaries to be computed again
     }
 
@@ -710,17 +597,11 @@ Boolean v4p_addNewCircleEdges(V4pPolygonP p, V4pPointP c) {
 
     v4pi_debug("CIRCLE: Creating circle edges for point (%d, %d), radius=%d\n", x, y, r);
 
-    V4pPoint top = { x: x, y: y - r }, bottom_left = { x: x - r, y: y + r },
-             bottom_right = { x: x + r, y: y + r };
+    V4pPoint top = { x: x, y: y - r }, bottom_left = { x: x - r, y: y + r }, bottom_right = { x: x + r, y: y + r };
 
     v4pi_debug("CIRCLE: Circle bounding box - top:(%d,%d), left:(%d,%d), "
                "right:(%d,%d)\n",
-               top.x,
-               top.y,
-               bottom_left.x,
-               bottom_left.y,
-               bottom_right.x,
-               bottom_right.y);
+               top.x, top.y, bottom_left.x, bottom_left.y, bottom_right.x, bottom_right.y);
 
     ActiveEdgeP left = v4p_addNewActiveEdge(p, &top, &bottom_left);
     left->circle = true;
@@ -747,16 +628,8 @@ V4pPolygonP v4p_destroyActiveEdges(V4pPolygonP p) {
 }
 
 // Called by v4p_transformClone ()
-V4pPolygonP v4p_recPolygonTransformClone(Boolean estSub,
-                                         V4pPolygonP p,
-                                         V4pPolygonP c,
-                                         V4pCoord dx,
-                                         V4pCoord dy,
-                                         int angle,
-                                         V4pLayer dz,
-                                         V4pCoord anchor_x,
-                                         V4pCoord anchor_y,
-                                         V4pCoord zoom_x,
+V4pPolygonP v4p_recPolygonTransformClone(Boolean estSub, V4pPolygonP p, V4pPolygonP c, V4pCoord dx, V4pCoord dy,
+                                         int angle, V4pLayer dz, V4pCoord anchor_x, V4pCoord anchor_y, V4pCoord zoom_x,
                                          V4pCoord zoom_y) {
     V4pPointP sp, sc;
     V4pCoord x, y, x2, y2, tx, ty;
@@ -800,44 +673,18 @@ V4pPolygonP v4p_recPolygonTransformClone(Boolean estSub,
     }
     v4p_changed(c);
     if (estSub && p->next) {
-        v4p_recPolygonTransformClone(true,
-                                     p->next,
-                                     c->next,
-                                     dx,
-                                     dy,
-                                     angle,
-                                     dz,
-                                     anchor_x,
-                                     anchor_y,
-                                     zoom_x,
-                                     zoom_y);
+        v4p_recPolygonTransformClone(true, p->next, c->next, dx, dy, angle, dz, anchor_x, anchor_y, zoom_x, zoom_y);
     }
     if (p->sub1) {
-        v4p_recPolygonTransformClone(true,
-                                     p->sub1,
-                                     c->sub1,
-                                     dx,
-                                     dy,
-                                     angle,
-                                     dz,
-                                     anchor_x,
-                                     anchor_y,
-                                     zoom_x,
-                                     zoom_y);
+        v4p_recPolygonTransformClone(true, p->sub1, c->sub1, dx, dy, angle, dz, anchor_x, anchor_y, zoom_x, zoom_y);
     }
     return c;
 }
 
 // Transform a clone c of a polygon p so that points(c) =
 // transfo(points(p),delta-x/y, turn-angle)
-V4pPolygonP v4p_transformClone(V4pPolygonP p,
-                               V4pPolygonP c,
-                               V4pCoord dx,
-                               V4pCoord dy,
-                               int angle,
-                               V4pLayer dz,
-                               V4pCoord zoom_x,
-                               V4pCoord zoom_y) {
+V4pPolygonP v4p_transformClone(V4pPolygonP p, V4pPolygonP c, V4pCoord dx, V4pCoord dy, int angle, V4pLayer dz,
+                               V4pCoord zoom_x, V4pCoord zoom_y) {
     /* a voir: ratiox et ratioy :
        cosa:=(cosa*ratiox) shr 7;
        sina:=(sina*ratioy) shr 7;
@@ -845,26 +692,11 @@ V4pPolygonP v4p_transformClone(V4pPolygonP p,
     // Use the clone's anchor point for the entire transformation tree
     V4pCoord anchor_x = c->anchor_x;
     V4pCoord anchor_y = c->anchor_y;
-    return v4p_recPolygonTransformClone(false,
-                                        p,
-                                        c,
-                                        dx,
-                                        dy,
-                                        angle,
-                                        dz,
-                                        anchor_x,
-                                        anchor_y,
-                                        zoom_x,
-                                        zoom_y);
+    return v4p_recPolygonTransformClone(false, p, c, dx, dy, angle, dz, anchor_x, anchor_y, zoom_x, zoom_y);
 }
 
 // Transform a polygon
-V4pPolygonP v4p_transform(V4pPolygonP p,
-                          V4pCoord dx,
-                          V4pCoord dy,
-                          int angle,
-                          V4pLayer dz,
-                          V4pCoord zoom_x,
+V4pPolygonP v4p_transform(V4pPolygonP p, V4pCoord dx, V4pCoord dy, int angle, V4pLayer dz, V4pCoord zoom_x,
                           V4pCoord zoom_y) {
     if (p->parent) {  // If this polygon has a parent
         // Transform relatively to parent
@@ -880,8 +712,7 @@ V4pPolygonP v4p_recPolygonClone(Boolean estSub, V4pPolygonP p) {
     V4pPointP s;
     V4pPolygonP c = v4p_new(p->props, p->color, p->z);
     c->radius = p->radius;
-    for (s = p->point1; s; s = s->next)
-        v4p_addPoint(c, s->x, s->y);
+    for (s = p->point1; s; s = s->next) v4p_addPoint(c, s->x, s->y);
 
     // Set parent reference for clones (but not for sub-polygons)
     if (! estSub) {
@@ -891,10 +722,8 @@ V4pPolygonP v4p_recPolygonClone(Boolean estSub, V4pPolygonP p) {
         c->anchor_y = p->anchor_y;
     }
 
-    if (estSub && p->next)
-        c->next = v4p_recPolygonClone(true, p->next);
-    if (p->sub1)
-        c->sub1 = v4p_recPolygonClone(true, p->sub1);
+    if (estSub && p->next) c->next = v4p_recPolygonClone(true, p->next);
+    if (p->sub1) c->sub1 = v4p_recPolygonClone(true, p->sub1);
 
     return c;
 }
@@ -936,7 +765,7 @@ V4pPolygonP v4p_setAnchor(V4pPolygonP p, V4pCoord x, V4pCoord y) {
 V4pPolygonP v4p_computeLimits(V4pPolygonP p) {
     V4pCoord minx = V4P_NIL, maxx = V4P_NIL, miny = V4P_NIL, maxy = V4P_NIL;
     V4pPointP s = p->point1;
-    while (s && (s->x & s->y) == V4P_NIL) {
+    while (s && (s->x == V4P_NIL || s->y == V4P_NIL)) {
         s = s->next;
     }
     if (s) {  // at least one point
@@ -947,17 +776,12 @@ V4pPolygonP v4p_computeLimits(V4pPolygonP p) {
         maxy = s->y + r;
         for (s = s->next; s; s = s->next) {
             V4pCoord x = s->x, y = s->y;
-            if ((x & y) == V4P_NIL)
-                continue;
+            if (x == V4P_NIL || y == V4P_NIL) continue;
 
-            if (x - r < minx)
-                minx = x - r;
-            if (x + r > maxx)
-                maxx = x + r;
-            if (y - r < miny)
-                miny = y - r;
-            if (y + r > maxy)
-                maxy = y + r;
+            if (x - r < minx) minx = x - r;
+            if (x + r > maxx) maxx = x + r;
+            if (y - r < miny) miny = y - r;
+            if (y + r > maxy) maxy = y + r;
         }
     }
     p->minx = minx;
@@ -970,10 +794,8 @@ V4pPolygonP v4p_computeLimits(V4pPolygonP p) {
 // transform relative coordinates into absolute (scene related) ones
 void v4p_viewToAbsolute(V4pCoord x, V4pCoord y, V4pCoord* xa, V4pCoord* ya) {
     int lineWidth = v4p_displayWidth, lineNb = v4p_displayHeight;
-    *xa = v4p->xvu0 + x * v4p->divxvub + (x * v4p->modxvub) / lineWidth
-        + (x < 0 && v4p->modxvub ? -1 : 0);
-    *ya = v4p->yvu0 + y * v4p->divyvub + (y * v4p->modyvub) / lineNb
-        + (y < 0 && v4p->modyvub ? -1 : 0);
+    *xa = v4p->xvu0 + x * v4p->divxvub + (x * v4p->modxvub) / lineWidth + (x < 0 && v4p->modxvub ? -1 : 0);
+    *ya = v4p->yvu0 + y * v4p->divyvub + (y * v4p->modyvub) / lineNb + (y < 0 && v4p->modyvub ? -1 : 0);
 }
 
 // transform absolute coordinates into relative (scene related) ones
@@ -991,8 +813,7 @@ void v4p_absoluteToView(V4pCoord x, V4pCoord y, V4pCoord* xa, V4pCoord* ya) {
 
 // return false if polygon is located out of the view area
 Boolean v4p_isVisible(V4pPolygonP p) {
-    if (! p->point1)
-        return false;
+    if (! p->point1) return false;
     if (p->miny == V4P_NIL)  // unknown limits
         v4p_computeLimits(p);
 
@@ -1043,8 +864,7 @@ V4pPolygonP v4p_buildActiveEdgeList(V4pPolygonP p) {
     // ====================
     v4p_destroyActiveEdges(p);
 
-    if ((p->props & (V4P_DISABLED | V4P_IN_DISABLED | V4P_UNVISIBLE)))
-        return p;
+    if ((p->props & (V4P_DISABLED | V4P_IN_DISABLED | V4P_UNVISIBLE))) return p;
 
     if (! isVisible) {
         // don't build AE lists of hidden polygons
@@ -1054,12 +874,10 @@ V4pPolygonP v4p_buildActiveEdgeList(V4pPolygonP p) {
     V4pPointP s1 = p->point1;
     v4pi_debug("POLYGON: Building active edges for polygon %p, isCircle=%d, "
                "radius=%d\n",
-               (void*) p,
-               isCircle,
-               p->radius);
+               (void*) p, isCircle, p->radius);
 
     while (s1) {  // path subset
-        if ((s1->x & s1->y) == V4P_NIL) {
+        if (s1->x == V4P_NIL || s1->y == V4P_NIL) {
             s1 = s1->next;
             continue;
         }
@@ -1068,11 +886,7 @@ V4pPolygonP v4p_buildActiveEdgeList(V4pPolygonP p) {
 
         // sub-path loop
         while (sb && (sb->x & sb->y) != V4P_NIL) {  // while in sub-path
-            v4pi_debug("POLYGON: Processing edge from (%d, %d) to (%d, %d)\n",
-                       sa->x,
-                       sa->y,
-                       sb->x,
-                       sb->y);
+            v4pi_debug("POLYGON: Processing edge from (%d, %d) to (%d, %d)\n", sa->x, sa->y, sb->x, sb->y);
 
             if (sa->y != sb->y) {  // add an active edge
                 v4p_addNewActiveEdge(p, sa, sb);
@@ -1096,18 +910,12 @@ V4pPolygonP v4p_buildActiveEdgeList(V4pPolygonP p) {
             if (isCircle) {
                 // add circle edge around last vertice (or only vertice for
                 // single-point polygons)
-                v4pi_debug("POLYGON: Adding circle edges for final vertex (%d, %d)\n",
-                           sa->x,
-                           sa->y);
+                v4pi_debug("POLYGON: Adding circle edges for final vertex (%d, %d)\n", sa->x, sa->y);
                 v4p_addNewCircleEdges(p, sa);
             }
 
             if (sa->y != s1->y) {  // add a closing edge
-                v4pi_debug("POLYGON: Adding closing edge from (%d, %d) to (%d, %d)\n",
-                           sa->x,
-                           sa->y,
-                           s1->x,
-                           s1->y);
+                v4pi_debug("POLYGON: Adding closing edge from (%d, %d) to (%d, %d)\n", sa->x, sa->y, s1->x, s1->y);
                 v4p_addNewActiveEdge(p, sa, s1);
             }
             break;
@@ -1184,32 +992,21 @@ List v4p_openActiveEdge(V4pCoord yl, V4pCoord yu) {
         xr1 = b->x1v;
         yr1 = b->y1v;
 
-        v4pi_debug("EDGE_OPEN: Candidate edge %p: (%d,%d) to (%d,%d), circle=%d\n",
-                   (void*) b,
-                   xr0,
-                   yr0,
-                   xr1,
-                   yr1,
+        v4pi_debug("EDGE_OPEN: Candidate edge %p: (%d,%d) to (%d,%d), circle=%d\n", (void*) b, xr0, yr0, xr1, yr1,
                    b->circle);
 
         if (yl == 0) {
-            if (yr0 > 0)
-                continue;
+            if (yr0 > 0) continue;
         } else if (yr0 != yl)
             continue;
-        if (yr1 <= yl)
-            continue;
+        if (yr1 <= yl) continue;
 
         b->h = yr1 - yl - 1;
         b->x = xr0;
         dx = xr1 - xr0;
         dy = yr1 - yr0;
 
-        v4pi_debug("EDGE_OPEN: Opening edge %p, height=%d, dx=%d, dy=%d\n",
-                   (void*) b,
-                   b->h,
-                   dx,
-                   dy);
+        v4pi_debug("EDGE_OPEN: Opening edge %p, height=%d, dx=%d, dy=%d\n", (void*) b, b->h, dx, dy);
 
         if (! b->circle) {
             q = dx / dy;
@@ -1227,8 +1024,7 @@ List v4p_openActiveEdge(V4pCoord yl, V4pCoord yu) {
         }
         ListAddData(newlyOpenedAEList, b);
     }
-    if (newlyOpenedAEList)
-        newlyOpenedAEList = v4p_sortActiveEdge(newlyOpenedAEList);
+    if (newlyOpenedAEList) newlyOpenedAEList = v4p_sortActiveEdge(newlyOpenedAEList);
     return newlyOpenedAEList;
 }
 
@@ -1236,9 +1032,9 @@ List v4p_openActiveEdge(V4pCoord yl, V4pCoord yu) {
 Boolean v4p_render() {
     List l, pl;
     V4pPolygonP p;
-    V4pLayer z; // p->z
+    V4pLayer z;  // p->z
     ActiveEdgeP b;
-    V4pCoord y; // scanline.y
+    V4pCoord y;  // scanline.y
     V4pCoord px, px_collide;
 
     V4pCoord yu;
@@ -1313,24 +1109,12 @@ Boolean v4p_render() {
                     b->x = x;
                     v4pi_debug("SHIFT: Shift circle edge %p "
                                "(%d,%d)x(%d,%d) to x=%d, y=%d\n",
-                               (void*) b,
-                               xr0,
-                               yr0,
-                               xr1,
-                               yr1,
-                               x,
-                               y);
+                               (void*) b, xr0, yr0, xr1, yr1, x, y);
 
                 } else {
                     v4pi_debug("SHIFT: Shift edge %p (%d,%d)x(%d,%d) to "
                                "x=%d, y=%d\n",
-                               (void*) b,
-                               b->x0v,
-                               b->y0v,
-                               b->x1v,
-                               b->y1v,
-                               x,
-                               y);
+                               (void*) b, b->x0v, b->y0v, b->x1v, b->y1v, x, y);
                     if (b->o2) {
                         if (b->s > 0) {
                             x = b->x += b->o2;
@@ -1360,8 +1144,8 @@ Boolean v4p_render() {
         List newlyOpenedAEList = v4p_openActiveEdge(y, yu);
         if (newlyOpenedAEList) {
             ListSetDataPrior(compareActiveEdgeX);
-            v4p->openedAEList = (v4p->openedAEList ? ListMerge(v4p->openedAEList, newlyOpenedAEList)
-                                                   : newlyOpenedAEList);
+            v4p->openedAEList
+                = (v4p->openedAEList ? ListMerge(v4p->openedAEList, newlyOpenedAEList) : newlyOpenedAEList);
         }
 
         // Reset opened polygons
@@ -1373,8 +1157,8 @@ Boolean v4p_render() {
         concreteBitmask = 0;
 
         // Reset visible polygon
-        int zMax = -1; // background
-        visiblePolygon  = &(v4p->dummyBgPoly);  // background
+        int zMax = -1;  // background
+        visiblePolygon = &(v4p->dummyBgPoly);  // background
 
         // Loop among active edges
         px = px_collide = 0;
@@ -1386,10 +1170,7 @@ Boolean v4p_render() {
             if ((int) z >= zMax) {  // edge not hidden by upper layers
                 if (b->x > 0) {  // slice before current edge
                     if (px < v4p_displayWidth) {
-                        v4pi_slice(y,
-                                   imax(px, 0),
-                                   imin(b->x, v4p_displayWidth),
-                                   visiblePolygon->color);
+                        v4pi_slice(y, imax(px, 0), imin(b->x, v4p_displayWidth), visiblePolygon->color);
                     }
                     px = b->x;
                 }
@@ -1406,13 +1187,7 @@ Boolean v4p_render() {
                     V4pPolygonP topConcrete = concretePolygons[topLayer];
                     V4pPolygonP secondConcrete = concretePolygons[secondLayer];
                     // Note collisionCallback != NULL since bitmask != 0
-                    collisionCallback(topLayer,
-                                    secondLayer,
-                                    y,
-                                    px_collide,
-                                    b->x,
-                                    topConcrete,
-                                    secondConcrete);
+                    collisionCallback(topLayer, secondLayer, y, px_collide, b->x, topConcrete, secondConcrete);
                     bitmask = bitmaskMinusTop;
                     topLayer = secondLayer;
                     bitmaskMinusTop = bitmask & (~((UInt16) 1 << topLayer));
@@ -1455,11 +1230,11 @@ Boolean v4p_render() {
                         concretePolygons[cl] = p;
 
                         // If there are additional bits set in the mask, handle them
-                        V4pCollisionMask remaining_mask = mask & ~((V4pCollisionMask)1 << cl);
+                        V4pCollisionMask remaining_mask = mask & ~((V4pCollisionMask) 1 << cl);
                         while (remaining_mask != 0) {
                             V4pCollisionLayer additional_cl = floorLog2(remaining_mask);
                             concretePolygons[additional_cl] = p;
-                            remaining_mask &= ~((V4pCollisionMask)1 << additional_cl);
+                            remaining_mask &= ~((V4pCollisionMask) 1 << additional_cl);
                         }
                     } else {
                         // Clear the collision mask bits when polygon is no longer active

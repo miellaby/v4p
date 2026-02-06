@@ -151,7 +151,7 @@ V4pPolygonP createBulletPrototype() {
     if (proto == NULL) {
         proto = v4p_new(V4P_ABSOLUTE, V4P_YELLOW, 0);
         // Create a simple square for the bullet
-        v4p_rect(proto, -BULLET_SIZE/2, -BULLET_SIZE/2, BULLET_SIZE, BULLET_SIZE);
+        v4p_rect(proto, -BULLET_SIZE/2, -BULLET_SIZE/2, BULLET_SIZE/2, BULLET_SIZE/2);
         v4p_setAnchorToCenter(proto);
     }
     return proto;
@@ -510,7 +510,7 @@ Boolean g4p_onInit() {
     
     // Thrust system - for ship engine
     thrust_system = particles_create(20, particle_proto);
-    particles_set_defaults(thrust_system, 30, 1.5f, -0.05f, 2.0f, 0.0f);
+    particles_set_defaults(thrust_system, 30, 2.f, -0.05f, 2.0f, 0.0f);
     particles_set_noise(thrust_system, 0.3f, 0.2f, 0.3f, 0.1f);
     
     return success;
@@ -670,7 +670,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
             
             // Emit thrust particles
             if (thrust_system) {
-                particles_emit(thrust_system, ship_x - (sina / 256.0f) * 15, ship_y + (cosa / 256.0f) * 15, ship_angle + 180.0f);
+                particles_emit(thrust_system, ship_x - (sina / 256.0f) * 45, ship_y + (cosa / 256.0f) * 45, ship_angle + 180.0f);
             }
         } else {
             // Hide flame when not thrusting

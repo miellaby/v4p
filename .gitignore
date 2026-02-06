@@ -2,11 +2,17 @@
 *.a
 .vscode
 
-# Demo directory - keep source files, ignore build artifacts
+# "demos" directory - keep source files, ignore build artifacts
 demos/*
 !demos/*.c
 !demos/*.h
 !demos/README*
+
+# "tests" directory - keep source files, ignore build artifacts
+tests/*
+!tests/*.c
+!tests/*.h
+!tests/README*
 
 # Ignore SWIG-generated files
 bindings/v4p_wrap.c
