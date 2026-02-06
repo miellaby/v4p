@@ -1,11 +1,15 @@
 #ifndef _V4P_H
 #define _V4P_H
-
+// V4P internal definitions (not to be included by users)
 #ifndef _V4P_C
     #warning "This file should only be included by v4p.c"
 #endif
-#include "v4pi.h"
+#include "lowmath.h"
+#include "quickheap.h"
+#include "sortable.h"
+#include "quicktable.h"
 #include "v4p.h"
+#include "v4pi.h"
 
 // Forward declarations
 V4pPolygonP v4p_computeLimits(V4pPolygonP p);
