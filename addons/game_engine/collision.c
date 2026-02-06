@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include <stdint.h>  // for uintptr_t
 #include <assert.h>
+
+#define CRASH do { *(volatile int*) 0 = 0; } while(0)  // Force immediate crash
+
 // Global collision points system
 static CollisionPointsSystem g4p_collision_points_system = {NULL, 0, NULL, NULL};
 
@@ -42,25 +45,21 @@ void g4p_initCollisions(size_t table_size) {
     
     if (!g4p_collision_points_system.table) {
         v4p_error("Failed to create collision points QuickTable\n");
-        return;
+        CRASH;
     }
-    
+
     // Initialize QuickHeap for collision data storage
     g4p_collision_points_system.data_heap = QuickHeapNew(sizeof(CollisionPointData));
     if (!g4p_collision_points_system.data_heap) {
         v4p_error("Failed to create collision data QuickHeap\n");
-        return;
+        CRASH;
     }
-    
+
     v4pi_debug("Collision points system initialized with table size %zu\n", table_size);
 }
 
 // Reset collision points data
 void g4p_resetCollisions() {
-    if (!g4p_collision_points_system.table) {
-        return;
-    }
-    
     // Clear all entries in the QuickTable and free associated memory
     // Using QuickHeap for data storage and QuickHeapReset for efficient clearing
     QuickTableResetAndFree(g4p_collision_points_system.table);
@@ -75,10 +74,6 @@ void g4p_resetCollisions() {
 
 // Finalize collision points - compute averages and call callback
 void g4p_finalizeCollisions() {
-    if (!g4p_collision_points_system.table) {
-        return;
-    }
-    
     v4pi_debug("Finalizing collision points...\n");
     
     // Iterate through all buckets in the QuickTable
@@ -177,8 +172,12 @@ Boolean g4p_getCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord* avg_x, V
 
 // Add collision point data for a polygon pair
 void g4p_addCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord x, V4pCoord y) {
-    if (!g4p_collision_points_system.table || !p1 || !p2) {
-        return;
+    // Check pointers BEFORE calling v4p_getId to avoid crash in v4p_getId
+    if (!p1 || !p2) {
+        v4pi_debug("CRASH: Null polygon pointer in g4p_addCollisionPoint: p1=%p, p2=%p at x=%d, y=%d\n", 
+                  (void*)p1, (void*)p2, x, y);
+        v4pi_debug("This indicates a dangling pointer in concretePolygons array\n");
+        CRASH;
     }
 
     uint32_t id1 = v4p_getId(p1);
@@ -209,14 +208,13 @@ void g4p_addCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord x, V4pCoord 
     // No existing data found, create new entry
     List new_list = ListNew();
     if (!new_list) {
-        return;
+        CRASH;
     }
     
     // Allocate collision data from QuickHeap instead of malloc
     CollisionPointData* new_data = (CollisionPointData*)QuickHeapAlloc(g4p_collision_points_system.data_heap);
     if (!new_data) {
-        ListFree(new_list);
-        return;
+        CRASH;
     }
     
     // Initialize new collision data

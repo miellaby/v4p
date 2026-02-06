@@ -1239,6 +1239,14 @@ Boolean v4p_render() {
                     } else {
                         // Clear the collision mask bits when polygon is no longer active
                         concreteBitmask &= ~mask;
+
+                        // Clear ALL concretePolygons entries for this polygon's collision layers
+                        V4pCollisionMask temp_mask = mask;
+                        while (temp_mask != 0) {
+                            V4pCollisionLayer cl = floorLog2(temp_mask);
+                            concretePolygons[cl] = NULL;  // Clear the entry
+                            temp_mask &= ~((V4pCollisionMask) 1 << cl);
+                        }
                     }
                 }
             }

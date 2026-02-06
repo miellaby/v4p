@@ -113,6 +113,10 @@ LDLIBS  += $(LDLIBS_backend)
 ifeq ($(DEBUG),1)
   CFLAGS += -g -O0 -DDEBUG
   CPPFLAGS += -DDEBUG
+  ifeq ($(ASAN),1)
+    CFLAGS += -fsanitize=address -fno-omit-frame-pointer
+    LDFLAGS += -fsanitize=address -static-libasan
+  endif
 else
   CFLAGS += -O2 -DNDEBUG
 endif
@@ -229,6 +233,7 @@ help:
 	@echo "Usage:"
 	@echo "  make                - Release build (default)"
 	@echo "  make DEBUG=1        - Debug build with symbols"
+	@echo "  make DEBUG=1 ASAN=1 - Debug build with AddressSanitizer"
 	@echo "  make BACKEND=xlib   - Use Xlib backend (sdl, xlib, fbdev, drm)"
 	@echo "  make TARGET=palmos  - Build for PalmOS (linux, palmos, esp32)"
 	@echo "  make V=1            - Verbose output"
