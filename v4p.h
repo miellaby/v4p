@@ -6,9 +6,9 @@
 #include "v4p_ll.h"
 #include "v4p_color.h"
 
-typedef UInt16 V4pLayer;  // Rendering layer (< 16)
-typedef UInt16 V4pCollisionLayer;  // Collision layer (< 16)
-typedef UInt16 V4pCollisionMask;  // Collision mask (<= 0xFFFF)
+typedef UInt32 V4pLayer;  // Rendering layer (< 32)
+typedef UInt32 V4pCollisionLayer;  // Collision layer (< 32)
+typedef UInt32 V4pCollisionMask;  // Collision mask (<= 0xFFFFFFFF)
 
 typedef UInt16 V4pFlag;
 #define V4P_STANDARD (V4pFlag) 0

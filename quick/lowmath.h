@@ -7,9 +7,9 @@ extern UInt16 lwmAngle;
 extern int lwmCosa;
 extern int lwmSina;
 
-// compute floor(log2(short))
+// compute floor(log2(int))
 // floorLog2(10) = floor(log2(10)) = 3
-int floorLog2(UInt16 v);
+int floorLog2(UInt32 v);
 
 // floorLog2 on int
 int floorLog232(UInt32 v);

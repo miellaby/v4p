@@ -5,7 +5,7 @@
 #include "v4pi.h"
 %}
 %apply int { V4pCoord }; 
-%apply unsigned { V4pColor,UInt16,V4pProps,V4pFlag,V4pLayer,V4PCollisionMask,V4pCollisionLayer }; 
+%apply unsigned { V4pColor,UInt32,V4pProps,V4pFlag,V4pLayer,V4PCollisionMask,V4pCollisionLayer }; 
 
 %include "v4p_ll.h"
 %include "v4pi.h"

@@ -32,7 +32,7 @@ Simply add V4P C files to your project and implement a horizontal line drawing f
 - No anti-aliasing (downscaling workaround possible)
 - No translucent polygons (requires algorithm changes)
 - No curve support (polygons and discs only)
-- Limited to 16 layers (bit-based operations)
+- Limited to 32 layers (bit-based operations)
 - Basic approximated trigonometry functions
 - No partial scene refresh optimizations
 

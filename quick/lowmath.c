@@ -17,7 +17,7 @@ const int tabCos[128]
         95,  92,  89,  86,  83,  80,  77,  74,  71,  68,  65,  62,  59,  56,  53,  49,
         46,  43,  40,  37,  34,  31,  28,  25,  21,  18,  15,  12,  9,   6,   3,   0 };
 
-int floorLog2(UInt16 v) {
+int floorLog2(UInt32 v) {
     return floorLog232(v);
 }
 

@@ -182,7 +182,7 @@ void initLifeIndicators() {
         
         // Scale down to make them smaller
         
-        v4p_transform(life_indicators[i], x, y, 0, 0, 128, 128); // 50% scale
+        v4p_transform(life_indicators[i], x, y, 32, 0, 128, 128); // 50% scale
         
         life_count = i + 1;
     }
@@ -281,7 +281,7 @@ void createAsteroid() {
     
     V4pPolygonP asteroid_proto = getAsteroidPrototypeSingleton();
     asteroids[asteroid_count] = v4p_addClone(asteroid_proto);
-    v4p_setLayer(asteroids[asteroid_count], asteroid_count % 13 + 1);
+    v4p_setLayer(asteroids[asteroid_count], asteroid_count % 30 + 1);
     v4p_setColor(asteroids[asteroid_count], 139 + v4p_getId(asteroids[asteroid_count]) % 14);
 
     // Position asteroid randomly around the edges
@@ -589,7 +589,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
                         if (asteroid_count < MAX_ASTEROIDS) {
                             V4pPolygonP asteroid_proto = getAsteroidPrototypeSingleton();
                             asteroids[asteroid_count] = v4p_addClone(asteroid_proto);
-                            v4p_setLayer(asteroids[asteroid_count], asteroid_count % 13 + 1);
+                            v4p_setLayer(asteroids[asteroid_count], asteroid_count % 30 + 1);
                             v4p_setColor(asteroids[asteroid_count], v4p_getColor(asteroids[j]));
                             
                             // Calculate split angle: -90° for k=0, +90° for k=1 relative to original asteroid angle

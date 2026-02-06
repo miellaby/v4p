@@ -464,7 +464,7 @@ V4pColor v4p_setColor(V4pPolygonP p, V4pColor c) {
 // set polygon layer (z-depth)
 V4pColor v4p_setLayer(V4pPolygonP p, V4pLayer z) {
     // Not changed because not affecting geometry
-    return p->z = z;
+    return p->z = z & 31;  // can't be more than 31 with 32-bit mask
 }
 
 // returns a polygon id
@@ -1040,12 +1040,12 @@ Boolean v4p_render() {
     V4pCoord yu;
     int su, ou1, ou2, ru1, ru2;
 
-    V4pPolygonP openedPolygons[16];  // Active polygon per layer
-    UInt16 openBitmask;  // Bitmask of layers with active polygon
+    V4pPolygonP openedPolygons[32];  // Active polygon per layer
+    UInt32 openBitmask;  // Bitmask of layers with active polygon
     V4pPolygonP visiblePolygon;  // Visible (opened at top) polygon
 
-    V4pPolygonP concretePolygons[16];  // Concrete active polygon per layer
-    UInt16 concreteBitmask;  // Bitmask of layer with active concrete polygon
+    V4pPolygonP concretePolygons[32];  // Concrete active polygon per layer
+    UInt32 concreteBitmask;  // Bitmask of layer with active concrete polygon
 
     v4pi_setContext(v4p->display);
 
@@ -1165,7 +1165,7 @@ Boolean v4p_render() {
         for (l = v4p->openedAEList; l; l = ListNext(l)) {
             b = (ActiveEdgeP) ListData(l);
             p = b->p;
-            z = p->z & 15;
+            z = p->z & 31;  // Use 32-bit mask
 
             if ((int) z >= zMax) {  // edge not hidden by upper layers
                 if (b->x > 0) {  // slice before current edge
@@ -1178,10 +1178,10 @@ Boolean v4p_render() {
 
             // Check collisions between concrete polygons
             // only collisions between pairs in layer order are reported
-            UInt16 bitmask = concreteBitmask;
+            UInt32 bitmask = concreteBitmask;
             if (bitmask > 0) {
                 V4pCollisionLayer topLayer = floorLog2(bitmask);
-                UInt16 bitmaskMinusTop = bitmask & (~((UInt16) 1 << topLayer));
+                UInt32 bitmaskMinusTop = bitmask & (~((UInt32) 1 << topLayer));
                 while (bitmaskMinusTop > 0) {  // Collision with concrete layers
                     V4pCollisionLayer secondLayer = floorLog2(bitmaskMinusTop);
                     V4pPolygonP topConcrete = concretePolygons[topLayer];
@@ -1190,11 +1190,11 @@ Boolean v4p_render() {
                     collisionCallback(topLayer, secondLayer, y, px_collide, b->x, topConcrete, secondConcrete);
                     bitmask = bitmaskMinusTop;
                     topLayer = secondLayer;
-                    bitmaskMinusTop = bitmask & (~((UInt16) 1 << topLayer));
+                    bitmaskMinusTop = bitmask & (~((UInt32) 1 << topLayer));
                 }
             }
 
-            UInt16 bit_z = (UInt16) 1 << z;
+            UInt32 bit_z = (UInt32) 1 << z;
             openBitmask ^= bit_z;
             if (openBitmask & bit_z) {
                 // Entering polygon - set as visible for this layer
@@ -1207,7 +1207,7 @@ Boolean v4p_render() {
             if ((int) z > zMax) {  // new top polygon
                 visiblePolygon = p;
                 zMax = z;
-            } else if (z == zMax) {  // leaving polygon at zMax
+            } else if ((int) z == zMax) {  // leaving polygon at zMax
                 // Find new top polygon
                 if (openBitmask == 0) {  // No visible polygon
                     zMax = -1;
