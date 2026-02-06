@@ -454,6 +454,12 @@ void asteroids_onCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord avg_x, 
     if ((isShip1 && isAsteroid2) || (isShip2 && isAsteroid1)) {
         if (invulnerability_timer == 0) {
             // Ship hit asteroid
+            if (explosion_system) {
+                for (int j = 0; j < 10; j++) {  // 10 particles per explosion
+                    particles_emit(explosion_system, ship_x, ship_y, (rand() % 360));
+                }
+            }
+
             lives--;
             removeLifeIndicator();
             
