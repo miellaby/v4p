@@ -131,7 +131,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
         // Adjust color based on brightness
         int brightColor = (stars[i].color + (int) (bright * 25)) % 255;
         v4p_setColor(starPolygons[i], brightColor);
-        v4p_setLayer(starPolygons[i], 15 - (int) (15.f * stars[i].z / STAR_DEPTH));
+        v4p_setLayer(starPolygons[i], 31 - (int) (31.f * stars[i].z / STAR_DEPTH));
     }
 
     return success;  // Run indefinitely
