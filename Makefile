@@ -124,7 +124,7 @@ endif
 # Trace system configuration
 ifdef TRACE
   # 1. Define the master list of available tags
-  TRACE_TAGS := CIRCLE POLYGON SCAN EDGE SHIFT OPEN COLLISION RENDER TRANSFORM
+  TRACE_TAGS := CIRCLE POLYGON SCAN EDGE SHIFT OPEN COLLISION RENDER TRANSFORM G4P
 
   ifeq ($(TRACE),all)
     TRACE := $(TRACE_TAGS)

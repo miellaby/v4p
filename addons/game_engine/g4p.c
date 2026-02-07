@@ -106,7 +106,7 @@ int g4p_main(int argc, char* argv[]) {
             }
             g4pi_delay(sleepTime);
             g4p_avgFramePeriod = (3 * g4p_avgFramePeriod + timeDiff + sleepTime) / 4;
-            v4pi_debug("fps=%.1f", 1000.f / g4p_avgFramePeriod);
+            v4p_trace(G4P, "fps=%.1f\n", 1000.f / g4p_avgFramePeriod);
         }
 
         // we're done.
