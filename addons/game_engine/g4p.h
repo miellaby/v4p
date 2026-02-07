@@ -49,7 +49,7 @@ extern int g4p_framerate;
 extern int g4p_avgFramePeriod;
 
 // To be implemented by the caller
-extern Boolean g4p_onInit();
+extern Boolean g4p_onInit(int quality, Boolean fullscreen);
 extern Boolean g4p_onTick(Int32 deltaTime);
 extern Boolean g4p_onFrame();
 extern void g4p_onQuit();

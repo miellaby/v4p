@@ -6,11 +6,11 @@
 // Simple test to demonstrate collision debugging
 
 // Stub callbacks required by the game engine
-Boolean g4p_onInit() {
+Boolean g4p_onInit(int quality, Boolean fullscreen) {
     printf("=== COLLISION TEST INIT ===\n");
     
     // Initialize the system
-    v4p_init2(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);
+    v4p_init2(quality, fullscreen);
     v4p_setBGColor(V4P_GREEN);
     
     // Initialize collision system

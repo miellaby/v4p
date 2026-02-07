@@ -54,8 +54,8 @@ V4pPolygonP create_hexagon(V4pCoord size, V4pColor color) {
     return hex;
 }
 
-Boolean g4p_onInit() {
-    v4p_init2(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);  // Normal quality, windowed
+Boolean g4p_onInit(int quality, Boolean fullscreen) {
+    v4p_init2(quality, fullscreen);  // Normal quality, windowed
     v4p_setBGColor(V4P_BLACK);  // Black background
 
     // Create the main hexagon (this will be the parent)

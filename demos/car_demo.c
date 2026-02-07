@@ -20,8 +20,8 @@ V4pCoord car_y = 0;
 Int32 car_speed = 2;
 Int32 car_rotation = 0;
 
-Boolean g4p_onInit() {
-    v4p_init2(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);
+Boolean g4p_onInit(int quality, Boolean fullscreen) {
+    v4p_init2(quality, fullscreen);
     v4p_setBGColor(V4P_DARK);
 
     // Create car body (red main part)

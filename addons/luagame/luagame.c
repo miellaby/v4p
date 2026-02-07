@@ -34,7 +34,7 @@ static int l_g4pMain(lua_State* luaVM) {
 }
 // END Functions exposed to Lua ======================================
 
-Boolean g4p_onInit() {
+Boolean g4p_onInit(int quality, Boolean fullscreen) {
     // Call to Lua g4pOnInit
     if (luaL_dostring(luaVM, "return g4pOnInit()")) {
         fprintf(stderr, "lua script error\n");

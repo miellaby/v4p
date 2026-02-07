@@ -9,11 +9,11 @@ V4pPolygonP box;
 V4pPolygonP color_boxes[256];
 int current_color = 0;
 
-Boolean g4p_onInit() {
+Boolean g4p_onInit(int quality, Boolean fullscreen) {
     int i;
     V4pCoord x, y;
 
-    v4p_init2(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);  // Normal quality, windowed
+    v4p_init2(quality, fullscreen);  // Normal quality, windowed
     v4p_setBGColor(V4P_BLACK);  // Black background
     box = v4p_new(V4P_ABSOLUTE, 0, 4);
     v4p_rect(box, 0, 0, COLOR_BOX_SIZE, COLOR_BOX_SIZE);

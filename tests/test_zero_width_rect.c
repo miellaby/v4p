@@ -27,8 +27,8 @@ TestCase test_cases[] = {
 
 const int num_test_cases = sizeof(test_cases) / sizeof(test_cases[0]);
 
-Boolean g4p_onInit() {
-    v4p_init();
+Boolean g4p_onInit(int quality, Boolean fullscreen) {
+    v4p_init2(quality, fullscreen);
     v4p_setBGColor(V4P_BLACK);
     
     printf("Testing zero-width and edge case rectangles...\n");

@@ -13,9 +13,9 @@ int riu = 0;
 int diu = STRESS_AMOUNT / 1;
 int liu = 3;
 
-Boolean g4p_onInit() {
+Boolean g4p_onInit(int quality, Boolean fullscreen) {
     int j, k;
-    v4p_init2(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);
+    v4p_init2(quality, fullscreen);
     v4p_setBGColor(V4P_BLACK);
 
     proto = v4p_new(V4P_ABSOLUTE, V4P_RED, 0);

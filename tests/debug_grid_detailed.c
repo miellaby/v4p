@@ -8,10 +8,10 @@
 
 V4pPolygonP grid_squares[GRID_SIZE][GRID_SIZE];
 
-Boolean g4p_onInit() {
+Boolean g4p_onInit(int quality, Boolean fullscreen) {
     int i, j;
     
-    v4p_init2(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);
+    v4p_init2(quality, fullscreen);
     v4p_setBGColor(V4P_BLACK);
     
     // Create a prototype square for the grid

@@ -66,7 +66,7 @@ void g4p_onCollisionPoint(V4pPolygonP p1,
     polygonUnderPen = p2;    
 }
 
-Boolean g4p_onInit() {
+Boolean g4p_onInit(int quality, Boolean fullscreen) {
     v4p_init2(quality, fullscreen);
     v4p_setBGColor(V4P_GREEN);
     xvu = -v4p_displayWidth / 2;

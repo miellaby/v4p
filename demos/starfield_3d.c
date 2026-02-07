@@ -71,13 +71,13 @@ V4pPolygonP createStarPolygon() {
     return v4p_addClone(poly);
 }
 
-Boolean g4p_onInit() {
+Boolean g4p_onInit(int quality, Boolean fullscreen) {
     int i;
 
     // Seed random number generator
     srand(time(NULL));
 
-    v4p_init2(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);
+    v4p_init2(quality, fullscreen);
     v4p_setView(-v4p_displayWidth * 10,
                 -v4p_displayHeight * 10,
                 v4p_displayWidth * 10,

@@ -7,8 +7,8 @@ void test_collision_callback(V4pCollisionLayer i1, V4pCollisionLayer i2, V4pCoor
     printf("Collision detected between layers %u and %u\n", i1, i2);
 }
 
-Boolean g4p_onInit() {
-    v4p_init();
+Boolean g4p_onInit(int quality, Boolean fullscreen) {
+    v4p_init2(quality, fullscreen);
     v4p_setBGColor(V4P_BLACK);
     
     // Test creating polygons on layers beyond 16

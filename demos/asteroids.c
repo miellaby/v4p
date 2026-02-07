@@ -479,8 +479,8 @@ void asteroids_onCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord avg_x, 
     }
 }
 
-Boolean g4p_onInit() {
-    v4p_init2(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);
+Boolean g4p_onInit(int quality, Boolean fullscreen) {
+    v4p_init2(quality, fullscreen);
     v4p_setView(-0.44 * v4p_displayWidth, -0.44 * v4p_displayHeight,
                  v4p_displayWidth * 0.44, v4p_displayHeight * 0.44);
     v4p_setBGColor(V4P_BLACK);

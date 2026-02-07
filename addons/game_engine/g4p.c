@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "g4p.h"
 #include "v4p_ll.h"
 #include "v4pi.h"
@@ -46,6 +47,26 @@ int g4p_main(int argc, char* argv[]) {
         Int32 lastTickTime = 0;
         Int32 deltaTime = 0;
 
+        // Default parameters
+        int quality = V4P_QUALITY_NORMAL;
+        Boolean fullscreen = V4P_UX_NORMAL;
+
+        // Parse command line arguments
+        for (int i = 1; i < argc; i++) {
+            if (strcmp(argv[i], "--quality") == 0 && i + 1 < argc) {
+                if (strcmp(argv[i + 1], "low") == 0) {
+                    quality = V4P_QUALITY_LOW;
+                } else if (strcmp(argv[i + 1], "normal") == 0) {
+                    quality = V4P_QUALITY_NORMAL;
+                } else if (strcmp(argv[i + 1], "high") == 0) {
+                    quality = V4P_QUALITY_HIGH;
+                }
+                i++; // Skip next argument
+            } else if (strcmp(argv[i], "--fullscreen") == 0) {
+                fullscreen = V4P_UX_FULLSCREEN;
+            }
+        }
+
         // reset game 4 pocket state
         for (int i = 0; i < 9; i++) {
             g4p_state.buttons[i] = 0;
@@ -61,8 +82,8 @@ int g4p_main(int argc, char* argv[]) {
         // Set default callback
         v4p_setCollisionCallback(g4p_onCollide);
 
-        // Init call-back
-        if (g4p_onInit())
+        // Init call-back with parsed parameters
+        if (g4p_onInit(quality, fullscreen))
             return failure;
 
         lastTickTime = g4p_getTicks();

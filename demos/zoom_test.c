@@ -9,9 +9,9 @@
 
 V4pPolygonP box_matrix[GRID_SIZE][GRID_SIZE];
 
-Boolean g4p_onInit() {
+Boolean g4p_onInit(int quality, Boolean fullscreen) {
     int i, j;
-    v4p_init2(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);  // Normal quality, windowed
+    v4p_init2(quality, fullscreen);  // Normal quality, windowed
     v4p_setBGColor(V4P_BLACK);  // Black background
 
     // Create a base box

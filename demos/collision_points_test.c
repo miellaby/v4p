@@ -16,7 +16,7 @@ V4pPolygonP poly2 = NULL;
 V4pPolygonP poly3 = NULL;
 
 // Game initialization
-Boolean g4p_onInit() {
+Boolean g4p_onInit(int quality, Boolean fullscreen) {
     printf("=== COLLISION POINTS TEST ===\n");
     
     // Set collision point callback
