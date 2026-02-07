@@ -8,8 +8,8 @@ angle = 0
 pCloneMatrix={}
 
 
-function g4p_onInit()
-  v4p.v4p_init2(1, 0)
+function g4p_onInit(quality, fullscreen)
+  v4p.v4p_init2(quality, fullscreen)
   v4p.v4p_setBgColor(v4p.blue)
  
   pSprite=v4p.v4p_new(v4p.absolute, v4p.red, 10)
@@ -62,11 +62,11 @@ function g4p_onQuit()
   v4p.v4p_quit()
 end
 
-if g4p_ain then
+if g4p_main then
    g4p_main()
 else
    require("v4p")
-   g4p_onInit()
+   g4p_onInit(1, 0)
    g4p_onIterate()
    g4p_onFrame()
    g4p_onQuit()
