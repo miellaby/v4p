@@ -8,6 +8,9 @@
 #include "addons/qfont/qfont.h"  // For score display
 #include "addons/particles/particles.h"  // For particle effects
 #include "backends/v4pi.h"  // For v4pi_debug
+#ifdef DEBUG
+    #include "_v4p.h"           // For internal data structures (debug only)
+#endif
 
 #define MAX_ASTEROIDS 15
 #define MAX_BULLETS 5
@@ -649,6 +652,72 @@ Boolean g4p_onTick(Int32 deltaTime) {
                 }
             }
         }
+
+#ifdef DEBUG
+        // Debug: Press SHIFT button to display ship information
+        if (g4p_state.buttons[G4P_SHIFT]) {
+            v4pi_debug("=== SHIP DEBUG INFO ===");
+            v4pi_debug("Position: x=%.2f, y=%.2f, angle=%.2f", ship_x, ship_y, ship_angle);
+            v4pi_debug("Speed: sx=%.2f, sy=%.2f", ship_speed_x, ship_speed_y);
+            
+            if (ship) {
+                v4pi_debug("Polygon ID: %d, color: %d, layer: %d", 
+                          v4p_getId(ship), ship->color, ship->z);
+                v4pi_debug("Flags: DISABLED=%d, RELATIVE=%d", 
+                          (ship->props & V4P_DISABLED) != 0, 
+                          (ship->props & V4P_RELATIVE) != 0);
+                v4pi_debug("Bounds: minx=%d, maxx=%d, miny=%d, maxy=%d (NIL=%d)", 
+                          ship->minx, ship->maxx, ship->miny, ship->maxy, V4P_NIL);
+                
+                // Check if bounds are valid
+                if (ship->miny == V4P_NIL) {
+                    v4pi_debug("WARNING: Bounds not computed (miny == NIL)");
+                }
+                v4pi_debug("Anchor: ax=%d, ay=%d, radius=%d", 
+                          ship->anchor_x, ship->anchor_y, ship->radius);
+                
+                // Display point coordinates
+                V4pPointP pt = ship->point1;
+                int point_idx = 0;
+                while (pt) {
+                    v4pi_debug("Point %d: x=%d, y=%d (NIL=%d), x==NIL=%d, y==NIL=%d, (x&y)!=NIL=%d", 
+                              point_idx++, pt->x, pt->y, V4P_NIL, 
+                              pt->x == V4P_NIL, pt->y == V4P_NIL, (pt->x & pt->y) != V4P_NIL);
+                    pt = pt->next;
+                }
+                
+                // Check visibility
+                Boolean visible = v4p_isVisible(ship);
+                v4pi_debug("Visibility: %s", visible ? "VISIBLE" : "NOT VISIBLE");
+                
+                // Check if polygon has active edges
+                v4pi_debug("Active edges: %s", ship->ActiveEdge1 ? "YES" : "NO");
+                
+                // Debug: Loop through and log active edges
+                if (ship->ActiveEdge1) {
+                    List edge_list = ship->ActiveEdge1;
+                    int edge_count = 0;
+                    v4pi_debug("=== ACTIVE EDGES ===");
+                    while (edge_list) {
+                        ActiveEdgeP edge = (ActiveEdgeP)edge_list->data;
+                        v4pi_debug("Edge %d: y0=%d, y1=%d, x=%d, h=%d, next=%p",
+                                  edge_count++,
+                                  edge->y0, edge->y1, edge->x, edge->h, (void*)edge_list->next);
+                        edge_list = edge_list->next;
+                    }
+                    v4pi_debug("Total edges: %d", edge_count);
+                    v4pi_debug("=== END ACTIVE EDGES ===");
+                }
+                
+                // Display view and display information
+                v4pi_debug("Display: width=%d, height=%d", v4p_displayWidth, v4p_displayHeight);
+                
+            } else {
+                v4pi_debug("Ship polygon is NULL!");
+            }
+            v4pi_debug("=== END DEBUG INFO ===");
+        }
+#endif
 
         // Handle input
         if (g4p_state.buttons[G4P_LEFT]) {  // Left Arrow

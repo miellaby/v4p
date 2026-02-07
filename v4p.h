@@ -46,7 +46,7 @@ typedef struct v4p_point_s {
     V4pPointP next;
 } V4pPoint;
 
-#define V4P_NIL ((V4pCoord) ~0)
+#define V4P_NIL ((V4pCoord) INT32_MAX)
 
 /**
  * Variables

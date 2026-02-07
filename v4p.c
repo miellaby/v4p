@@ -308,12 +308,14 @@ V4pProps v4p_enable(V4pPolygonP p) {
 
 static void v4p_inDisabled(V4pPolygonP p) {
     v4p_putProp(p, V4P_IN_DISABLED);
+    v4p_changed(p);
     if (p->next) v4p_inDisabled(p->next);
     if (p->sub1) v4p_inDisabled(p->sub1);
 }
 
 V4pProps v4p_disable(V4pPolygonP p) {
     if (p->props & V4P_DISABLED) return p->props;
+    v4p_changed(p);
     if (p->sub1) v4p_inDisabled(p->sub1);
     return v4p_putProp(p, V4P_DISABLED);
 }
@@ -403,7 +405,7 @@ V4pPointP v4p_addPoint(V4pPolygonP p, V4pCoord x, V4pCoord y) {
     s->x = x;
     s->y = y;
     V4pCoord r = p->radius;
-    if ((x & y) != V4P_NIL) {
+    if (x != V4P_NIL && y != V4P_NIL) {
         if (p->miny == V4P_NIL) {
             p->minx = x - r;
             p->maxx = x + r;
@@ -649,7 +651,7 @@ V4pPolygonP v4p_recPolygonTransformClone(Boolean estSub, V4pPolygonP p, V4pPolyg
     while (sp) {
         x = sp->x;
         y = sp->y;
-        if ((x & y) != V4P_NIL) {
+        if (x != V4P_NIL && y != V4P_NIL) {
             // Translate point relative to anchor
             tx = x - anchor_x;
             ty = y - anchor_y;
@@ -848,9 +850,18 @@ V4pPolygonP v4p_buildActiveEdgeList(V4pPolygonP p) {
             // v4p_absoluteToView(0, p->miny, &stub, &(p->minyv));
             // v4p_absoluteToView(0, p->maxy, &stub, &(p->maxyv));
             isVisible = v4p_isVisible(p);
-            if (isVisible && p->ActiveEdge1)
-                // if AE lists are set, we return because they are up-to-date.
-                return p;
+            if (isVisible) {
+                if (p->ActiveEdge1) {
+                    // if AE lists are set, we return because they are up-to-date.
+                    return p;
+                }
+            } else {
+                if (p->ActiveEdge1) {
+                    // if AE lists are set but the polygon is not visible, we
+                    // need to destroy them to avoid keeping useless data.
+                    return v4p_destroyActiveEdges(p);
+                }
+            }
         }
     } else {
         isVisible = v4p_isVisible(p);
@@ -885,7 +896,7 @@ V4pPolygonP v4p_buildActiveEdgeList(V4pPolygonP p) {
         v4p_trace(POLYGON, "Processing point (%d, %d), next=%p\n", sa->x, sa->y, (void*) sb);
 
         // sub-path loop
-        while (sb && (sb->x & sb->y) != V4P_NIL) {  // while in sub-path
+        while (sb && sb->x != V4P_NIL && sb->y != V4P_NIL) {  // while in sub-path
             v4p_trace(POLYGON, "Processing edge from (%d, %d) to (%d, %d)\n", sa->x, sa->y, sb->x, sb->y);
 
             if (sa->y != sb->y) {  // add an active edge
