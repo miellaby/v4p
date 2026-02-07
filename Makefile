@@ -123,47 +123,21 @@ endif
 
 # Trace system configuration
 ifdef TRACE
-  # Convert comma-separated TRACE list to individual -D flags
-  TRACE_CIRCLE := $(findstring CIRCLE,$(TRACE))
-  TRACE_POLYGON := $(findstring POLYGON,$(TRACE))
-  TRACE_EDGE := $(findstring EDGE,$(TRACE))
-  TRACE_SHIFT := $(findstring SHIFT,$(TRACE))
-  TRACE_OPEN := $(findstring OPEN,$(TRACE))
-  TRACE_COLLISION := $(findstring COLLISION,$(TRACE))
-  TRACE_RENDER := $(findstring RENDER,$(TRACE))
-  TRACE_TRANSFORM := $(findstring TRANSFORM,$(TRACE))
-  
-  ifneq ($(TRACE_CIRCLE),)
-    CPPFLAGS += -DTRACE_CIRCLE
+  # 1. Define the master list of available tags
+  TRACE_TAGS := CIRCLE POLYGON SCAN EDGE SHIFT OPEN COLLISION RENDER TRANSFORM
+
+  ifeq ($(TRACE),all)
+    TRACE := $(TRACE_TAGS)
   endif
-  ifneq ($(TRACE_POLYGON),)
-    CPPFLAGS += -DTRACE_POLYGON
-  endif
-  ifneq ($(TRACE_EDGE),)
-    CPPFLAGS += -DTRACE_EDGE
-  endif
-  ifneq ($(TRACE_SHIFT),)
-    CPPFLAGS += -DTRACE_SHIFT
-  endif
-  ifneq ($(TRACE_OPEN),)
-    CPPFLAGS += -DTRACE_OPEN
-  endif
-  ifneq ($(TRACE_COLLISION),)
-    CPPFLAGS += -DTRACE_COLLISION
-  endif
-  ifneq ($(TRACE_RENDER),)
-    CPPFLAGS += -DTRACE_RENDER
-  endif
-  ifneq ($(TRACE_TRANSFORM),)
-    CPPFLAGS += -DTRACE_TRANSFORM
-  endif
-  
-  # Also define TRACE symbol for conditional code
+
+  # 2. For each tag, if it's found in $(TRACE), add -DTRACE_TAG=1, else -DTRACE_TAG=0
+  CPPFLAGS += $(foreach tag,$(TRACE_TAGS), \
+    $(if $(findstring $(tag),$(TRACE)),-DTRACE_$(tag)=1,-DTRACE_$(tag)=0))
+    
   CPPFLAGS += -DTRACE
-  
-  # Show which trace tags are enabled
-  $(info Enabling trace tags: $(TRACE))
+  $(info Enabling trace tags: $(filter $(TRACE_TAGS),$(TRACE)))
 endif
+
 
 # Verbose output
 ifeq ($(VERBOSE),1)

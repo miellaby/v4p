@@ -982,8 +982,6 @@ List v4p_openActiveEdge(V4pCoord yl, V4pCoord yu) {
 
     V4pCoord xr0, yr0, xr1, yr1, dx, dy, q, r;
 
-    v4p_trace(EDGE, "Opening active edges for scanline y=%d yu=%d\n", yl, yu);
-
     l = QuickTableGet(v4p->openableAETable, yl & YHASH_MASK);
     for (; l; l = l->quick) {
         b = (ActiveEdgeP) ListData(l);
@@ -1006,7 +1004,7 @@ List v4p_openActiveEdge(V4pCoord yl, V4pCoord yu) {
         dx = xr1 - xr0;
         dy = yr1 - yr0;
 
-        v4p_trace(EDGE, "Opening edge %p, height=%d, dx=%d, dy=%d\n", (void*) b, b->h, dx, dy);
+        v4p_trace(OPEN, "Opening edge %p, height=%d, dx=%d, dy=%d\n", (void*) b, b->h, dx, dy);
 
         if (! b->circle) {
             q = dx / dy;
@@ -1078,6 +1076,8 @@ Boolean v4p_render() {
             yu += ou1;
         }
 
+        v4p_trace(SCAN, "Render y=%d yu=%d\n", y, yu);
+
         // Loop among opened ActiveEdge
         l = v4p->openedAEList;
         pl = NULL;
@@ -1085,7 +1085,7 @@ Boolean v4p_render() {
         while (l) {
             b = (ActiveEdgeP) ListData(l);
             if (b->h <= 0) {  // Close ActiveEdge
-                v4p_trace(EDGE, "Closing edge %p at y=%d\n", (void*) b, y);
+                v4p_trace(OPEN, "Closing edge %p at y=%d\n", (void*) b, y);
                 if (pl) {
                     ListSetNext(pl, l = ListFree(l));
                 } else {
