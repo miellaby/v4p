@@ -483,7 +483,7 @@ V4pPointP v4p_getPoints(V4pPolygonP p) {
 }
 
 // returns a polygon depth (layer index)
-V4pLayer v4p_getZ(V4pPolygonP p) {
+V4pLayer v4p_getLayer(V4pPolygonP p) {
     return p->z;
 }
 
@@ -595,21 +595,21 @@ ActiveEdgeP v4p_addNewActiveEdge(V4pPolygonP p, V4pPointP a, V4pPointP b) {
 Boolean v4p_addNewCircleEdges(V4pPolygonP p, V4pPointP c) {
     V4pCoord r = p->radius, x = c->x, y = c->y;
 
-    v4pi_debug("CIRCLE: Creating circle edges for point (%d, %d), radius=%d\n", x, y, r);
+    v4p_trace(CIRCLE, "Creating circle edges for point (%d, %d), radius=%d\n", x, y, r);
 
     V4pPoint top = { x: x, y: y - r }, bottom_left = { x: x - r, y: y + r }, bottom_right = { x: x + r, y: y + r };
 
-    v4pi_debug("CIRCLE: Circle bounding box - top:(%d,%d), left:(%d,%d), "
+    v4p_trace(CIRCLE, "Circle bounding box - top:(%d,%d), left:(%d,%d), "
                "right:(%d,%d)\n",
                top.x, top.y, bottom_left.x, bottom_left.y, bottom_right.x, bottom_right.y);
 
     ActiveEdgeP left = v4p_addNewActiveEdge(p, &top, &bottom_left);
     left->circle = true;
-    v4pi_debug("CIRCLE: Created left circle edge %p\n", (void*) left);
+    v4p_trace(CIRCLE, "Created left circle edge %p\n", (void*) left);
 
     ActiveEdgeP right = v4p_addNewActiveEdge(p, &top, &bottom_right);
     right->circle = true;
-    v4pi_debug("CIRCLE: Created right circle edge %p\n", (void*) right);
+    v4p_trace(CIRCLE, "Created right circle edge %p\n", (void*) right);
     return success;
 }
 
@@ -872,7 +872,7 @@ V4pPolygonP v4p_buildActiveEdgeList(V4pPolygonP p) {
     }
 
     V4pPointP s1 = p->point1;
-    v4pi_debug("POLYGON: Building active edges for polygon %p, isCircle=%d, "
+    v4p_trace(POLYGON, "Building active edges for polygon %p, isCircle=%d, "
                "radius=%d\n",
                (void*) p, isCircle, p->radius);
 
@@ -882,11 +882,11 @@ V4pPolygonP v4p_buildActiveEdgeList(V4pPolygonP p) {
             continue;
         }
         V4pPointP sa = s1, sb = sa->next;
-        v4pi_debug("POLYGON: Processing point (%d, %d), next=%p\n", sa->x, sa->y, (void*) sb);
+        v4p_trace(POLYGON, "Processing point (%d, %d), next=%p\n", sa->x, sa->y, (void*) sb);
 
         // sub-path loop
         while (sb && (sb->x & sb->y) != V4P_NIL) {  // while in sub-path
-            v4pi_debug("POLYGON: Processing edge from (%d, %d) to (%d, %d)\n", sa->x, sa->y, sb->x, sb->y);
+            v4p_trace(POLYGON, "Processing edge from (%d, %d) to (%d, %d)\n", sa->x, sa->y, sb->x, sb->y);
 
             if (sa->y != sb->y) {  // add an active edge
                 v4p_addNewActiveEdge(p, sa, sb);
@@ -896,7 +896,7 @@ V4pPolygonP v4p_buildActiveEdgeList(V4pPolygonP p) {
             }
 
             if (isCircle) {  // add circle edges around vertice
-                v4pi_debug("POLYGON: Adding circle edges for vertex (%d, %d)\n", sa->x, sa->y);
+                v4p_trace(POLYGON, "Adding circle edges for vertex (%d, %d)\n", sa->x, sa->y);
                 v4p_addNewCircleEdges(p, sa);
             }
 
@@ -905,17 +905,17 @@ V4pPolygonP v4p_buildActiveEdgeList(V4pPolygonP p) {
             sb = sb->next;
         }
         if (! sb) {  // no more vertice
-            v4pi_debug("POLYGON: End of path subset, last point (%d, %d)\n", sa->x, sa->y);
+            v4p_trace(POLYGON, "End of path subset, last point (%d, %d)\n", sa->x, sa->y);
 
             if (isCircle) {
                 // add circle edge around last vertice (or only vertice for
                 // single-point polygons)
-                v4pi_debug("POLYGON: Adding circle edges for final vertex (%d, %d)\n", sa->x, sa->y);
+                v4p_trace(POLYGON, "Adding circle edges for final vertex (%d, %d)\n", sa->x, sa->y);
                 v4p_addNewCircleEdges(p, sa);
             }
 
             if (sa->y != s1->y) {  // add a closing edge
-                v4pi_debug("POLYGON: Adding closing edge from (%d, %d) to (%d, %d)\n", sa->x, sa->y, s1->x, s1->y);
+                v4p_trace(POLYGON, "Adding closing edge from (%d, %d) to (%d, %d)\n", sa->x, sa->y, s1->x, s1->y);
                 v4p_addNewActiveEdge(p, sa, s1);
             }
             break;
@@ -923,7 +923,7 @@ V4pPolygonP v4p_buildActiveEdgeList(V4pPolygonP p) {
         s1 = sb->next;
     }  // path subset
 
-    v4pi_debug("POLYGON: Finished building active edges for polygon %p\n", (void*) p);
+    v4p_trace(POLYGON, "Finished building active edges for polygon %p\n", (void*) p);
 
     return p;
 }
@@ -982,7 +982,7 @@ List v4p_openActiveEdge(V4pCoord yl, V4pCoord yu) {
 
     V4pCoord xr0, yr0, xr1, yr1, dx, dy, q, r;
 
-    v4pi_debug("EDGE_OPEN: Opening active edges for scanline y=%d yu=%d\n", yl, yu);
+    v4p_trace(EDGE, "Opening active edges for scanline y=%d yu=%d\n", yl, yu);
 
     l = QuickTableGet(v4p->openableAETable, yl & YHASH_MASK);
     for (; l; l = l->quick) {
@@ -992,7 +992,7 @@ List v4p_openActiveEdge(V4pCoord yl, V4pCoord yu) {
         xr1 = b->x1v;
         yr1 = b->y1v;
 
-        v4pi_debug("EDGE_OPEN: Candidate edge %p: (%d,%d) to (%d,%d), circle=%d\n", (void*) b, xr0, yr0, xr1, yr1,
+        v4p_trace(EDGE, "Candidate edge %p: (%d,%d) to (%d,%d), circle=%d\n", (void*) b, xr0, yr0, xr1, yr1,
                    b->circle);
 
         if (yl == 0) {
@@ -1006,7 +1006,7 @@ List v4p_openActiveEdge(V4pCoord yl, V4pCoord yu) {
         dx = xr1 - xr0;
         dy = yr1 - yr0;
 
-        v4pi_debug("EDGE_OPEN: Opening edge %p, height=%d, dx=%d, dy=%d\n", (void*) b, b->h, dx, dy);
+        v4p_trace(EDGE, "Opening edge %p, height=%d, dx=%d, dy=%d\n", (void*) b, b->h, dx, dy);
 
         if (! b->circle) {
             q = dx / dy;
@@ -1085,7 +1085,7 @@ Boolean v4p_render() {
         while (l) {
             b = (ActiveEdgeP) ListData(l);
             if (b->h <= 0) {  // Close ActiveEdge
-                v4pi_debug("EDGE_CLOSE: Closing edge %p at y=%d\n", (void*) b, y);
+                v4p_trace(EDGE, "Closing edge %p at y=%d\n", (void*) b, y);
                 if (pl) {
                     ListSetNext(pl, l = ListFree(l));
                 } else {
@@ -1107,12 +1107,12 @@ Boolean v4p_render() {
 
                     x = xr0 + sign * dx;
                     b->x = x;
-                    v4pi_debug("SHIFT: Shift circle edge %p "
+                    v4p_trace(SHIFT, "Shift circle edge %p "
                                "(%d,%d)x(%d,%d) to x=%d, y=%d\n",
                                (void*) b, xr0, yr0, xr1, yr1, x, y);
 
                 } else {
-                    v4pi_debug("SHIFT: Shift edge %p (%d,%d)x(%d,%d) to "
+                    v4p_trace(SHIFT, "Shift edge %p (%d,%d)x(%d,%d) to "
                                "x=%d, y=%d\n",
                                (void*) b, b->x0v, b->y0v, b->x1v, b->y1v, x, y);
                     if (b->o2) {

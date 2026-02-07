@@ -142,7 +142,7 @@ char* v4p_encodePolygon(V4pPolygonP p, int scale) {
         else if (i == 1)
             v = v4p_getColor(p);
         else if (i == 2)
-            v = v4p_getZ(p);
+            v = v4p_getLayer(p);
         *ss = t[v & 15];
         ss++;
         v = v >> 4;

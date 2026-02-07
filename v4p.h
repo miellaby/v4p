@@ -5,6 +5,7 @@
 #define V4P_H
 #include "v4p_ll.h"
 #include "v4p_color.h"
+#include "v4p_trace.h"
 
 typedef UInt32 V4pLayer;  // Rendering layer (< 32)
 typedef UInt32 V4pCollisionLayer;  // Collision layer (< 32)
@@ -107,7 +108,7 @@ V4pColor v4p_setColor(V4pPolygonP p, V4pColor c);
 V4pColor v4p_setLayer(V4pPolygonP p, V4pLayer z);
 V4pCoord v4p_setRadius(V4pPolygonP p, V4pCoord radius);
 V4pPointP v4p_getPoints(V4pPolygonP p);
-V4pLayer v4p_getZ(V4pPolygonP p);
+V4pLayer v4p_getLayer(V4pPolygonP p);
 V4pCollisionMask v4p_getCollisionMask(V4pPolygonP p);
 UInt32 v4p_getId(V4pPolygonP p);
 V4pColor v4p_getColor(V4pPolygonP p);

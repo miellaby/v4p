@@ -26,6 +26,15 @@ void v4pi_debug(char* formatString, ...) {
     va_end(args);
 }
 
+void v4pi_trace(const char* tag, const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    initTraceFile();
+    fprintf(traceFile, "[%s] ", tag);
+    vfprintf(traceFile, format, args);
+    va_end(args);
+}
+
 // error logging helper
 Boolean v4p_error(char* formatString, ...) {
     va_list args;

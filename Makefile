@@ -4,7 +4,7 @@
 .PHONY: all clean install uninstall addons demos help
 .SECONDARY: # Prevents intermediate files from being deleted (I hate that)
 
-all: libv4p.a addons demos
+all: libv4p.a addons demos tests
 
 # ============================================
 # CONFIGURATION
@@ -121,6 +121,50 @@ else
   CFLAGS += -O2 -DNDEBUG
 endif
 
+# Trace system configuration
+ifdef TRACE
+  # Convert comma-separated TRACE list to individual -D flags
+  TRACE_CIRCLE := $(findstring CIRCLE,$(TRACE))
+  TRACE_POLYGON := $(findstring POLYGON,$(TRACE))
+  TRACE_EDGE := $(findstring EDGE,$(TRACE))
+  TRACE_SHIFT := $(findstring SHIFT,$(TRACE))
+  TRACE_OPEN := $(findstring OPEN,$(TRACE))
+  TRACE_COLLISION := $(findstring COLLISION,$(TRACE))
+  TRACE_RENDER := $(findstring RENDER,$(TRACE))
+  TRACE_TRANSFORM := $(findstring TRANSFORM,$(TRACE))
+  
+  ifneq ($(TRACE_CIRCLE),)
+    CPPFLAGS += -DTRACE_CIRCLE
+  endif
+  ifneq ($(TRACE_POLYGON),)
+    CPPFLAGS += -DTRACE_POLYGON
+  endif
+  ifneq ($(TRACE_EDGE),)
+    CPPFLAGS += -DTRACE_EDGE
+  endif
+  ifneq ($(TRACE_SHIFT),)
+    CPPFLAGS += -DTRACE_SHIFT
+  endif
+  ifneq ($(TRACE_OPEN),)
+    CPPFLAGS += -DTRACE_OPEN
+  endif
+  ifneq ($(TRACE_COLLISION),)
+    CPPFLAGS += -DTRACE_COLLISION
+  endif
+  ifneq ($(TRACE_RENDER),)
+    CPPFLAGS += -DTRACE_RENDER
+  endif
+  ifneq ($(TRACE_TRANSFORM),)
+    CPPFLAGS += -DTRACE_TRANSFORM
+  endif
+  
+  # Also define TRACE symbol for conditional code
+  CPPFLAGS += -DTRACE
+  
+  # Show which trace tags are enabled
+  $(info Enabling trace tags: $(TRACE))
+endif
+
 # Verbose output
 ifeq ($(VERBOSE),1)
   Q =
@@ -217,6 +261,7 @@ clean:
 	$(Q)$(RM) addons/*/*.a
 	$(Q)$(RM) demos/*.o
 	$(Q)$(RM) $(patsubst demos/%.c,demos/%,$(wildcard demos/*.c))
+	$(Q)$(RM) $(patsubst tests/%.c,tests/%,$(wildcard tests/*.c))
 
 install: libv4p.a
 	$(Q)$(MKDIR) $(PREFIX)/lib

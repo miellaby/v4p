@@ -311,7 +311,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
                     if (sel == bDel)
                         v4p_destroyFromScene(focus);
                     if (sel == bLayer)
-                        v4p_transform(focus, 0, 0, 0, currentZ - v4p_getZ(focus), 256, 256);
+                        v4p_transform(focus, 0, 0, 0, currentZ - v4p_getLayer(focus), 256, 256);
                     focus = NULL;
                     currentPoint = NULL;
                 } else if (sel == bScroll && ! focus) {
