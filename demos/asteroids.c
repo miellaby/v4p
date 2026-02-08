@@ -187,7 +187,7 @@ void initLifeIndicators() {
         
         // Scale down to make them smaller
         
-        v4p_transform(life_indicators[i], x, y, 32, 0, 128, 128); // 50% scale
+        v4p_transform(life_indicators[i], x, y, 32, 31, 128, 128); // 50% scale
         
         life_count = i + 1;
     }
@@ -282,11 +282,12 @@ void resetGameState();
 
 // Create a new asteroid
 void createAsteroid() {
+    static unsigned createdAsteroids = 0;
     if (asteroid_count >= MAX_ASTEROIDS) return;
     
     V4pPolygonP asteroid_proto = getAsteroidPrototypeSingleton();
     asteroids[asteroid_count] = v4p_addClone(asteroid_proto);
-    v4p_setLayer(asteroids[asteroid_count], asteroid_count % 30 + 1);
+    v4p_setLayer(asteroids[asteroid_count], createdAsteroids++ % 30 + 1);
     v4p_setColor(asteroids[asteroid_count], 139 + v4p_getId(asteroids[asteroid_count]) % 14);
 
     // Position asteroid randomly around the edges
@@ -505,7 +506,7 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
     initLifeIndicators();
 
     // Create score display polygon
-    score_poly = v4p_addNew(V4P_RELATIVE, V4P_WHITE, 15);
+    score_poly = v4p_addNew(V4P_RELATIVE, V4P_WHITE, 31);
     
     // Start in title mode
     game_mode = GAME_MODE_TITLE;
@@ -586,6 +587,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
             if (asteroids[j] == asteroids_to_remove[i]) {
                 // Get the size of the asteroid being removed
                 int size = asteroid_size[j];
+                V4pLayer layer = v4p_getLayer(asteroids[j]);
                 
                 // Only split if it's not already the smallest size
                 if (size < 2 && asteroid_count + 2 <= MAX_ASTEROIDS) {
@@ -594,7 +596,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
                         if (asteroid_count < MAX_ASTEROIDS) {
                             V4pPolygonP asteroid_proto = getAsteroidPrototypeSingleton();
                             asteroids[asteroid_count] = v4p_addClone(asteroid_proto);
-                            v4p_setLayer(asteroids[asteroid_count], asteroid_count % 30 + 1);
+                            v4p_setLayer(asteroids[asteroid_count], layer); // Keep same layer for split asteroids
                             v4p_setColor(asteroids[asteroid_count], v4p_getColor(asteroids[j]));
                             
                             // Calculate split angle: -90° for k=0, +90° for k=1 relative to original asteroid angle
