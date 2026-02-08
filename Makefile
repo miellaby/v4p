@@ -99,7 +99,7 @@ endif
 
 # Base flags
 CPPFLAGS = -Iaddons/game_engine -Iaddons/v4pserial -Iaddons/qfont -Iaddons/particles -I/usr/include/lua5.1
-CFLAGS  = -Wall -Wextra -std=c99 -fPIC
+CFLAGS  = -Wall -Wextra -std=gnu99 -fPIC
 LDFLAGS =
 LDLIBS  =
 
@@ -166,6 +166,7 @@ QFONT_SRCS = addons/qfont/qfont.c
 V4PSERIAL_SRCS = addons/v4pserial/v4pserial.c
 LUAGAME_SRCS = addons/luagame/luagame.c
 PARTICLES_SRCS = addons/particles/particles.c
+DEBUG_SRCS = addons/debug/debug.c
 
 # ============================================
 # BUILD RULES
@@ -180,10 +181,10 @@ PARTICLES_SRCS = addons/particles/particles.c
 
 # Demos - build object files in demo directories
 demos/%.o: demos/%.c
-	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -Iaddons/game_engine -Iaddons/v4pserial -Iaddons/qfont -c $< -o $@
+	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -Iaddons/game_engine -Iaddons/v4pserial -Iaddons/qfont -Iaddons/debug -c $< -o $@
 
 # Link demos in their directories
-demos/%: demos/%.o libv4p.a libg4p.a libqfont.a libv4pserial.a libparticles.a
+demos/%: demos/%.o libv4p.a libg4p.a libqfont.a libv4pserial.a libparticles.a libdebug.a
 	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS) -lm
 
 # Tests - build object files in demo directories
@@ -203,7 +204,7 @@ libv4p.a: $(patsubst %.c,%.o,$(CORE_SRCS)) $(patsubst %.c,%.o,$(BACKEND_SRCS))
 	$(Q)$(AR) rcs $@ $^
 
 # Addons
-addons: libg4p.a libqfont.a libv4pserial.a libluagame.a libparticles.a
+addons: libg4p.a libqfont.a libv4pserial.a libluagame.a libparticles.a libdebug.a
 
 libg4p.a: $(patsubst %.c,%.o,$(GAME_ENGINE_SRCS))
 	$(Q)$(AR) rcs $@ $^
@@ -218,6 +219,9 @@ libluagame.a: $(patsubst %.c,%.o,$(LUAGAME_SRCS))
 	$(Q)$(AR) rcs $@ $^
 
 libparticles.a: $(patsubst %.c,%.o,$(PARTICLES_SRCS))
+	$(Q)$(AR) rcs $@ $^
+
+libdebug.a: $(patsubst %.c,%.o,$(DEBUG_SRCS))
 	$(Q)$(AR) rcs $@ $^
 
 # Demos target - build all available demos

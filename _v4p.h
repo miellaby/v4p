@@ -1,8 +1,11 @@
 #ifndef _V4P_H
 #define _V4P_H
 // V4P internal definitions (not to be included by users)
+// Exception: debug addon may include this for debugging purposes
 #ifndef _V4P_C
-    #warning "This file should only be included by v4p.c"
+    #ifndef V4P_DEBUG_ADDON
+        #warning "This file should only be included by v4p.c or debug addon"
+    #endif
 #endif
 #include "lowmath.h"
 #include "quickheap.h"

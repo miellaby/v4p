@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <errno.h>
+#include <time.h>
 #include <sys/times.h>
 #include <X11/Xlib.h>
 #include "g4p.h"
@@ -22,9 +24,15 @@ Int32 g4p_getTicks() {
     return t;
 }
 
-// pause execution
+// pause execution for milliseconds
 void g4pi_delay(Int32 d) {
-    usleep(d * 1000);
+    if (d <= 0) return;
+    struct timespec req;
+    req.tv_sec = d / 1000;
+    req.tv_nsec = (d % 1000) * 1000000;
+    while (nanosleep(&req, &req) == -1 && errno == EINTR) {
+        // Continue if interrupted by signal
+    }
 }
 
 // Initialize the game engine
