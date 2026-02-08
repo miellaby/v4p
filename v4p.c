@@ -346,6 +346,16 @@ V4pPolygonP v4p_remove(V4pPolygonP p) {
     return v4p_sceneRemove(v4p->scene, p), p;
 }
 
+// Clear all polygons from the current scene
+void v4p_clearScene() {
+    V4pPolygonP current = v4p->scene->polygons;
+    while (current != NULL) {
+        V4pPolygonP next = current->next;
+        v4p_destroyFromScene(current);
+        current = next;
+    }
+}
+
 // combo remove+destroy from scence
 Boolean v4p_destroyFromScene(V4pPolygonP p) {
     return v4p_sceneRemove(v4p->scene, p) && v4p_destroy(p);

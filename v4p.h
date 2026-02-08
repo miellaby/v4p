@@ -82,6 +82,7 @@ V4pSceneP v4p_sceneNew();
 void v4p_sceneFree(V4pSceneP);
 V4pSceneP v4p_sceneAdd(V4pSceneP, V4pPolygonP);
 V4pSceneP v4p_sceneRemove(V4pSceneP, V4pPolygonP);
+void v4p_clearScene();
 
 // v4p view
 void v4p_viewToAbsolute(V4pCoord x, V4pCoord y, V4pCoord* xa, V4pCoord* ya);
