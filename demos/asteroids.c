@@ -92,18 +92,20 @@ V4pPolygonP getShipPrototypeSingleton() {
     static V4pPolygonP proto = NULL;
     if (proto == NULL) {
         proto = v4p_new(V4P_ABSOLUTE, V4P_WHITE, 0);
-        // Create a simple triangle for the ship using v4p_addPoint
-        v4p_addPoint(proto, 0, -20);  // Top point
-        v4p_addPoint(proto, -10, 20); // Bottom right
-        v4p_addPoint(proto, 10, 20); // Bottom left
+        // Create a a classic V shape ship (like the original Asteroids)
+        v4p_addPoint(proto, 0, -20);    // Top point of chevron
+        v4p_addPoint(proto, -15, 15);    // Left point of chevron
+        v4p_addPoint(proto, 0, 10);     // Bottom center point
+        v4p_addPoint(proto, 15, 15);     // Right point of chevron
+        v4p_addPoint(proto, 0, -20);    // Back to top point to close the shape
         v4p_setAnchorToCenter(proto);
         
         // Add flame as a subparent (will be cloned with the ship)
         V4pPolygonP flame = v4p_addNewSub(proto, V4P_ABSOLUTE, V4P_RED, 0);
-        // Create a small triangle for the flame at the back of the ship (inverted to point downward)
-        v4p_addPoint(flame, 0, 30);   // Tip of flame (pointing downward)
-        v4p_addPoint(flame, -5, 15);  // Left base point
-        v4p_addPoint(flame, 5, 15);   // Right base point
+        // Create a simple flame for the chevron ship
+        v4p_addPoint(flame, 0, 25);    // Tip of flame (pointing downward)
+        v4p_addPoint(flame, -8, 5);   // Left base point
+        v4p_addPoint(flame, 8, 5);    // Right base point
         v4p_setAnchorToCenter(flame);
         // Position flame relative to ship's back
         v4p_transform(flame, 0, 10, 0, 0, 256, 256); // Move down from ship center
@@ -601,8 +603,8 @@ Boolean g4p_onTick(Int32 deltaTime) {
                             // Position new asteroid by moving 30 pixels in the split direction
                             int sina, cosa;
                             getSinCosFromDegrees(split_angle, &sina, &cosa);
-                            asteroid_x[asteroid_count] = asteroid_x[j] + (sina / 256.0f) * 30;
-                            asteroid_y[asteroid_count] = asteroid_y[j] - (cosa / 256.0f) * 30;
+                            asteroid_x[asteroid_count] = asteroid_x[j] + (sina / 256.0f) * (25 - size * 15);
+                            asteroid_y[asteroid_count] = asteroid_y[j] - (cosa / 256.0f) * (25 - size * 15);
                             
                             // Set the asteroid's movement angle (keep some randomization for variety)
                             asteroid_angle[asteroid_count] = asteroid_angle[j] + (12 + (rand() % 52)) * (k - 1); // Randomize angle
