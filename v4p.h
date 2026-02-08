@@ -70,16 +70,16 @@ Boolean v4p_render();
 void v4p_quit();
 
 // v4p context
-V4pContextP v4p_contextNew();
-void v4p_contextFree(V4pContextP);
+V4pContextP v4p_newContext();
+void v4p_destroyContext(V4pContextP);
 V4pColor v4p_setBGColor(V4pColor bg);
 Boolean v4p_setView(V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1);
 void v4p_setScene(V4pSceneP s);
 V4pSceneP v4p_getScene();
 
 // v4p scene
-V4pSceneP v4p_sceneNew();
-void v4p_sceneFree(V4pSceneP);
+V4pSceneP v4p_newScene();
+void v4p_destroyScene(V4pSceneP);
 V4pSceneP v4p_sceneAdd(V4pSceneP, V4pPolygonP);
 V4pSceneP v4p_sceneRemove(V4pSceneP, V4pPolygonP);
 void v4p_clearScene();

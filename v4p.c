@@ -109,7 +109,7 @@ V4pSceneP v4p_getScene() {
 }
 
 // Create a v4p context
-V4pContextP v4p_contextNew() {
+V4pContextP v4p_newContext() {
     V4pContextP v4p = (V4pContextP) malloc(sizeof(V4pContext));
     int lineWidth = v4p_displayWidth, lineNb = v4p_displayHeight;
 
@@ -142,7 +142,7 @@ V4pContextP v4p_contextNew() {
 }
 
 // Delete a v4p context
-void v4p_contextFree(V4pContextP p) {
+void v4p_destroyContext(V4pContextP p) {
     QuickHeapDelete(v4p->pointHeap);
     QuickHeapDelete(v4p->polygonHeap);
     QuickHeapDelete(v4p->activeEdgeHeap);
@@ -151,14 +151,14 @@ void v4p_contextFree(V4pContextP p) {
 }
 
 // Create a new scene
-V4pSceneP v4p_sceneNew() {
+V4pSceneP v4p_newScene() {
     V4pSceneP s = (V4pSceneP) malloc(sizeof(V4pScene));
     s->label = "";
     s->polygons = NULL;
     return s;
 }
 
-void v4p_sceneFree(V4pSceneP s) {
+void v4p_destroyScene(V4pSceneP s) {
     free(s);
 }
 
@@ -169,10 +169,10 @@ Boolean v4p_init2(int quality, Boolean fullscreen) {
     }
 
     if (! v4p_defaultScene) {
-        v4p_defaultScene = v4p_sceneNew();
+        v4p_defaultScene = v4p_newScene();
     }
     if (! v4p_defaultContext) {
-        v4p_defaultContext = v4p_contextNew();
+        v4p_defaultContext = v4p_newContext();
     }
     v4p_setContext(v4p_defaultContext);
     v4p_setView(0, 0, v4p_displayWidth, v4p_displayHeight);
@@ -186,10 +186,17 @@ Boolean v4p_init() {
 
 // V4P cleanup
 void v4p_quit() {
-    if (v4p != v4p_defaultContext) {
-        v4p_contextFree(v4p_defaultContext);
-        v4p = NULL;
-    }
+    // NO: not in charge of freeing the user-created scene and context
+    // if (v4p->scene != v4p_defaultScene) {
+    //     v4p_destroyScene(v4p->scene);
+    //     v4p->scene = NULL;
+    // }
+    // if (v4p != v4p_defaultContext) {
+    //     v4p_destroyContext(v4p);
+    //     v4p = NULL;
+    // }
+    v4p_destroyContext(v4p_defaultContext);
+    v4p_destroyScene(v4p_defaultScene);
     v4pi_destroy();
 }
 
