@@ -636,7 +636,7 @@ V4pPolygonP v4p_recPolygonTransformClone(Boolean estSub, V4pPolygonP p, V4pPolyg
     V4pPointP sp, sc;
     V4pCoord x, y, x2, y2, tx, ty;
 
-    c->z = p->z + dz;  // Shift z
+    c->z = (p->z + dz) & 31;  // Shift z
     if (c->radius && zoom_x == zoom_y) {  // Scale radius (only if zoom_x == zoom_y)
         c->radius = (p->radius * zoom_x) >> 8;
     }
