@@ -11,7 +11,7 @@ typedef struct sQuickTable {
 } QuickTableS, *QuickTable;
 
 QuickTable QuickTableNew(size_t sizeOfTable);
-void QuickTableDelete(QuickTable t);
+void QuickTableDestroy(QuickTable t);
 void QuickTableReset(QuickTable q);
 void QuickTableResetAndFree(QuickTable q);
 

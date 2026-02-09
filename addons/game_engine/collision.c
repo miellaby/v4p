@@ -107,7 +107,7 @@ void g4p_finalizeCollisions() {
 void g4p_destroyCollisions() {
     if (g4p_collision_points_system.table) {
         g4p_resetCollisions();
-        QuickTableDelete(g4p_collision_points_system.table);
+        QuickTableDestroy(g4p_collision_points_system.table);
         g4p_collision_points_system.table = NULL;
         g4p_collision_points_system.table_size = 0;
         g4p_collision_points_system.callback = NULL;

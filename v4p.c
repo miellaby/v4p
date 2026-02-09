@@ -146,7 +146,7 @@ void v4p_destroyContext(V4pContextP p) {
     QuickHeapDestroy(v4p->pointHeap);
     QuickHeapDestroy(v4p->polygonHeap);
     QuickHeapDestroy(v4p->activeEdgeHeap);
-    QuickTableDelete(v4p->openableAETable);
+    QuickTableDestroy(v4p->openableAETable);
     free(p);
 }
 

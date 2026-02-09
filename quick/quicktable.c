@@ -22,7 +22,7 @@ QuickTable QuickTableNew(size_t sizeOfTable) {
     return q;
 }
 
-void QuickTableDelete(QuickTable q) {
+void QuickTableDestroy(QuickTable q) {
     free(q->table);
     free(q);
 }
