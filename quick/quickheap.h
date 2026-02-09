@@ -16,7 +16,7 @@ typedef struct sQuickHeap {
 #define QuickHeapInitializer(S) { (S), NULL, 0, 0, 0, 0, NULL }
 #define QuickHeapInitializerFor(T) QuickHeapInitializer(sizeof(T))
 QuickHeap QuickHeapNew(unsigned int sizeOfItem);
-void QuickHeapDelete(QuickHeap q);
+void QuickHeapDestroy(QuickHeap q);
 #define QuickHeapNewFor(T) QuickHeapNew(sizeof(T))
 void QuickHeapReset(QuickHeap q);
 void QuickHeapReserve(QuickHeap q, unsigned int reservedSize);

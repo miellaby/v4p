@@ -88,20 +88,20 @@ int space_press_timer = 0;
 #define LONG_PRESS_THRESHOLD 60  // About 1 second at 60 FPS
 
 // Ship prototype
+static V4pPolygonP shipProto = NULL;
 V4pPolygonP getShipPrototypeSingleton() {
-    static V4pPolygonP proto = NULL;
-    if (proto == NULL) {
-        proto = v4p_new(V4P_ABSOLUTE, V4P_WHITE, 0);
+    if (shipProto == NULL) {
+        shipProto = v4p_new(V4P_ABSOLUTE, V4P_WHITE, 0);
         // Create a a classic V shape ship (like the original Asteroids)
-        v4p_addPoint(proto, 0, -20);    // Top point of chevron
-        v4p_addPoint(proto, -15, 15);    // Left point of chevron
-        v4p_addPoint(proto, 0, 10);     // Bottom center point
-        v4p_addPoint(proto, 15, 15);     // Right point of chevron
-        v4p_addPoint(proto, 0, -20);    // Back to top point to close the shape
-        v4p_setAnchorToCenter(proto);
+        v4p_addPoint(shipProto, 0, -20);    // Top point of chevron
+        v4p_addPoint(shipProto, -15, 15);    // Left point of chevron
+        v4p_addPoint(shipProto, 0, 10);     // Bottom center point
+        v4p_addPoint(shipProto, 15, 15);     // Right point of chevron
+        v4p_addPoint(shipProto, 0, -20);    // Back to top point to close the shape
+        v4p_setAnchorToCenter(shipProto);
         
         // Add flame as a subparent (will be cloned with the ship)
-        V4pPolygonP flame = v4p_addNewSub(proto, V4P_ABSOLUTE, V4P_RED, 0);
+        V4pPolygonP flame = v4p_addNewSub(shipProto, V4P_ABSOLUTE, V4P_RED, 0);
         // Create a simple flame for the chevron ship
         v4p_addPoint(flame, 0, 25);    // Tip of flame (pointing downward)
         v4p_addPoint(flame, -8, 5);   // Left base point
@@ -110,56 +110,56 @@ V4pPolygonP getShipPrototypeSingleton() {
         // Position flame relative to ship's back
         v4p_transform(flame, 0, 10, 0, 0, 256, 256); // Move down from ship center
     }
-    return proto;
+    return shipProto;
 }
 
 // Get a rock prototype in different shapes
+static V4pPolygonP rockProto[2] = { NULL, NULL };
 V4pPolygonP getAsteroidPrototypeSingleton() {
-    static V4pPolygonP prototypes[2] = {NULL, NULL};
     static int initialized = 0;
     
     if (!initialized) {
         // Prototype 1: Octagon (original)
-        prototypes[0] = v4p_new(V4P_ABSOLUTE, V4P_MAROON, 2);
-        v4p_addPoint(prototypes[0], 45 /* 50 */, 0);
-        v4p_addPoint(prototypes[0], 35, 35);
-        v4p_addPoint(prototypes[0], 0, 50);
-        v4p_addPoint(prototypes[0], -35, 35);
-        v4p_addPoint(prototypes[0], -50, 0);
-        v4p_addPoint(prototypes[0], -35, -35);
-        v4p_addPoint(prototypes[0], 0, -50);
-        v4p_addPoint(prototypes[0], 35, -35);
-        v4p_setAnchorToCenter(prototypes[0]);
+        rockProto[0] = v4p_new(V4P_ABSOLUTE, V4P_MAROON, 2);
+        v4p_addPoint(rockProto[0], 45 /* 50 */, 0);
+        v4p_addPoint(rockProto[0], 35, 35);
+        v4p_addPoint(rockProto[0], 0, 50);
+        v4p_addPoint(rockProto[0], -35, 35);
+        v4p_addPoint(rockProto[0], -50, 0);
+        v4p_addPoint(rockProto[0], -35, -35);
+        v4p_addPoint(rockProto[0], 0, -50);
+        v4p_addPoint(rockProto[0], 35, -35);
+        v4p_setAnchorToCenter(rockProto[0]);
 
-        prototypes[1] = v4p_new(V4P_ABSOLUTE, V4P_MAROON, 2);
-        v4p_addPoint(prototypes[1], 20, -5);
-        v4p_addPoint(prototypes[1], 20, 5);
-        v4p_addPoint(prototypes[1], 35, 35);
-        v4p_addPoint(prototypes[1], 0, 50);
-        v4p_addPoint(prototypes[1], -30, 35);
-        v4p_addPoint(prototypes[1], -50, 0);
-        v4p_addPoint(prototypes[1], -35, -35);
-        v4p_addPoint(prototypes[1], 0, -50);
-        v4p_addPoint(prototypes[1], 35, -35);
-        v4p_setAnchorToCenter(prototypes[1]);
+        rockProto[1] = v4p_new(V4P_ABSOLUTE, V4P_MAROON, 2);
+        v4p_addPoint(rockProto[1], 20, -5);
+        v4p_addPoint(rockProto[1], 20, 5);
+        v4p_addPoint(rockProto[1], 35, 35);
+        v4p_addPoint(rockProto[1], 0, 50);
+        v4p_addPoint(rockProto[1], -30, 35);
+        v4p_addPoint(rockProto[1], -50, 0);
+        v4p_addPoint(rockProto[1], -35, -35);
+        v4p_addPoint(rockProto[1], 0, -50);
+        v4p_addPoint(rockProto[1], 35, -35);
+        v4p_setAnchorToCenter(rockProto[1]);
 
         initialized = 1;
     }
     
     // Return a random prototype
-    return prototypes[rand() % 2];
+    return rockProto[rand() % 2];
 }
 
 // Bullet prototype
+static V4pPolygonP bulletProto = NULL;
 V4pPolygonP createBulletPrototype() {
-    static V4pPolygonP proto = NULL;
-    if (proto == NULL) {
-        proto = v4p_new(V4P_ABSOLUTE, V4P_YELLOW, 0);
+    if (bulletProto == NULL) {
+        bulletProto = v4p_new(V4P_ABSOLUTE, V4P_YELLOW, 0);
         // Create a simple square for the bullet
-        v4p_rect(proto, -BULLET_SIZE/2, -BULLET_SIZE/2, BULLET_SIZE/2, BULLET_SIZE/2);
-        v4p_setAnchorToCenter(proto);
+        v4p_rect(bulletProto, -BULLET_SIZE/2, -BULLET_SIZE/2, BULLET_SIZE/2, BULLET_SIZE/2);
+        v4p_setAnchorToCenter(bulletProto);
     }
-    return proto;
+    return bulletProto;
 }
 
 // Initialize life indicators
@@ -874,16 +874,26 @@ Boolean g4p_onFrame() {
 }
 
 void g4p_onQuit() {
-    // Clean up particle systems
     if (explosion_system) {
         particles_destroy(explosion_system);
-        explosion_system = NULL;
     }
     if (thrust_system) {
         particles_destroy(thrust_system);
-        thrust_system = NULL;
+    }
+    if (shipProto) {
+        v4p_destroy(shipProto);
+    }
+    if (rockProto[0]) {
+        v4p_destroy(rockProto[0]);
+    }
+    if (rockProto[1]) {
+        v4p_destroy(rockProto[1]);
+    }
+    if (bulletProto) {
+        v4p_destroy(bulletProto);
     }
     
+    v4p_clearScene();
     v4p_quit();
 }
 

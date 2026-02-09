@@ -25,11 +25,7 @@ static int hash_polygon_pair(V4pPolygonP p1, V4pPolygonP p2) {
         id2 = temp;
     }
     
-    // Better hash function using both IDs with multiplication
-    // This provides better distribution than simple XOR
-    uint32_t hash = id1 * 31 + id2;  // 31 is a good prime for hashing
-    hash = (hash * 31) + (id1 ^ (id2 << 2));
-    
+    uint32_t hash = id1 * 31 + id2;
     return (int)(hash % g4p_collision_points_system.table_size);
 }
 
@@ -88,8 +84,8 @@ void g4p_finalizeCollisions() {
                 data->avg_x = data->x_sum / data->count;
                 data->avg_y = data->y_sum / data->count;
                 
-                v4p_trace(G4P, "Polygon pair (%p, %p): avg_x=%d, avg_y=%d, count=%d\n",
-                          (void*)data->p1, (void*)data->p2, data->avg_x, data->avg_y, data->count);
+                v4p_trace(G4P, "Polygon pair (%d, %d): avg_x=%d, avg_y=%d, count=%d\n",
+                          v4p_getId(data->p1), v4p_getId(data->p2), data->avg_x, data->avg_y, data->count);
                 
                 // Call callback if set
                 if (g4p_collision_points_system.callback != NULL) {
@@ -120,7 +116,7 @@ void g4p_destroyCollisions() {
     
     // Clean up the QuickHeap
     if (g4p_collision_points_system.data_heap) {
-        QuickHeapDelete(g4p_collision_points_system.data_heap);
+        QuickHeapDestroy(g4p_collision_points_system.data_heap);
         g4p_collision_points_system.data_heap = NULL;
     }
 }

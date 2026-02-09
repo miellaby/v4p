@@ -143,9 +143,9 @@ V4pContextP v4p_newContext() {
 
 // Delete a v4p context
 void v4p_destroyContext(V4pContextP p) {
-    QuickHeapDelete(v4p->pointHeap);
-    QuickHeapDelete(v4p->polygonHeap);
-    QuickHeapDelete(v4p->activeEdgeHeap);
+    QuickHeapDestroy(v4p->pointHeap);
+    QuickHeapDestroy(v4p->polygonHeap);
+    QuickHeapDestroy(v4p->activeEdgeHeap);
     QuickTableDelete(v4p->openableAETable);
     free(p);
 }

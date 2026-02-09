@@ -53,8 +53,9 @@ void QuickHeapReset(QuickHeap q) {
     q->next = NULL;
 }
 
-void QuickHeapDelete(QuickHeap q) {
+void QuickHeapDestroy(QuickHeap q) {
     QuickHeapReset(q);
+    if (q->heap) free(q->heap) ;
     free(q);
 }
 
