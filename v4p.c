@@ -1197,9 +1197,7 @@ Boolean v4p_render() {
 
             if ((int) z >= zMax) {  // edge not hidden by upper layers
                 if (b->x > 0) {  // slice before current edge
-                    if (px < v4p_displayWidth) {
-                        v4pi_slice(y, imax(px, 0), imin(b->x, v4p_displayWidth), visiblePolygon->color);
-                    }
+                    v4pi_slice(y, px, imin(b->x, v4p_displayWidth), visiblePolygon->color);
                     px = b->x;
                 }
             }
@@ -1207,7 +1205,7 @@ Boolean v4p_render() {
             // Check collisions between concrete polygons
             // only collisions between pairs in layer order are reported
             UInt32 bitmask = concreteBitmask;
-            if (bitmask > 0) {
+            if (bitmask > 0 && b->x > 0) {
                 V4pCollisionLayer topLayer = floorLog2(bitmask);
                 UInt32 bitmaskMinusTop = bitmask & (~((UInt32) 1 << topLayer));
                 while (bitmaskMinusTop > 0) {  // Collision with concrete layers
@@ -1250,7 +1248,7 @@ Boolean v4p_render() {
                 px_collide = b->x;
                 if (p->collisionMask != 0) {
                     V4pCollisionMask mask = p->collisionMask;
-                    if (openedPolygons[z] == p) {
+                    if (!(concreteBitmask & mask)) {
                         concreteBitmask |= mask;
 
                         // Store polygon in the primary collision layer
