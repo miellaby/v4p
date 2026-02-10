@@ -17,14 +17,20 @@ int floorLog232(UInt32 v);
 // compute cos/sin and upate lwmCosa, lwmSina (1 / 255 unit)
 Boolean computeCosSin(UInt16 angle);
 
-// macro
-#define imin(A, B) ((A) < (B) ? (A) : (B))
+// Sign function for proper rounding: returns -1, 0, or 1
+#define SIGN(x) (((x) > 0) - ((x) < 0))
 
 // macro
-#define imax(A, B) ((A) > (B) ? (A) : (B))
+#define IMIN(A, B) ((A) < (B) ? (A) : (B))
 
 // macro
-#define ilimit(A, B, C) ((A) < (B) ? (B) : ((A) > (C) ? (C) : (A)))
+#define IMAX(A, B) ((A) > (B) ? (A) : (B))
+
+// macro
+#define ILIMIT(A, B, C) ((A) < (B) ? (B) : ((A) > (C) ? (C) : (A)))
+
+// iabs
+#define IABS(A) ((A) < 0 ? -(A) : (A))
 
 // rotate (x,y) vector according to current transformation (computeCosSin must have been called before)
 void straighten(V4pCoord x, V4pCoord y, V4pCoord* xn, V4pCoord* yn);

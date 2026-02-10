@@ -64,29 +64,34 @@ V4pColor v4p_setBGColor(V4pColor bg) {
 }
 
 // Set the view
+// Uses integer scaling technique to avoid 16-bit overflow on MCUs
+// See integer_scaling.md for detailed explanation of quotient-remainder scaling
 Boolean v4p_setView(V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1) {
-    int dxdi = v4p_displayWidth;
-    int dydi = v4p_displayHeight;
-    int dxvu = x1 - x0;
-    int dyvu = y1 - y0;
-    if (! dxvu || ! dyvu) {
+    int displayWidth = v4p_displayWidth;
+    int displayHeight = v4p_displayHeight;
+    int viewWidth = x1 - x0;
+    int viewHeight = y1 - y0;
+    if (! viewWidth || ! viewHeight) {
         return failure;  // Can't divide by 0
     }
-    v4p->xvu0 = x0;
-    v4p->yvu0 = y0;
-    v4p->xvu1 = x1;
-    v4p->yvu1 = y1;
-    v4p->dxvu = dxvu;
-    v4p->dyvu = dyvu;
-    v4p->divxvu = dxdi / dxvu;
-    v4p->modxvu = dxdi % dxvu;
-    v4p->divxvub = dxvu / dxdi;
-    v4p->modxvub = dxvu % dxdi;
-    v4p->divyvu = dydi / dyvu;
-    v4p->modyvu = dydi % dyvu;
-    v4p->divyvub = dyvu / dydi;
-    v4p->modyvub = dyvu % dydi;
-    v4p->scaling = ! (v4p->divxvu == 1 && v4p->divyvu == 1 && v4p->modxvu == 0 && v4p->modyvu == 0);
+    v4p->viewMinX = x0;
+    v4p->viewMinY = y0;
+    v4p->viewMaxX = x1;
+    v4p->viewMaxY = y1;
+    v4p->viewWidth = viewWidth;
+    v4p->viewHeight = viewHeight;
+    // Integer scaling factors using quotient-remainder technique
+    // screenToView: screen_size / view_size (for zoom out)
+    // viewToScreen: view_size / screen_size (for zoom in)
+    v4p->screenToView_wholeX = displayWidth / viewWidth;
+    v4p->screenToView_remX = displayWidth % viewWidth;
+    v4p->viewToScreen_wholeX = viewWidth / displayWidth;
+    v4p->viewToScreen_remX = viewWidth % displayWidth;
+    v4p->screenToView_wholeY = displayHeight / viewHeight;
+    v4p->screenToView_remY = displayHeight % viewHeight;
+    v4p->viewToScreen_wholeY = viewHeight / displayHeight;
+    v4p->viewToScreen_remY = viewHeight % displayHeight;
+    v4p->scaling = ! (v4p->screenToView_wholeX == 1 && v4p->screenToView_wholeY == 1 && v4p->screenToView_remX == 0 && v4p->screenToView_remY == 0);
     v4p->changes |= V4P_CHANGED_VIEW;
     return success;
 }
@@ -95,7 +100,7 @@ Boolean v4p_setView(V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1) {
 void v4pi_set(V4piContextP d) {
     v4p->display = d;
     // Call to refresh internal values depending on current display
-    v4p_setView(v4p->xvu0, v4p->yvu0, v4p->xvu1, v4p->yvu1);
+    v4p_setView(v4p->viewMinX, v4p->viewMinY, v4p->viewMaxX, v4p->viewMaxY);
 }
 
 // Set the scene
@@ -120,20 +125,21 @@ V4pContextP v4p_newContext() {
     v4p->activeEdgeHeap = QuickHeapNewFor(ActiveEdge);
     v4p->openableAETable = QuickTableNew(YHASH_SIZE);  // Vertical sort
     v4p->dummyBgPoly.color = 0;
-    v4p->xvu0 = 0;
-    v4p->yvu0 = 0;
-    v4p->xvu1 = lineWidth;
-    v4p->yvu1 = lineNb;
-    v4p->dxvu = lineWidth;
-    v4p->dyvu = lineNb;
-    v4p->divxvu = 1;
-    v4p->modxvu = 0;
-    v4p->divxvub = 1;
-    v4p->modxvub = 0;
-    v4p->divyvu = 1;
-    v4p->modyvu = 0;
-    v4p->divyvub = 1;
-    v4p->modyvub = 0;
+    v4p->viewMinX = 0;
+    v4p->viewMinY = 0;
+    v4p->viewMaxX = lineWidth;
+    v4p->viewMaxY = lineNb;
+    v4p->viewWidth = lineWidth;
+    v4p->viewHeight = lineNb;
+    // Initialize integer scaling factors for 1:1 mapping (no scaling)
+    v4p->screenToView_wholeX = 1;
+    v4p->screenToView_remX = 0;
+    v4p->viewToScreen_wholeX = 1;
+    v4p->viewToScreen_remX = 0;
+    v4p->screenToView_wholeY = 1;
+    v4p->screenToView_remY = 0;
+    v4p->viewToScreen_wholeY = 1;
+    v4p->viewToScreen_remY = 0;
     v4p->scaling = 0;
     v4p->changes = 255;  // All memoization caches to be reset
     v4p->nextId = 0;  // to number polygons uniquely
@@ -652,6 +658,14 @@ V4pPolygonP v4p_recPolygonTransformClone(Boolean estSub, V4pPolygonP p, V4pPolyg
                                          V4pCoord zoom_y) {
     V4pPointP sp, sc;
     V4pCoord x, y, x2, y2, tx, ty;
+    
+    // Pre-compute integer scaling factors for zoom using quotient-remainder technique
+    // This avoids 16-bit overflow on MCUs by breaking scaling into safe components
+    // See integer_scaling.md for detailed explanation
+    V4pCoord zoomX_whole = zoom_x / 256;
+    V4pCoord zoomX_rem = zoom_x % 256;
+    V4pCoord zoomY_whole = zoom_y / 256;
+    V4pCoord zoomY_rem = zoom_y % 256;
 
     c->z = (p->z + dz) & 31;  // Shift z
     if (c->radius && zoom_x == zoom_y) {  // Scale radius (only if zoom_x == zoom_y)
@@ -676,9 +690,11 @@ V4pPolygonP v4p_recPolygonTransformClone(Boolean estSub, V4pPolygonP p, V4pPolyg
             // Apply rotation
             straighten(tx, ty, &x2, &y2);
 
-            // Apply zoom/scaling
-            x2 = (x2 * zoom_x) / 256;
-            y2 = (y2 * zoom_y) / 256;
+            // Apply zoom/scaling using integer scaling technique
+            // This prevents 16-bit overflow by using quotient-remainder decomposition
+            // Formula: x2 * zoom_x / 256 = x2 * zoomX_whole + ((x2 * zoomX_rem) + SIGN(x2) * (256 / 2)) / 256
+            x2 = x2 * zoomX_whole + ((x2 * zoomX_rem) + SIGN(x2) * (256 / 2)) / 256;
+            y2 = y2 * zoomY_whole + ((y2 * zoomY_rem) + SIGN(y2) * (256 / 2)) / 256;
 
             // Translate back and apply position delta
             sc->x = x2 + anchor_x + dx;
@@ -811,19 +827,25 @@ V4pPolygonP v4p_computeLimits(V4pPolygonP p) {
 }
 
 // transform relative coordinates into absolute (scene related) ones
+// Uses integer scaling technique to avoid overflow (see integer_scaling.md)
 void v4p_viewToAbsolute(V4pCoord x, V4pCoord y, V4pCoord* xa, V4pCoord* ya) {
     int lineWidth = v4p_displayWidth, lineNb = v4p_displayHeight;
-    *xa = v4p->xvu0 + x * v4p->divxvub + (x * v4p->modxvub) / lineWidth + (x < 0 && v4p->modxvub ? -1 : 0);
-    *ya = v4p->yvu0 + y * v4p->divyvub + (y * v4p->modyvub) / lineNb + (y < 0 && v4p->modyvub ? -1 : 0);
+    // viewToScreen: x_absolute = x_view * (view_width/screen_width) + rounding
+    // Uses sign-aware Bresenham-like rounding: add sign(x)*size/2 to numerator for proper rounding
+    *xa = v4p->viewMinX + x * v4p->viewToScreen_wholeX + ((x * v4p->viewToScreen_remX) + SIGN(x) * (lineWidth / 2)) / lineWidth;
+    *ya = v4p->viewMinY + y * v4p->viewToScreen_wholeY + ((y * v4p->viewToScreen_remY) + SIGN(y) * (lineNb / 2)) / lineNb;
 }
 
 // transform absolute coordinates into relative (scene related) ones
+// Uses integer scaling technique to avoid overflow (see integer_scaling.md)
 void v4p_absoluteToView(V4pCoord x, V4pCoord y, V4pCoord* xa, V4pCoord* ya) {
-    x -= v4p->xvu0;
-    y -= v4p->yvu0;
+    x -= v4p->viewMinX;
+    y -= v4p->viewMinY;
     if (v4p->scaling) {
-        *xa = x * v4p->divxvu + (x * v4p->modxvu) / v4p->dxvu + (x < 0 && v4p->modxvu ? -1 : 0);
-        *ya = y * v4p->divyvu + (y * v4p->modyvu) / v4p->dyvu + (y < 0 && v4p->modyvu ? -1 : 0);
+        // screenToView: x_view = x_absolute * (screen_width/view_width) + rounding
+        // Uses sign-aware Bresenham-like rounding: add sign(x)*size/2 to numerator for proper rounding
+        *xa = x * v4p->screenToView_wholeX + ((x * v4p->screenToView_remX) + SIGN(x) * (v4p->viewWidth / 2)) / v4p->viewWidth;
+        *ya = y * v4p->screenToView_wholeY + ((y * v4p->screenToView_remY) + SIGN(y) * (v4p->viewHeight / 2)) / v4p->viewHeight;
     } else {
         *xa = x;
         *ya = y;
@@ -987,7 +1009,7 @@ void v4p_buildOpenableAELists(V4pPolygonP polygonChain) {
             } else {
                 v4p_absoluteToView(b->x0, b->y0, &(b->x0v), &(b->y0v));
                 v4p_absoluteToView(b->x1, b->y1, &(b->x1v), &(b->y1v));
-                if (b->y0 < v4p->yvu0) {
+                if (b->y0 < v4p->viewMinY) {
                     QuickTableAdd(v4p->openableAETable, 0, l);
                 } else {
                     QuickTableAdd(v4p->openableAETable, b->y0v & YHASH_MASK, l);
@@ -1036,15 +1058,15 @@ List v4p_openActiveEdge(V4pCoord yl, V4pCoord yu) {
 
         if (! b->circle) {
             q = dx / dy;
-            r = dx > 0 ? dx % dy : (-dx) % dy;
+            r = IABS(dx) % dy;
             b->o1 = q;
-            b->o2 = b->o1 + (dx > 0 ? 1 : -1);
+            b->o2 = b->o1 + SIGN(dx);
             b->r1 = r;
             b->r2 = r - dy;
-            b->s = -dy;
+            b->s = -dy / 2;
             int dy2 = yl - yr0;
             if (dy2 > 0) {  // edge top truncation
-                b->x += dy2 * q + dy2 * (dx > 0 ? r : -r) / dy;
+                b->x += dy2 * q + dy2 * SIGN(dx) * r / dy;
                 b->s += (dy2 * r) % dy;
             }
         }
@@ -1085,12 +1107,12 @@ Boolean v4p_render() {
     v4p->openedAEList = NULL;
 
     // yu (scanline y in absolute coordinates) progression during scanline loop
-    ou1 = v4p->divyvub;
-    ou2 = v4p->divyvub + 1;
-    yu = v4p->yvu0 - ou2;
-    ru1 = v4p->modyvub;
-    ru2 = v4p->modyvub - v4p_displayHeight;
-    su = v4p->modyvub;
+    ou1 = v4p->viewToScreen_wholeY;
+    ou2 = v4p->viewToScreen_wholeY + 1;
+    yu = v4p->viewMinY - ou2;
+    ru1 = v4p->viewToScreen_remY;
+    ru2 = v4p->viewToScreen_remY - v4p_displayHeight;
+    su = v4p->viewToScreen_remY;
 
     // Scan-line loop
     for (y = 0; y < v4p_displayHeight; y++) {
@@ -1197,7 +1219,7 @@ Boolean v4p_render() {
 
             if ((int) z >= zMax) {  // edge not hidden by upper layers
                 if (b->x > 0) {  // slice before current edge
-                    v4pi_slice(y, px, imin(b->x, v4p_displayWidth), visiblePolygon->color);
+                    v4pi_slice(y, px, IMIN(b->x, v4p_displayWidth), visiblePolygon->color);
                     px = b->x;
                 }
             }
@@ -1281,7 +1303,7 @@ Boolean v4p_render() {
 
         // Last slice
         if (px < v4p_displayWidth) {
-            v4pi_slice(y, imax(0, px), v4p_displayWidth, visiblePolygon->color);
+            v4pi_slice(y, IMAX(0, px), v4p_displayWidth, visiblePolygon->color);
         }
 
     }  // Y loop ;
@@ -1292,8 +1314,8 @@ Boolean v4p_render() {
     }
     v4p->openedAEList = NULL;
 
-    if (yu != v4p->yvu1 - v4p->divyvub) {
-        v4p_error("problem %d != %d", (int) yu, (int) v4p->yvu1 - v4p->divyvub);
+    if (yu != v4p->viewMaxY - v4p->viewToScreen_wholeY) {
+        v4p_error("problem %d != %d", (int) yu, (int) v4p->viewMaxY - v4p->viewToScreen_wholeY);
     }
 
     v4p->changes = 0;

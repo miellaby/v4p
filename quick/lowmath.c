@@ -162,5 +162,5 @@ V4pCoord gaugeDist(V4pCoord x, V4pCoord y) {
     if (y < 0) y = -y;
 
     // min.(sqrt2-1)+max
-    return ((imin(x, y) * 424) >> 10) + imax(x, y);
+    return ((IMIN(x, y) * 424) >> 10) + IMAX(x, y);
 }

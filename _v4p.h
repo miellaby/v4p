@@ -64,17 +64,21 @@ typedef struct activeEdge_s* ActiveEdgeP;
 typedef struct v4p_context_s {
     V4piContextP display;
     V4pSceneP scene;  // Scene = a polygon set
-    V4pCoord xvu0, yvu0, xvu1, yvu1;  // View corner coordinates
+    // View coordinate system (absolute coordinates)
+    V4pCoord viewMinX, viewMinY;  // Top-left corner of view (minimum coordinates)
+    V4pCoord viewMaxX, viewMaxY;  // Bottom-right corner of view (maximum coordinates)
     Polygon dummyBgPoly;  // Just for color
     int debug1;
     QuickHeap pointHeap, polygonHeap, activeEdgeHeap;
     List openedAEList;  // ActiveEdge lists
     QuickTable openableAETable;  // ActiveEdge Hash Table
-    V4pCoord dxvu, dyvu;  // View width and height
-    V4pCoord divxvu, modxvu, divyvu,
-        modyvu;  // Ratios screen / view in result+reminder pairs
-    V4pCoord divxvub, modxvub, divyvub,
-        modyvub;  // Ratios view / screen in result+reminder pairs
+    V4pCoord viewWidth, viewHeight;  // View dimensions (viewMaxX - viewMinX, viewMaxY - viewMinY)
+    // Integer scaling factors for coordinate transformations
+    // Uses quotient-remainder technique to avoid overflow (see integer_scaling.md)
+    V4pCoord screenToView_wholeX, screenToView_remX;  // Screen-to-View scaling (zoom out, X axis)
+    V4pCoord screenToView_wholeY, screenToView_remY;  // Screen-to-View scaling (zoom out, Y axis)
+    V4pCoord viewToScreen_wholeX, viewToScreen_remX;  // View-to-Screen scaling (zoom in, X axis)
+    V4pCoord viewToScreen_wholeY, viewToScreen_remY;  // View-to-Screen scaling (zoom in, Y axis)
     Boolean scaling;  // Is scaling necessary?
     UInt32 changes;
     UInt32 nextId;
