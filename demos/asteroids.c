@@ -70,7 +70,7 @@ float ship_x = 0, ship_y = 0;
 float ship_speed_x = 0, ship_speed_y = 0;  // Ship's speed/moment vector
 Boolean thrusting = false;
 Boolean game_over = false;
-int invulnerability_timer = 120;
+float invulnerability_timer = 5000;  // Invulnerability timer in milliseconds after respawn
 
 // Objects to remove (can't remove in callback)
 V4pPolygonP bullets_to_remove[MAX_BULLETS];
@@ -85,7 +85,7 @@ V4pPolygonP press_space_poly = NULL;
 
 // Long press detection for spacebar
 int space_press_timer = 0;
-#define LONG_PRESS_THRESHOLD 60  // About 1 second at 60 FPS
+#define LONG_PRESS_THRESHOLD 1000  // 1 second
 
 // Ship prototype
 static V4pPolygonP shipProto = NULL;
@@ -156,7 +156,7 @@ V4pPolygonP createBulletPrototype() {
     if (bulletProto == NULL) {
         bulletProto = v4p_new(V4P_ABSOLUTE, V4P_YELLOW, 0);
         // Create a simple square for the bullet
-        v4p_rect(bulletProto, -BULLET_SIZE/2, -BULLET_SIZE/2, BULLET_SIZE/2, BULLET_SIZE/2);
+        v4p_rect(bulletProto, -BULLET_SIZE/2, -BULLET_SIZE, BULLET_SIZE/2, BULLET_SIZE);
         v4p_setAnchorToCenter(bulletProto);
     }
     return bulletProto;
@@ -364,7 +364,7 @@ void resetGameState() {
     lives = 3;
     score = 0;
     game_over = false;
-    invulnerability_timer = 120;
+    invulnerability_timer = 5000;
     
     // Reinitialize life indicators
     initLifeIndicators();
@@ -387,7 +387,7 @@ void fireBullet() {
     bullet_x[bullet_count] = ship_x + (sina / 256.0f) * SHIP_SIZE;
     bullet_y[bullet_count] = ship_y - (cosa / 256.0f) * SHIP_SIZE;
     bullet_angle[bullet_count] = ship_angle;
-    bullet_ttl[bullet_count] = 80; // 1 second + at 60 FPS
+    bullet_ttl[bullet_count] = 1000; // 1 second
     
     v4p_transform(bullets[bullet_count], bullet_x[bullet_count], bullet_y[bullet_count], ship_angle * 512.f / 360.f, 0, 256, 256);
     v4p_setCollisionMask(bullets[bullet_count], 4); // Bullets are on layer 3
@@ -476,7 +476,7 @@ void asteroids_onCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord avg_x, 
                 ship_x = 0;
                 ship_y = 0;
                 ship_angle = 90;
-                invulnerability_timer = 120; // 4 seconds at 60 FPS
+                invulnerability_timer = 5000; // 5 seconds
             }
         }
     }
@@ -517,13 +517,13 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
     
     // Explosion system - for asteroid destruction
     explosion_system = particles_create(50, particle_proto);
-    particles_set_defaults(explosion_system, 60, 1.5f, -0.01f, 5.0f, 0.0f);
-    particles_set_noise(explosion_system, 0.5f, 0.3f, 0.5f, 0.2f);
+    particles_set_defaults(explosion_system, 1000, 0.3f, -0.0002f, 0.5f, 0.0f);
+    particles_set_noise(explosion_system, 0.05f, 0.03f, 0.05f, 0.02f);
     
     // Thrust system - for ship engine
     thrust_system = particles_create(20, particle_proto);
-    particles_set_defaults(thrust_system, 30, 2.f, -0.05f, 2.0f, 0.0f);
-    particles_set_noise(thrust_system, 0.3f, 0.2f, 0.3f, 0.1f);
+    particles_set_defaults(thrust_system, 500, 0.2f, -0.0003f, 0.2f, 0.0f);
+    particles_set_noise(thrust_system, 0.03f, 0.2f, 0.03f, 0.01f);
     
     return success;
 }
@@ -538,7 +538,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
 
     // Handle mode switching based on spacebar long press
     if (g4p_state.buttons[G4P_SPACE]) {  // Space button
-        space_press_timer++;
+        space_press_timer+= deltaTime; // Increment timer
         
         // Long press detected - switch modes
         if (space_press_timer >= LONG_PRESS_THRESHOLD) {
@@ -640,8 +640,9 @@ Boolean g4p_onTick(Int32 deltaTime) {
 
         // Handle invulnerability timer and blinking effect
         if (invulnerability_timer > 0) {
-            invulnerability_timer--;
+            invulnerability_timer -= deltaTime;
             if (invulnerability_timer <= 0) {
+                invulnerability_timer = 0;
                 // Make sure ship is visible when invulnerability ends
                 v4p_enable(ship);
                 v4p_disable(ship_flame);
@@ -671,10 +672,10 @@ Boolean g4p_onTick(Int32 deltaTime) {
 
         // Handle input
         if (g4p_state.buttons[G4P_LEFT]) {  // Left Arrow
-            ship_angle -= 3.f;
+            ship_angle -= 0.2f * deltaTime;
         }
         if (g4p_state.buttons[G4P_RIGHT]) {  // Right Arrow
-            ship_angle += 3.f;
+            ship_angle += 0.2f * deltaTime;
         }
 
         thrusting = false;
@@ -683,9 +684,9 @@ Boolean g4p_onTick(Int32 deltaTime) {
             // Apply thrust in the direction the ship is facing
             int sina, cosa;
             getSinCosFromDegrees(ship_angle, &sina, &cosa);
-            ship_speed_x += (sina / 256.0f) * 0.1f;  // Accelerate in thrust direction
-            ship_speed_y -= (cosa / 256.0f) * 0.1f;
-            
+            ship_speed_x += (sina / 256.0f) * 0.001f * deltaTime;  // Accelerate in thrust direction
+            ship_speed_y -= (cosa / 256.0f) * 0.001f * deltaTime;
+
             // Randomly show/hide flame for flickering effect
             if (rand() % 3 == 0) {  // About 1/3 chance to show flame each frame
                 v4p_enable(ship_flame);
@@ -693,28 +694,36 @@ Boolean g4p_onTick(Int32 deltaTime) {
                 v4p_disable(ship_flame);
             }
             
-            // Emit thrust particles
+            // Emit thrust particles with cooldown (max 1 particle per 100ms)
             if (thrust_system) {
-                particles_emit(thrust_system, ship_x - (sina / 256.0f) * 45, ship_y + (cosa / 256.0f) * 45, ship_angle + 180.0f);
+                static Int32 thrust_cooldown = 0;  // Accumulated cooldown in milliseconds
+                
+                // Add current frame's deltaTime to cooldown accumulator
+                thrust_cooldown += deltaTime;
+                
+                // Only emit ~33 particles per second
+                if (thrust_cooldown >= 30) {
+                    particles_emit(thrust_system, ship_x - (sina / 256.0f) * 45, ship_y + (cosa / 256.0f) * 45, ship_angle + 180.0f);
+                    thrust_cooldown = 0;
+                }
             }
         } else {
             // Hide flame when not thrusting
             v4p_disable(ship_flame);
-        }
 
-        // Apply friction/deceleration when no thrust
-        if (!g4p_state.buttons[G4P_UP]) {  // No Up Arrow
-            ship_speed_x *= 0.98f;  // Slow down gradually
-            ship_speed_y *= 0.98f;
+            // Apply friction/deceleration when no thrust
+            float friction_factor = powf(0.999f, deltaTime);
+            ship_speed_x *= friction_factor;  // Slow down gradually
+            ship_speed_y *= friction_factor;
 
             // Small threshold to stop completely
-        if (fabs(ship_speed_x) < 0.01f) ship_speed_x = 0;
-        if (fabs(ship_speed_y) < 0.01f) ship_speed_y = 0;
+            if (fabs(ship_speed_x) < 0.01f) ship_speed_x = 0;
+            if (fabs(ship_speed_y) < 0.01f) ship_speed_y = 0;
         }
 
         // Apply the speed vector to ship position
-        ship_x += ship_speed_x;
-        ship_y += ship_speed_y;
+        ship_x += ship_speed_x * deltaTime;
+        ship_y += ship_speed_y * deltaTime;
 
         // Space bar: fire bullet AND apply extra opposite thrust
         if (g4p_state.buttons[G4P_SPACE]) {  // Space button
@@ -725,8 +734,8 @@ Boolean g4p_onTick(Int32 deltaTime) {
                     // Apply thrust in the opposite direction of the bullet for recoil effect
                     int sina, cosa;
                     getSinCosFromDegrees(ship_angle, &sina, &cosa);
-                    ship_speed_x -= (sina / 256.0f) * 0.2f;  // Stronger acceleration on space
-                    ship_speed_y += (cosa / 256.0f) * 0.2f;
+                    ship_speed_x -= ((float)sina / 256.0f) * 0.03f; // Recoil strength / doesn't depend on deltaTime for instant effect
+                    ship_speed_y += ((float) cosa / 256.0f) * 0.03f;
                 }
             }
         }
@@ -756,8 +765,8 @@ Boolean g4p_onTick(Int32 deltaTime) {
         getSinCosFromDegrees(bullet_angle[i], &sina, &cosa);
 
         // Move bullet forward
-        bullet_x[i] += (sina / 256.0f) * 5.;
-        bullet_y[i] -= (cosa / 256.0f) * 5.;
+        bullet_x[i] += (sina / 256.0f) * 0.3f * deltaTime;
+        bullet_y[i] -= (cosa / 256.0f) * 0.3f * deltaTime;
 
         // Update bullet position
         v4p_transform(bullets[i], bullet_x[i], bullet_y[i], bullet_angle[i] * 512.f / 360.f, 0, 256, 256);
@@ -776,7 +785,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
         }
 
         // Decrement bullet TTL and remove when expired
-        bullet_ttl[i]--;
+        bullet_ttl[i] -= deltaTime;
         if (bullet_ttl[i] <= 0) {
             v4p_destroyFromScene(bullets[i]);
             // Shift remaining bullets
@@ -797,8 +806,8 @@ Boolean g4p_onTick(Int32 deltaTime) {
         // Move asteroid forward with individual speed
         int sina, cosa;
         getSinCosFromDegrees(asteroid_angle[i], &sina, &cosa);
-        asteroid_x[i] += (sina / 256.0f) * asteroid_speed[i];
-        asteroid_y[i] -= (cosa / 256.0f) * asteroid_speed[i];
+        asteroid_x[i] += (sina / 256.0f) * asteroid_speed[i] * 0.1f * deltaTime;
+        asteroid_y[i] -= (cosa / 256.0f) * asteroid_speed[i] * 0.1f * deltaTime;
 
         // Wrap asteroid around screen edges
         if (asteroid_x[i] < -v4p_displayWidth / 2) {
@@ -858,10 +867,10 @@ Boolean g4p_onTick(Int32 deltaTime) {
 
     // Update particle systems
     if (explosion_system) {
-        particles_iterate(explosion_system);
+        particles_iterate(explosion_system, deltaTime);
     }
     if (thrust_system) {
-        particles_iterate(thrust_system);
+        particles_iterate(thrust_system, deltaTime);
     }
 
     return success;

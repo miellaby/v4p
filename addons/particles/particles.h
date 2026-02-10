@@ -52,7 +52,7 @@ void particles_set_noise(ParticleSystem* system, float speed_noise, float angle_
 void particles_emit(ParticleSystem* system, float x, float y, float angle);
 
 // Update all particles in the system
-void particles_iterate(ParticleSystem* system);
+void particles_iterate(ParticleSystem* system, Int32 deltaTime);
 
 // Create a default particle prototype (small square)
 V4pPolygonP particles_create_default_prototype();

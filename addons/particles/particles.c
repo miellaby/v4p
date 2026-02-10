@@ -161,7 +161,7 @@ void particles_emit(ParticleSystem* system, float x, float y, float angle) {
 }
 
 // Update all particles in the system
-void particles_iterate(ParticleSystem* system) {
+void particles_iterate(ParticleSystem* system, Int32 deltaTime) {
     if (!system) return;
     
     for (int i = 0; i < system->max_particles; i++) {
@@ -170,8 +170,9 @@ void particles_iterate(ParticleSystem* system) {
         if (!particle->active) continue;
         
         // Update TTL
-        particle->ttl--;
+        particle->ttl-=deltaTime;
         if (particle->ttl <= 0) {
+            particle->ttl = 0;
             // Particle has expired - remove from scene
             v4p_remove(particle->poly);
             particle->active = false;
@@ -179,8 +180,8 @@ void particles_iterate(ParticleSystem* system) {
             continue;
         }
         
-        // Update speed with acceleration
-        particle->speed += particle->acceleration;
+        // Update speed with acceleration (frame-rate independent)
+        particle->speed += particle->acceleration * deltaTime;
         
         // Update position based on speed and move angle
         int sina, cosa;
@@ -190,14 +191,14 @@ void particles_iterate(ParticleSystem* system) {
         sina = lwmSina;
         cosa = lwmCosa;
         
-        particle->x += (sina / 256.0f) * particle->speed;
-        particle->y -= (cosa / 256.0f) * particle->speed;
+        particle->x += (sina / 256.0f) * particle->speed * deltaTime;
+        particle->y -= (cosa / 256.0f) * particle->speed * deltaTime;
         
-        // Update rotation angle separately from movement angle
-        particle->rotation_angle += particle->rotation_speed;
+        // Update rotation angle separately from movement angle (frame-rate independent)
+        particle->rotation_angle += particle->rotation_speed * deltaTime;
         
-        // Update scale with growth
-        particle->scale += particle->growth;
+        // Update scale with growth (frame-rate independent)
+        particle->scale += particle->growth * deltaTime;
         
         // Transform the particle using double modulo for proper V4P angle wrapping
         int scale_int = (int)(particle->scale * 256.0f);
