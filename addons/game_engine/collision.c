@@ -32,7 +32,7 @@ static int hash_polygon_pair(V4pPolygonP p1, V4pPolygonP p2) {
 // Initialize collision points system
 void g4p_initCollisions(size_t table_size) {
     if (g4p_collision_points_system.table != NULL) {
-        v4p_trace(G4P, "Collision points system already initialized\n");
+        v4p_trace(COLLISION, "Collision points system already initialized\n");
         return;
     }
     
@@ -51,7 +51,7 @@ void g4p_initCollisions(size_t table_size) {
         CRASH;
     }
 
-    v4p_trace(G4P, "Collision points system initialized with table size %zu\n", table_size);
+    v4p_trace(COLLISION, "Collision points system initialized with table size %zu\n", table_size);
 }
 
 // Reset collision points data
@@ -65,12 +65,12 @@ void g4p_resetCollisions() {
         QuickHeapReset(g4p_collision_points_system.data_heap);
     }
     
-    v4p_trace(G4P, "Collision points system reset\n");
+    v4p_trace(COLLISION, "Collision points system reset\n");
 }
 
 // Finalize collision points - compute averages and call callback
 void g4p_finalizeCollisions() {
-    v4p_trace(G4P, "Finalizing collision points...\n");
+    v4p_trace(COLLISION, "Finalizing collision points...\n");
     
     // Iterate through all buckets in the QuickTable
     for (size_t i = 0; i < g4p_collision_points_system.table_size; i++) {
@@ -84,7 +84,7 @@ void g4p_finalizeCollisions() {
                 data->avg_x = data->x_sum / data->count;
                 data->avg_y = data->y_sum / data->count;
                 
-                v4p_trace(G4P, "Polygon pair (%d, %d): avg_x=%d, avg_y=%d, count=%d\n",
+                v4p_trace(COLLISION, "Polygon pair (%d, %d): avg_x=%d, avg_y=%d, count=%d\n",
                           v4p_getId(data->p1), v4p_getId(data->p2), data->avg_x, data->avg_y, data->count);
                 
                 // Call callback if set
@@ -111,7 +111,7 @@ void g4p_destroyCollisions() {
         g4p_collision_points_system.table = NULL;
         g4p_collision_points_system.table_size = 0;
         g4p_collision_points_system.callback = NULL;
-        v4p_trace(G4P, "Collision points system destroyed\n");
+        v4p_trace(COLLISION, "Collision points system destroyed\n");
     }
     
     // Clean up the QuickHeap
@@ -124,7 +124,7 @@ void g4p_destroyCollisions() {
 // Set callback function for collision point finalization
 void g4p_setCollisionCallback(G4pCollisionCallback callback) {
     g4p_collision_points_system.callback = callback;
-    v4p_trace(G4P, "Collision point callback set to %p\n", (void*)callback);
+    v4p_trace(COLLISION, "Collision point callback set to %p\n", (void*)callback);
 }
 
 // Get average collision point for a polygon pair
@@ -170,9 +170,9 @@ Boolean g4p_getCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord* avg_x, V
 void g4p_addCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord x, V4pCoord y) {
     // Check pointers BEFORE calling v4p_getId to avoid crash in v4p_getId
     if (!p1 || !p2) {
-        v4p_trace(G4P, "CRASH: Null polygon pointer in g4p_addCollisionPoint: p1=%p, p2=%p at x=%d, y=%d\n", 
+        v4p_trace(COLLISION, "CRASH: Null polygon pointer in g4p_addCollisionPoint: p1=%p, p2=%p at x=%d, y=%d\n", 
                   (void*)p1, (void*)p2, x, y);
-        v4p_trace(G4P, "This indicates a dangling pointer in concretePolygons array\n");
+        v4p_trace(COLLISION, "This indicates a dangling pointer in concretePolygons array\n");
         CRASH;
     }
 

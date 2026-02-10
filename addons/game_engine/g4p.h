@@ -28,6 +28,7 @@ typedef struct g4pState_s {
 
 // Game 4 Pocket entry points
 int g4p_setFramerate(int);
+int g4p_getFramerate(void);
 int g4p_main(int argc, char* argv[]);
 
 // Game 4 Pocket input system callbacks

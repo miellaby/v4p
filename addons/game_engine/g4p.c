@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "g4p.h"
 #include "v4p_ll.h"
 #include "v4pi.h"
@@ -24,6 +25,11 @@ int g4p_setFramerate(int new) {
     return (new);
 }
 
+// get the current framerate
+int g4p_getFramerate(void) {
+    return g4p_framerate;
+}
+
 // Default collision callback
 void g4p_onCollide(V4pCollisionLayer i1,
                    V4pCollisionLayer i2,
@@ -46,6 +52,7 @@ int g4p_main(int argc, char* argv[]) {
         Int32 beforeTime, afterTime, timeDiff, sleepTime, overSleepTime;
         Int32 lastTickTime = 0;
         Int32 deltaTime = 0;
+        UInt32 frameCount = 0;
 
         // Default parameters
         int quality = V4P_QUALITY_NORMAL;
@@ -64,6 +71,14 @@ int g4p_main(int argc, char* argv[]) {
                 i++; // Skip next argument
             } else if (strcmp(argv[i], "--fullscreen") == 0) {
                 fullscreen = V4P_UX_FULLSCREEN;
+            } else if (strcmp(argv[i], "--framerate") == 0 || strcmp(argv[i], "-fps") == 0) {
+                if (i + 1 < argc) {
+                    int fps = atoi(argv[i + 1]);
+                    if (fps > 0) {
+                        g4p_setFramerate(fps);
+                    }
+                    i++; // Skip next argument
+                }
             }
         }
 
@@ -87,7 +102,7 @@ int g4p_main(int argc, char* argv[]) {
             return failure;
 
         lastTickTime = g4p_getTicks();
-        while (! rc) {  // main game 4 pocket loop
+        while (! rc) {  // main game loop
             // Get current time and calculate delta since last tick
             beforeTime = g4p_getTicks();
             deltaTime = beforeTime - lastTickTime;
@@ -125,9 +140,14 @@ int g4p_main(int argc, char* argv[]) {
             if (sleepTime <= 2) {
                 sleepTime = 2;  // minimum sleep to prevent busy waiting
             }
+            frameCount++;
             g4pi_delay(sleepTime);
             g4p_avgFramePeriod = (3 * g4p_avgFramePeriod + timeDiff + sleepTime) / 4;
-            v4p_trace(G4P, "fps=%.1f\n", 1000.f / g4p_avgFramePeriod);
+            if (frameCount % g4p_framerate == 0) {
+                // Print average frame period every second
+                int avgFPS = (g4p_avgFramePeriod > 0) ? (1000 / g4p_avgFramePeriod) : 0;
+                v4p_trace(G4P, "Average Framerate: %d FPS\n", avgFPS);
+            }
         }
 
         // we're done.
