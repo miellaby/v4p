@@ -129,6 +129,7 @@ V4pPolygonP v4p_transformClone(V4pPolygonP p, V4pPolygonP c, V4pCoord dx, V4pCoo
                                V4pCoord zoom_x, V4pCoord zoom_y);
 V4pPolygonP v4p_transform(V4pPolygonP p, V4pCoord dx, V4pCoord dy, int angle, V4pLayer dz, V4pCoord zoom_x,
                           V4pCoord zoom_y);
+V4pPolygonP v4p_centerPolygon(V4pPolygonP p);
 
 // anchor point management
 V4pPolygonP v4p_setAnchorToCenter(V4pPolygonP p);

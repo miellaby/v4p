@@ -24,8 +24,8 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
                             "M 478.1,5  L 490.5,43.2 L 530.7,43.2 L 498.2,66.8 \
           L 510.6,105 L 478.1,81.4 L 445.6,105 L 458,66.8 \
           L 425.5,43.2 L 465.7,43.2 L 478.1,5 z",
-                            1200);
-    v4p_setAnchorToCenter(proto);
+                            4.0f);
+    v4p_centerPolygon(proto);
 
     for (j = 0; j < STRESS_AMOUNT; j++) {
         for (k = 0; k < STRESS_AMOUNT; k++) {

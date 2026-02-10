@@ -1,9 +1,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <math.h>
 #include "v4p.h"
 #include "v4pi.h"
 #include "v4pserial.h"
+#include "quick/lowmath.h"
 
 // Transform hexa char ('0-9,A-F') to int
 int v4p_parseHexDigit(char c) {
@@ -30,6 +32,11 @@ V4pPolygonP v4p_decodePoints(V4pPolygonP p, char* s, int scale) {
     Boolean sep, psep;
     char c;
 
+    // Pre-compute integer scaling factors for the scale using quotient-remainder technique
+    // This prevents 16-bit overflow by decomposing scale/256 into whole + remainder parts
+    V4pCoord scale_whole = scale / 256;
+    V4pCoord scale_rem = scale % 256;
+
     psep = false;
     for (j = 0; s[j]; j++) {
         c = s[j];
@@ -39,7 +46,10 @@ V4pPolygonP v4p_decodePoints(V4pPolygonP p, char* s, int scale) {
         if (c == '.') {
             sep = true;
             if (psep)
-                v4p_addPoint(p, xs1 * (long) scale / 256, ys1 * (long) scale / 256);
+                // Apply integer scaling technique with sign-aware rounding
+                v4p_addPoint(p, 
+                    xs1 * scale_whole + ((xs1 * scale_rem) + SIGN(xs1) * (256 / 2)) / 256,
+                    ys1 * scale_whole + ((ys1 * scale_rem) + SIGN(ys1) * (256 / 2)) / 256);
             continue;
         }
 
@@ -49,7 +59,10 @@ V4pPolygonP v4p_decodePoints(V4pPolygonP p, char* s, int scale) {
         ys = v4p_parseHexDigit(s[++j]) << 4;
         ys += v4p_parseHexDigit(s[++j]);
 
-        v4p_addPoint(p, xs * (long) scale / 256, ys * (long) scale / 256);
+        // Apply integer scaling technique with sign-aware rounding
+        v4p_addPoint(p, 
+            xs * scale_whole + ((xs * scale_rem) + SIGN(xs) * (256 / 2)) / 256,
+            ys * scale_whole + ((ys * scale_rem) + SIGN(ys) * (256 / 2)) / 256);
 
         if (sep) {
             xs1 = xs;
@@ -58,7 +71,10 @@ V4pPolygonP v4p_decodePoints(V4pPolygonP p, char* s, int scale) {
         }
     }
     if (psep)
-        v4p_addPoint(p, xs1 * (long) scale / 256, ys1 * (long) scale / 256);
+        // Apply integer scaling technique with sign-aware rounding
+        v4p_addPoint(p, 
+            xs1 * scale_whole + ((xs1 * scale_rem) + SIGN(xs1) * (256 / 2)) / 256,
+            ys1 * scale_whole + ((ys1 * scale_rem) + SIGN(ys1) * (256 / 2)) / 256);
 
     return p;
 }
@@ -164,15 +180,16 @@ char* v4p_encodePolygon(V4pPolygonP p, int scale) {
 }
 
 // add points to a polygon with coordinates decoded from a c-string
-V4pPolygonP v4p_decodeSVGPath(V4pPolygonP p, char* s, int scale) {
+V4pPolygonP v4p_decodeSVGPath(V4pPolygonP p, char* s, float scale) {
     int j;
     Boolean toBeClosed = false, knowFirstPoint = false, nextIsRelative = false;
     char c;
     enum e_status { INIT, MOVE, LINE, NEXT } status = INIT;
     float param_1, xs = 0, xs1;
     float param_2, ys = 0, ys1;
-    float scalef = scale;
     int offset;
+
+    // Use float scaling for better precision with SVG coordinates
 
     for (j = 0; s[j]; j++) {
         c = s[j];
@@ -191,7 +208,10 @@ V4pPolygonP v4p_decodeSVGPath(V4pPolygonP p, char* s, int scale) {
                             xs = param_1;
                             ys = param_2;
                         }
-                        v4p_addPoint(p, (xs * scalef) / 256, ys * scalef / 256);
+                        // Apply float scaling with rounding
+                        v4p_addPoint(p, 
+                            (V4pCoord)roundf(xs * scale),
+                            (V4pCoord)roundf(ys * scale));
                         if (! knowFirstPoint) {
                             xs1 = xs;
                             ys1 = ys;
@@ -222,7 +242,10 @@ V4pPolygonP v4p_decodeSVGPath(V4pPolygonP p, char* s, int scale) {
                 if (sscanf(&s[j], "%f,%f%n", &param_1, &param_2, &offset) >= 2) {
                     j += offset - 1;
                     if (toBeClosed && knowFirstPoint) {
-                        v4p_addPoint(p, (xs1 * scalef) / 256, (ys1 * scalef) / 256);
+                        // Apply float scaling with rounding
+                        v4p_addPoint(p, 
+                            (V4pCoord)roundf(xs1 * scale),
+                            (V4pCoord)roundf(ys1 * scale));
                         toBeClosed = knowFirstPoint = false;
                     }
                     if (nextIsRelative) {
@@ -232,7 +255,10 @@ V4pPolygonP v4p_decodeSVGPath(V4pPolygonP p, char* s, int scale) {
                         xs = param_1;
                         ys = param_2;
                     }
-                    v4p_addPoint(p, (xs * scalef) / 256, (ys * scalef) / 256);
+                    // Apply float scaling with rounding
+                    v4p_addPoint(p, 
+                        (V4pCoord)roundf(xs * scale),
+                        (V4pCoord)roundf(ys * scale));
                     if (! knowFirstPoint) {
                         xs1 = xs;
                         ys1 = ys;
@@ -244,7 +270,10 @@ V4pPolygonP v4p_decodeSVGPath(V4pPolygonP p, char* s, int scale) {
         }  // switch status
     }  // j
     if (toBeClosed && knowFirstPoint) {
-        v4p_addPoint(p, (xs1 * scalef) / 256, (ys1 * scalef) / 256);
+        // Apply float scaling with rounding
+        v4p_addPoint(p, 
+            (V4pCoord)roundf(xs1 * scale),
+            (V4pCoord)roundf(ys1 * scale));
         toBeClosed = knowFirstPoint = false;
     }
     return p;

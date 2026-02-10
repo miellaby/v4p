@@ -742,6 +742,22 @@ V4pPolygonP v4p_transform(V4pPolygonP p, V4pCoord dx, V4pCoord dy, int angle, V4
     }
 }
 
+// Center a polygon by computing its bounds and transforming it to (0,0)
+V4pPolygonP v4p_centerPolygon(V4pPolygonP p) {
+    V4pCoord minx, maxx, miny, maxy;
+    
+    // Get the current bounds of the polygon
+    v4p_getLimits(p, &minx, &maxx, &miny, &maxy);
+    
+    // Calculate the center of the polygon
+    V4pCoord centerX = (minx + maxx) / 2;
+    V4pCoord centerY = (miny + maxy) / 2;
+    
+    // Transform the polygon to center it at (0,0)
+    // Use no rotation, no zoom, just translation
+    return v4p_transform(p, -centerX, -centerY, 0, 0, 256, 256);
+}
+
 // called by v4p_polygonClone
 V4pPolygonP v4p_recPolygonClone(Boolean estSub, V4pPolygonP p) {
     V4pPointP s;

@@ -9,7 +9,7 @@
 #include <stdio.h>
 #define NUM_STARS 1000
 #define STAR_DEPTH 100.0f
-#define SPEED 0.011f
+#define SPEED 0.004f
 #define TWINKLE_SPEED 0.003f
 
 typedef struct {
@@ -26,10 +26,10 @@ V4pPolygonP starPolygons[NUM_STARS];
 
 // Initialize a star with random position
 void initStar(Star3D* star) {
-    star->x = (float) (rand() % (v4p_displayWidth * 40) - v4p_displayWidth * 20);
-    star->y = (float) (rand() % (v4p_displayHeight * 40) - v4p_displayHeight * 20);
+    star->x = (float) (rand() % (v4p_displayWidth * 32) - v4p_displayWidth * 16);
+    star->y = (float) (rand() % (v4p_displayHeight * 32) - v4p_displayHeight * 16);
     star->z = (float) (rand() % (int) STAR_DEPTH);
-    star->size = 0.2 * (0.5f + (float) (rand() % 5) * 0.2f);
+    star->size = (1.0f + (float) (rand() % 5) * 0.1f);
     star->brightness = 0.1f + (float) (rand() % 20) * 0.01f;
     star->twinkle_phase = (float) (rand() % 100) * 0.01f;
     star->twinkle_speed = TWINKLE_SPEED * (0.5f + (float) (rand() % 10) * 0.1f);
@@ -37,21 +37,21 @@ void initStar(Star3D* star) {
     // Different colors for different star types
     int rnd = rand() % 10;
     if (rnd < 1) {
-        star->color = V4P_BLUE;  // Blue-V4P_WHITE stars
+        star->color = V4P_BLUE;  // Blue stars
     } else if (rnd < 3) {
         star->color = V4P_YELLOW;  // Yellow stars
     } else {
-        star->color = V4P_WHITE;  // White stars
+        star->color = V4P_WHITE;  // Green stars
     }
 }
 
 // Project 3D coordinates to 2D screen space
 void projectStar(Star3D* star, float* screenX, float* screenY, float* screenSize) {
     // Perspective projection with depth
-    float factor = 8.0f / (8.0f + star->z);
+    float factor = 2.0f / (2.0f + star->z);
     *screenX = star->x * factor;
     *screenY = star->y * factor;
-    *screenSize = star->size * factor;
+    *screenSize = star->size * factor * 2;
 }
 
 // Create a star-shaped polygon
@@ -59,14 +59,11 @@ V4pPolygonP createStarPolygon() {
     static V4pPolygonP poly = NULL;
     if (poly == NULL) {
         poly = v4p_new(V4P_ABSOLUTE, V4P_WHITE, 1);
-        v4p_decodeSVGPath(poly,
-                          "M 478.1,5  L 490.5,43.2 L 530.7,43.2 L 498.2,66.8 \
+        v4p_decodeSVGPath(poly, "M 478.1,5  L 490.5,43.2 L 530.7,43.2 L 498.2,66.8 \
           L 510.6,105 L 478.1,81.4 L 445.6,105 L 458,66.8 \
           L 425.5,43.2 L 465.7,43.2 L 478.1,5 z",
-                          4096);
-        v4p_transform(poly, 0, 0, 0, 0, 16, 16);
-        v4p_transform(poly, 0, 0, 0, 0, 128, 128);
-        v4p_setAnchorToCenter(poly);
+                          0.5f);
+        v4p_centerPolygon(poly);
     }
     return v4p_addClone(poly);
 }
@@ -78,10 +75,7 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
     srand(time(NULL));
 
     v4p_init2(quality, fullscreen);
-    v4p_setView(-v4p_displayWidth * 10,
-                -v4p_displayHeight * 10,
-                v4p_displayWidth * 10,
-                v4p_displayHeight * 10);
+    v4p_setView(-v4p_displayWidth, -v4p_displayHeight, v4p_displayWidth, v4p_displayHeight);
     v4p_setBGColor(V4P_BLACK);
 
     // Initialize all stars
@@ -118,18 +112,12 @@ Boolean g4p_onTick(Int32 deltaTime) {
 
         // Project 3D position to 2D screen
         projectStar(&stars[i], &screenX, &screenY, &screenSize);
-        screenSize += bright / 8;
+        screenSize *= (1.0 + bright * 0.4f);  // Make brighter stars slightly larger
         // Update star position and appearance
-        v4p_transform(starPolygons[i],
-                      screenX,
-                      screenY,
-                      0,
-                      0,
-                      screenSize * 12000,
-                      screenSize * 12000);
+        v4p_transform(starPolygons[i], screenX, screenY, 0, 0, screenSize * 1024, screenSize * 1024);
 
         // Adjust color based on brightness
-        int brightColor = (stars[i].color + (int) (bright * 25)) % 255;
+        int brightColor = (stars[i].color + (int) (bright * 12)) % 128;
         v4p_setColor(starPolygons[i], brightColor);
         v4p_setLayer(starPolygons[i], 31 - (int) (31.f * stars[i].z / STAR_DEPTH));
     }
