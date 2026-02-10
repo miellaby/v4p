@@ -14,7 +14,7 @@ int floorLog2(UInt32 v);
 // floorLog2 on int
 int floorLog232(UInt32 v);
 
-// compute cos/sin and upate angle, cosa, sina vars
+// compute cos/sin and upate lwmCosa, lwmSina (1 / 255 unit)
 Boolean computeCosSin(UInt16 angle);
 
 // macro
@@ -26,7 +26,7 @@ Boolean computeCosSin(UInt16 angle);
 // macro
 #define ilimit(A, B, C) ((A) < (B) ? (B) : ((A) > (C) ? (C) : (A)))
 
-// rotate (x,y) vector according to current transformation
+// rotate (x,y) vector according to current transformation (computeCosSin must have been called before)
 void straighten(V4pCoord x, V4pCoord y, V4pCoord* xn, V4pCoord* yn);
 
 // Jim Henry's isqrt

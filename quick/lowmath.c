@@ -6,17 +6,15 @@
 int lwmCosa = 255;
 int lwmSina = 0;
 static UInt16 lastAngle = 0;
-
-const int tabCos[128]
-    = { 255, 255, 255, 255, 255, 255, 255, 254, 254, 254, 253, 253, 252, 252, 251, 251,
-        250, 249, 249, 248, 247, 246, 245, 244, 244, 243, 242, 241, 239, 238, 237, 236,
-        235, 234, 232, 231, 230, 228, 227, 225, 224, 222, 221, 219, 217, 216, 214, 212,
-        211, 209, 207, 205, 203, 201, 199, 197, 195, 193, 191, 189, 187, 185, 183, 181,
-        178, 176, 174, 171, 169, 167, 164, 162, 159, 157, 155, 152, 149, 147, 144, 142,
-        139, 136, 134, 131, 128, 126, 123, 120, 117, 115, 112, 109, 106, 103, 100, 97,
-        95,  92,  89,  86,  83,  80,  77,  74,  71,  68,  65,  62,  59,  56,  53,  49,
-        46,  43,  40,  37,  34,  31,  28,  25,  21,  18,  15,  12,  9,   6,   3,   0 };
-
+const int tabCos[129] = {
+    255, 255, 255, 255, 255, 255, 254, 254, 254, 253, 253, 253, 252, 252, 251, 251, 250, 249, 249, 248, 247, 247,
+    246, 245, 244, 243, 242, 241, 240, 239, 238, 237, 236, 234, 233, 232, 231, 229, 228, 226, 225, 223, 222, 220,
+    219, 217, 215, 214, 212, 210, 208, 207, 205, 203, 201, 199, 197, 195, 193, 191, 189, 187, 185, 183, 180, 178,
+    176, 174, 171, 169, 167, 164, 162, 159, 157, 154, 152, 149, 147, 144, 142, 139, 136, 134, 131, 128, 126, 123,
+    120, 117, 115, 112, 109, 106, 103, 100, 98,  95,  92,  89,  86,  83,  80,  77,  74,  71,  68,  65,  62,  59,
+    56,  53,  50,  47,  44,  41,  37,  34,  31,  28,  25,  22,  19,  16,  13,  9,   6,   3,
+    0  // The 129th entry (Index 128)
+};
 int floorLog2(UInt32 v) {
     return floorLog232(v);
 }
@@ -45,17 +43,17 @@ Boolean computeCosSin(UInt16 angle) {
     int tb, tr;
     UInt16 b;
     angle = (angle & (UInt16) 0x1FF);
-    if (angle == lastAngle)
-        return success;
+    if (angle == lastAngle) return success;
 
     lastAngle = angle;
-    b = angle & (UInt16) 127;  // b=a mod90deg
+    b = angle & (UInt16) 127; // b is 0 to 127
+
     if (! (angle & (UInt16) 256)) {  // First 1/2 circle
         tb = tabCos[b];
-        tr = tabCos[127 - b];
+        tr = tabCos[128 - b];        // Changed from 127 to 128
     } else {
         tb = -tabCos[b];
-        tr = -tabCos[127 - b];
+        tr = -tabCos[128 - b];       // Changed from 127 to 128
     }
 
     if (! (angle & (UInt16) 128)) {  // 1st or 3d 1/4 circle
@@ -132,12 +130,9 @@ UInt16 iatan(V4pCoord x, V4pCoord y) {
         else
             a = tabAtanFloorLog2[floorLog2(m)];
     }
-    if (op1)
-        a = 128 - a;
-    if (op2)
-        a = 256 - a;
-    if (op3)
-        a = 512 - a;
+    if (op1) a = 128 - a;
+    if (op2) a = 256 - a;
+    if (op3) a = 512 - a;
     return a;
 }
 
@@ -162,11 +157,9 @@ V4pCoord iabs(V4pCoord i) {
 
 // distance estimation (inaccurate but quick)
 V4pCoord gaugeDist(V4pCoord x, V4pCoord y) {
-    if (x < 0)
-        x = -x;
+    if (x < 0) x = -x;
 
-    if (y < 0)
-        y = -y;
+    if (y < 0) y = -y;
 
     // min.(sqrt2-1)+max
     return ((imin(x, y) * 424) >> 10) + imax(x, y);
