@@ -93,6 +93,14 @@ ifeq ($(BACKEND),drm)
   CFLAGS_backend = -DV4P_BACKEND_DRM
 endif
 
+# libcaca backend
+ifeq ($(BACKEND),caca)
+  CPPFLAGS_backend = -Ibackends/linux/caca
+  LDFLAGS_backend = -lcaca
+  LDLIBS_backend = -lcaca
+  CFLAGS_backend = -DV4P_BACKEND_CACA
+endif
+
 # ============================================
 # COMPILER FLAGS
 # ============================================
@@ -257,7 +265,7 @@ help:
 	@echo "  make                - Release build (default)"
 	@echo "  make DEBUG=1        - Debug build with symbols"
 	@echo "  make DEBUG=1 ASAN=1 - Debug build with AddressSanitizer"
-	@echo "  make BACKEND=xlib   - Use Xlib backend (sdl, xlib, fbdev, drm)"
+	@echo "  make BACKEND=xlib   - Use Xlib backend (sdl, xlib, fbdev, drm, caca)"
 	@echo "  make TARGET=palmos  - Build for PalmOS (linux, palmos, esp32)"
 	@echo "  make V=1            - Verbose output"
 	@echo "  make PREFIX=/opt    - Custom install prefix"

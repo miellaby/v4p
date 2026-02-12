@@ -120,7 +120,7 @@ V4pPolygonP getAsteroidPrototypeSingleton() {
     
     if (!initialized) {
         // Prototype 1: Octagon (original)
-        rockProto[0] = v4p_new(V4P_ABSOLUTE, V4P_MAROON, 2);
+        rockProto[0] = v4p_new(V4P_ABSOLUTE, V4P_MAROON, 0);
         v4p_addPoint(rockProto[0], 45 /* 50 */, 0);
         v4p_addPoint(rockProto[0], 35, 35);
         v4p_addPoint(rockProto[0], 0, 50);
@@ -131,7 +131,7 @@ V4pPolygonP getAsteroidPrototypeSingleton() {
         v4p_addPoint(rockProto[0], 35, -35);
         v4p_setAnchorToCenter(rockProto[0]);
 
-        rockProto[1] = v4p_new(V4P_ABSOLUTE, V4P_MAROON, 2);
+        rockProto[1] = v4p_new(V4P_ABSOLUTE, V4P_MAROON, 0);
         v4p_addPoint(rockProto[1], 20, -5);
         v4p_addPoint(rockProto[1], 20, 5);
         v4p_addPoint(rockProto[1], 35, 35);
@@ -287,7 +287,6 @@ void createAsteroid() {
     
     V4pPolygonP asteroid_proto = getAsteroidPrototypeSingleton();
     asteroids[asteroid_count] = v4p_addClone(asteroid_proto);
-    v4p_setLayer(asteroids[asteroid_count], createdAsteroids++ % 30 + 1);
     v4p_setColor(asteroids[asteroid_count], 139 + v4p_getId(asteroids[asteroid_count]) % 14);
 
     // Position asteroid randomly around the edges
@@ -322,8 +321,8 @@ void createAsteroid() {
     asteroid_angle[asteroid_count] = rotation_deg;
     asteroid_speed[asteroid_count] = 0.3f + (rand() % 5) * 0.1f; // Random speed between 0.3 and 0.8
     asteroid_size[asteroid_count] = 0; // Default size is big (0)
-    
-    v4p_transform(asteroids[asteroid_count], x, y, rotation_deg * 512.f / 360.f, 0, 256, 256);
+
+    v4p_transform(asteroids[asteroid_count], x, y, rotation_deg * 512.f / 360.f, createdAsteroids++ % 30 + 1, 256, 256);
     v4p_setCollisionMask(asteroids[asteroid_count], 2); // Asteroids are on layer 2
     
     asteroid_count++;
@@ -837,7 +836,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
                         asteroid_x[i],
                         asteroid_y[i],
                         (asteroid_angle[i] + totalTime * 0.02f) * 512.f / 360.f,
-                        0,
+                        v4p_getLayer(asteroids[i]),
                         scale,
                         scale);
     }

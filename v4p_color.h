@@ -14,6 +14,8 @@
 typedef UInt8 V4pColor;
 
 // Shared 256-colors RGB palette
+// This palette is inspired by old Palm Computing Devices and provides a consistent color reference across all V4P backends.
+
 extern const UInt8 v4p_palette[256][3];
 
 #define V4P_GRAY 225
