@@ -28,8 +28,9 @@ make demos # or demos/single_demo
 ## Build Options
 
 - `DEBUG=1`: Enable debug build with symbols and debug macros
+- `TARGET=linux|palmos|esp32|emscripten`: Select platform (default: linux)
 - `BACKEND=sdl|xlib|fbdev|drm`: Select Linux backend (default: sdl)
-- `TARGET=linux|palmos|esp32`: Select platform (default: linux)
+- `BACKEND=bitmap|canvas|dom`: Select Emscripten backend
 - `V=1`: Verbose output showing all commands
 - `PREFIX=/path`: Custom installation prefix (default: /usr/local)
 
@@ -39,6 +40,7 @@ make demos # or demos/single_demo
 - `libv4p.a`: Build core library
 - `addons`: Build all addons
 - `demos`: Build all demos
+- `tests`: Build all tests
 - `clean`: Clean build artifacts
 - `help`: Show usage information
 
@@ -50,6 +52,10 @@ You prefer a crash-early design pattern (guards are useless), integer/binary ops
 
 v4p_error and v4pi_debug may be used for tracing. Note v4pi_debug is enabled only in DEBUG=1 builds.
 Build with V=1 to see compilation steps.
+
+## Quick test
+
+To unit-test your changes, write a test/some_change.c (adapt name accordingly) and simply build with `make tests/some_change.c` to get a `tests/some_change` executable.
 
 ## Coding a demo/app with v4p AND g4p
 

@@ -4,7 +4,10 @@
 .PHONY: all clean install uninstall addons demos help
 .SECONDARY: # Prevents intermediate files from being deleted (I hate that)
 
-all: libv4p.a addons demos tests
+all: libv4p.a addons demos
+ifneq ($(TARGET),emscripten)
+  all: tests
+endif
 
 # ============================================
 # CONFIGURATION
@@ -59,6 +62,17 @@ ifeq ($(TARGET),esp32)
   AR := $(AR_esp32)
 endif
 
+# Emscripten platform
+ifeq ($(TARGET),emscripten)
+  CC_emscripten ?= emcc
+  AR_emscripten ?= emar
+  CFLAGS_emscripten =
+  CPPFLAGS_emscripten = -I. -Iquick -Ibackends -Ibackends/emscripten -DV4P_PLATFORM_EMSCRIPTEN
+  LDFLAGS_emscripten = -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=1 -s ASYNCIFY -s EXPORTED_FUNCTIONS='["_g4p_setFramerate", "_g4p_getFramerate", "_main"]'
+  CC := $(CC_emscripten)
+  AR := $(AR_emscripten)
+endif
+
 # ============================================
 # BACKEND CONFIGURATION
 # ============================================
@@ -99,6 +113,30 @@ ifeq ($(BACKEND),caca)
   LDFLAGS_backend = -lcaca
   LDLIBS_backend = -lcaca
   CFLAGS_backend = -DV4P_BACKEND_CACA
+endif
+
+# Canvas backend (for emscripten target)
+ifeq ($(BACKEND),canvas)
+  CPPFLAGS_backend = -Ibackends/canvas
+  CFLAGS_backend = -DV4P_BACKEND_CANVAS
+  LDFLAGS_backend = 
+  LDLIBS_backend = 
+endif
+
+# DOM backend (for emscripten target)
+ifeq ($(BACKEND),dom)
+  CPPFLAGS_backend = -Ibackends/dom
+  CFLAGS_backend = -DV4P_BACKEND_DOM
+  LDFLAGS_backend = 
+  LDLIBS_backend = 
+endif
+
+# Bitmap backend (for emscripten target)
+ifeq ($(BACKEND),bitmap)
+  CPPFLAGS_backend = -Ibackends/bitmap
+  CFLAGS_backend = -DV4P_BACKEND_BITMAP
+  LDFLAGS_backend = 
+  LDLIBS_backend = 
 endif
 
 # ============================================
@@ -194,6 +232,13 @@ demos/%.o: demos/%.c
 demos/%: demos/%.o libv4p.a libg4p.a libqfont.a libv4pserial.a libparticles.a libdebug.a
 	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS) -lm
 
+# Emscripten demo pages
+TEMPLATE_FILE := web/templates/$(BACKEND)-template.html
+demos/%.html: demos/%.o $(TEMPLATE_FILE) libv4p.a libg4p.a libqfont.a libv4pserial.a libparticles.a libdebug.a
+	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) -o demos/$*.js $< libv4p.a libg4p.a libqfont.a libv4pserial.a libparticles.a libdebug.a $(LDLIBS) -lm
+	$(Q)sed "s|{{DEMO_NAME}}|$*|g; s|{{DEMO_TITLE}}|$* Demo|g" $(TEMPLATE_FILE) > $@
+	$(Q)echo "Generated: $@ and demos/$*.js"
+
 # Tests - build object files in demo directories
 tests/%.o: tests/%.c # Note: It is recommanded to build tests with DEBUG=1 for better diagnostics
 	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -DDEBUG=1 -Iaddons/game_engine -Iaddons/v4pserial -Iaddons/qfont -c $< -o $@
@@ -229,7 +274,11 @@ libdebug.a: $(patsubst %.c,%.o,$(DEBUG_SRCS))
 	$(Q)$(AR) rcs $@ $^
 
 # Demos target - build all available demos
+ifeq ($(TARGET),emscripten)
+DEMO_TARGETS := $(patsubst demos/%.c,demos/%.html,$(wildcard demos/*.c))
+else
 DEMO_TARGETS := $(patsubst demos/%.c,demos/%,$(wildcard demos/*.c))
+endif
 demos: $(DEMO_TARGETS)
 
 TEST_TARGETS := $(patsubst tests/%.c,tests/%,$(wildcard tests/*.c))
@@ -244,6 +293,8 @@ clean:
 	$(Q)$(RM) demos/*.o
 	$(Q)$(RM) $(patsubst demos/%.c,demos/%,$(wildcard demos/*.c))
 	$(Q)$(RM) $(patsubst tests/%.c,tests/%,$(wildcard tests/*.c))
+	$(Q)$(RM) -rf demos/web
+	$(Q)$(RM) demos/*.html demos/*.js demos/*.wasm
 
 install: libv4p.a
 	$(Q)$(MKDIR) $(PREFIX)/lib
@@ -261,8 +312,8 @@ help:
 	@echo "  make                - Release build (default)"
 	@echo "  make DEBUG=1        - Debug build with symbols"
 	@echo "  make DEBUG=1 ASAN=1 - Debug build with AddressSanitizer"
-	@echo "  make BACKEND=xlib   - Use Xlib backend (sdl, xlib, fbdev, drm, caca)"
-	@echo "  make TARGET=palmos  - Build for PalmOS (linux, palmos, esp32)"
+	@echo "  make TARGET=emscripten - Build for WASM (linux, emscripten, palmos, esp32)"
+	@echo "  make BACKEND=xlib   - Use Xlib backend (linux: sdl, xlib, fbdev, drm, caca) (emscripten: canvas, dom, bitmap)"
 	@echo "  make V=1            - Verbose output"
 	@echo "  make PREFIX=/opt    - Custom install prefix"
 	@echo "  make install        - Install to system"
