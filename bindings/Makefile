@@ -35,7 +35,7 @@ ifeq ($(TARGET),linux)
   CC_linux ?= gcc
   AR_linux ?= ar
   CFLAGS_linux =
-  CPPFLAGS_linux = -I. -I.. -I../quick -I../backends -I../backends/linux -DV4P_PLATFORM_LINUX
+  CPPFLAGS_linux = -I. -I.. -I../quick -I../backends -I../backends/linux -I../addons/game_engine -DV4P_PLATFORM_LINUX
   CC := $(CC_linux)
   AR := $(AR_linux)
 endif
@@ -112,8 +112,8 @@ endif
 
 # Lua configuration
 LUA ?= lua
-LUA_CFLAGS = $(shell pkg-config --cflags lua 2>/dev/null || echo "")
-LUA_LDFLAGS = $(shell pkg-config --libs lua 2>/dev/null || echo "-llua")
+LUA_CFLAGS = $(shell pkg-config --cflags lua5.1 2>/dev/null || echo "")
+LUA_LDFLAGS = $(shell pkg-config --libs lua5.1 2>/dev/null || echo "-llua")
 
 # ============================================
 # BUILD RULES
@@ -121,11 +121,11 @@ LUA_LDFLAGS = $(shell pkg-config --libs lua 2>/dev/null || echo "-llua")
 
 # Standard pattern rule
 %.o: %.c
-	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) $(LUA_CFLAGS) -c $< -o $@
 
 # Pattern rule for files in subdirectories
 %/%.o: %/%.c
-	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) $(LUA_CFLAGS) -c $< -o $@
 
 v4p_wrap.c: v4p.i
 	$(Q)$(SWIG) $(SWIG_OPTS) -lua -o $@ $<
@@ -133,11 +133,16 @@ v4p_wrap.c: v4p.i
 lua/v4p.so: v4p_wrap.c
 	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) $(LUA_CFLAGS) -shared -o $@ $< $(LUA_LDFLAGS) -L.. -L../addons/game_engine -lv4p -lg4p
 
+LUAGAME_SRCS = luagame/luagame.c
+luagame/libluagame.a: $(patsubst %.c,%.o,$(LUAGAME_SRCS))
+	$(Q)$(AR) rcs $@ $^
+
+
 # ============================================
 # TARGETS
 # ============================================
 
-lua: lua/v4p.so
+lua: lua/v4p.so luagame/libluagame.a
 
 clean:
 	$(Q)$(RM) v4p_wrap.c v4p_wrap.h
@@ -145,11 +150,11 @@ clean:
 	$(Q)$(RM) lua/*.o
 
 install:
-	$(Q)$(MKDIR) $(DESTDIR)/usr/local/lib/lua/5.4/
-	$(Q)cp lua/v4p.so $(DESTDIR)/usr/local/lib/lua/5.4/
+	$(Q)$(MKDIR) $(DESTDIR)/usr/local/lib/lua/5.1/
+	$(Q)cp lua/v4p.so $(DESTDIR)/usr/local/lib/lua/5.1/
 
 uninstall:
-	$(Q)$(RM) $(DESTDIR)/usr/local/lib/lua/5.4/v4p.so
+	$(Q)$(RM) $(DESTDIR)/usr/local/lib/lua/5.1/v4p.so
 
 help:
 	@echo "V4P SWIG Bindings Build System"

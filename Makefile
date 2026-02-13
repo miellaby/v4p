@@ -172,7 +172,6 @@ BACKEND_SRCS = backends/$(TARGET)/$(BACKEND)/v4pi.c
 GAME_ENGINE_SRCS = addons/game_engine/g4p.c addons/game_engine/$(TARGET)/$(BACKEND)/g4pi.c addons/game_engine/collision.c
 QFONT_SRCS = addons/qfont/qfont.c
 V4PSERIAL_SRCS = addons/v4pserial/v4pserial.c
-LUAGAME_SRCS = addons/luagame/luagame.c
 PARTICLES_SRCS = addons/particles/particles.c
 DEBUG_SRCS = addons/debug/debug.c
 
@@ -212,7 +211,7 @@ libv4p.a: $(patsubst %.c,%.o,$(CORE_SRCS)) $(patsubst %.c,%.o,$(BACKEND_SRCS))
 	$(Q)$(AR) rcs $@ $^
 
 # Addons
-addons: libg4p.a libqfont.a libv4pserial.a libluagame.a libparticles.a libdebug.a
+addons: libg4p.a libqfont.a libv4pserial.a libparticles.a libdebug.a
 
 libg4p.a: $(patsubst %.c,%.o,$(GAME_ENGINE_SRCS))
 	$(Q)$(AR) rcs $@ $^
@@ -221,9 +220,6 @@ libqfont.a: $(patsubst %.c,%.o,$(QFONT_SRCS))
 	$(Q)$(AR) rcs $@ $^
 
 libv4pserial.a: $(patsubst %.c,%.o,$(V4PSERIAL_SRCS))
-	$(Q)$(AR) rcs $@ $^
-
-libluagame.a: $(patsubst %.c,%.o,$(LUAGAME_SRCS))
 	$(Q)$(AR) rcs $@ $^
 
 libparticles.a: $(patsubst %.c,%.o,$(PARTICLES_SRCS))
