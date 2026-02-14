@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V4P Demo: starfield_3d Demo</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #222;
+            color: #eee;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+            padding: 20px;
+        }
+
+        .title {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #4CAF50;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            margin-bottom: 20px;
+            color: #aaa;
+        }
+
+        .canvas-container {
+            position: relative;
+            margin: 20px 0;
+            pointer-events: none; /* Allow events to pass through to UI elements */
+        }
+
+        #v4p-bitmap-canvas {
+            pointer-events: auto; /* Enable pointer events only for the canvas itself */
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #4CAF50;
+            font-size: 18px;
+        }
+
+        .info {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #ccc;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .fps-control-container {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #333;
+            border-radius: 8px;
+            position: relative;
+            z-index: 20;
+        }
+
+        .fps-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .fps-control label {
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        #fps-slider {
+            width: 150px;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            background: #444;
+            outline: none;
+            border-radius: 5px;
+            position: relative;
+            z-index: 30;
+            cursor: pointer;
+            margin: 0 10px;
+        }
+
+        #fps-slider:active {
+            cursor: grabbing;
+        }
+
+        #fps-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            background: #4CAF50;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        #fps-slider::-moz-range-thumb {
+            width: 15px;
+            height: 15px;
+            background: #4CAF50;
+            cursor: pointer;
+            border-radius: 50%;
+            border: none;
+        }
+
+        #fps-value {
+            color: #4CAF50;
+            font-weight: bold;
+            min-width: 30px;
+            text-align: right;
+        }
+
+        #set-fps {
+            padding: 5px 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        #set-fps:hover {
+            background-color: #45a049;
+        }
+
+        button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">V4P Bitmap Demo</div>
+        <div class="subtitle">WebAssembly Vector Graphics Engine</div>
+
+        <div class="canvas-container">
+            <div id="loading">Loading WebAssembly...</div>
+            <!-- Canvas will be created by WebAssembly -->
+        </div>
+
+        <div class="info">
+            <p>Use arrow keys to navigate, ESC to quit</p>
+            <p id="fps">FPS: 0</p>
+        </div>
+        <div class="fps-control-container">
+            <div class="fps-control">
+                <label for="fps-slider">Target FPS:</label>
+                <input type="range" id="fps-slider" min="10" max="120" value="60">
+                <span id="fps-value">60</span>
+                <button id="set-fps">Set FPS</button>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="fullscreen">Fullscreen</button>
+            <button id="restart">Restart</button>
+        </div>
+    </div>
+
+    <script>
+        // FPS monitoring will use the game engine's actual framerate
+
+        // Fullscreen handling
+        document.getElementById('fullscreen').addEventListener('click', function() {
+            const canvas = document.getElementById('v4p-bitmap-canvas');
+            if (canvas) {
+                if (canvas.requestFullscreen) {
+                    canvas.requestFullscreen();
+                } else if (canvas.webkitRequestFullscreen) {
+                    canvas.webkitRequestFullscreen();
+                }
+            }
+        });
+
+        // Restart handling
+        document.getElementById('restart').addEventListener('click', function() {
+            location.reload();
+        });
+
+        // Hide loading when canvas is ready
+        function checkCanvasReady() {
+            const canvas = document.getElementById('v4p-bitmap-canvas');
+            if (canvas) {
+                document.getElementById('loading').style.display = 'none';
+                
+                // Start FPS counter using requestAnimationFrame for continuous updates
+                function updateFPS() {
+                    const now = performance.now();
+                    frameCount++;
+
+                    if (now >= lastFrameTime + 1000) {
+                        fps = Math.round((frameCount * 1000) / (now - lastFrameTime));
+                        document.getElementById('fps').textContent = 'FPS: ' + fps;
+                        frameCount = 0;
+                        lastFrameTime = now;
+                    }
+                    requestAnimationFrame(updateFPS);
+                }
+                
+                // Initialize FPS tracking
+                lastFrameTime = performance.now();
+                frameCount = 0;
+                updateFPS(); // Start FPS counter
+            } else {
+                setTimeout(checkCanvasReady, 100);
+            }
+        }
+
+        // Start checking for canvas
+        checkCanvasReady();
+
+        // Handle ESC key for quitting
+        document.addEventListener('keydown', function(e) {
+            if (e.keyCode === 27) { // ESC
+                // You can add any cleanup here if needed
+                console.log('Demo quit by user');
+            }
+        });
+
+        // Set up FPS control
+        document.getElementById('fps-slider').addEventListener('input', function() {
+            document.getElementById('fps-value').textContent = this.value;
+        });
+
+        document.getElementById('set-fps').addEventListener('click', function() {
+            const fpsValue = parseInt(document.getElementById('fps-slider').value);
+            const setFpsButton = document.getElementById('set-fps');
+            const originalText = setFpsButton.textContent;
+            
+            if (Module && Module._g4p_setFramerate) {
+                try {
+                    setFpsButton.textContent = 'Setting...';
+                    setFpsButton.disabled = true;
+                    
+                    const result = Module._g4p_setFramerate(fpsValue);
+                    console.log('Set framerate to:', fpsValue, 'Result:', result);
+                    
+                    // Show success feedback
+                    setFpsButton.textContent = '✓ FPS Set!';
+                    setFpsButton.style.backgroundColor = '#2E7D32';
+                    
+                    // Reset after 2 seconds
+                    setTimeout(() => {
+                        setFpsButton.textContent = originalText;
+                        setFpsButton.style.backgroundColor = '#4CAF50';
+                        setFpsButton.disabled = false;
+                    }, 2000);
+                } catch (e) {
+                    console.error('Error setting framerate:', e);
+                    setFpsButton.textContent = '✗ Error';
+                    setFpsButton.style.backgroundColor = '#C62828';
+                    setTimeout(() => {
+                        setFpsButton.textContent = originalText;
+                        setFpsButton.style.backgroundColor = '#4CAF50';
+                        setFpsButton.disabled = false;
+                    }, 2000);
+                }
+            } else {
+                console.warn('g4p_setFramerate function not available');
+                setFpsButton.textContent = 'Function not available';
+                setFpsButton.style.backgroundColor = '#FF8F00';
+                setTimeout(() => {
+                    setFpsButton.textContent = originalText;
+                    setFpsButton.style.backgroundColor = '#4CAF50';
+                }, 2000);
+            }
+        });
+
+        // Set up actual FPS counter using game engine's framerate
+        function updateActualFPS() {
+            if (Module && Module._g4p_getFramerate) {
+                try {
+                    const actualFPS = Module._g4p_getFramerate();
+                    document.getElementById('fps').textContent = 'FPS: ' + actualFPS;
+                } catch (e) {
+                    console.error('Error getting framerate:', e);
+                }
+            }
+            setTimeout(updateActualFPS, 200); // Update every 200ms
+        }
+
+        // Start FPS monitoring after a short delay to let the engine initialize
+        setTimeout(updateActualFPS, 1000);
+    </script>
+
+    <script src="starfield_3d.js"></script>
+</body>
+</html>
