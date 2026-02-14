@@ -3,10 +3,11 @@
 
 **Ultra-lightweight 2D vector graphics engine** for resource-constrained devices.
 
-## Screenshots
+## Demo
 
-![Asteroids Demo](screenshots/asteroids.png)
-![Starfield Demo](screenshots/starfield_3d.png)
+Play the emscripten WASM build of the Asteroids clone made with V4P and its addons.
+[![Asteroids Clone](screenshots/asteroids.png)](http://miellaby.github.io/v4p/asteroids.html)
+[![Starfield](screenshots/starfield_3d.png)](http://miellaby.github.io/v4p/starfield_3d.html)
 
 ## Key Features
 
@@ -17,13 +18,9 @@
 - **Collision detection**: Nice side-effect
 - **Memory ultra-efficient**: No Z-buffer/S-buffer needed
 
-## Demo
-
-[![V4P Demo Video](https://img.youtube.com/vi/W7DSjBT2Jfk/default.jpg)](https://www.youtube.com/watch?v=W7DSjBT2Jfk)
-
 ## Integration
 
-Simply add V4P C files to your project and implement a horizontal line drawing function (e.g., memset-like video buffer operation).
+Copy V4P C files into your project and implement the horizontal line drawing function (e.g. memset into a video buffer).
 
 ## Technical Details
 
