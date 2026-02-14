@@ -1,7 +1,7 @@
 # V4P Build System - Single Makefile
 # Modern, standards-compliant build system
 
-.PHONY: all clean install uninstall addons demos help
+.PHONY: all clean install uninstall addons demos help screenshots capture-xlib
 .SECONDARY: # Prevents intermediate files from being deleted (I hate that)
 
 all: libv4p.a addons demos
@@ -306,6 +306,15 @@ uninstall:
 	$(Q)$(RM) $(PREFIX)/lib/libv4p.a
 	$(Q)$(RM) $(PREFIX)/include/v4p.h
 
+
+screenshots/%.png: demos/%
+	@mkdir -p screenshots
+	@echo "Capturing automated screenshot for $*..."
+	./tools/autocapture_screenshot.sh $(basename $*) screenshots/$* 2
+
+SCREENSHOT_TARGETS := $(patsubst demos/%.c,screenshots/%.png,$(wildcard demos/*.c))
+screenshots: $(SCREENSHOT_TARGETS)
+
 help:
 	@echo "V4P Build System - Modern Interface"
 	@echo "Usage:"
@@ -318,4 +327,5 @@ help:
 	@echo "  make PREFIX=/opt    - Custom install prefix"
 	@echo "  make install        - Install to system"
 	@echo "  make clean          - Clean build artifacts"
+	@echo "  make screenshots    - Create all screenshots for demos"
 	@echo "  make help           - Show this help"

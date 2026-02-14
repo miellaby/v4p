@@ -3,6 +3,11 @@
 
 **Ultra-lightweight 2D vector graphics engine** for resource-constrained devices.
 
+## Screenshots
+
+![Asteroids Demo](screenshots/asteroids.png)
+![Starfield Demo](screenshots/starfield_3d.png)
+
 ## Key Features
 
 - **Tiny footprint**: ~1000 instructions, no dependencies

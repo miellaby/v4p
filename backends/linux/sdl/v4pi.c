@@ -6,6 +6,8 @@
 #include <stdarg.h>
 #include <assert.h>
 #include <SDL/SDL.h>
+#include <unistd.h>
+#include <string.h>
 
 #include "v4pi.h"
 
@@ -14,6 +16,31 @@ static SDL_Color sdlColors[256];
 
 // Default window/screen width & heigth
 const V4pCoord V4P_DEFAULT_SCREEN_WIDTH = 640, V4P_DEFAULT_SCREEN_HEIGHT = 480;
+
+// Function to get program name from /proc/self/cmdline
+static void get_program_name(char* buffer, size_t buffer_size) {
+    FILE* fp = fopen("/proc/self/cmdline", "r");
+    if (fp != NULL) {
+        if (fgets(buffer, buffer_size, fp) != NULL) {
+            // Replace null bytes with spaces to handle multiple arguments
+            for (int i = 0; i < buffer_size && buffer[i] != '\0'; i++) {
+                if (buffer[i] == '\0') {
+                    buffer[i] = ' ';
+                }
+            }
+            // Extract just the program name (first argument)
+            char* space = strchr(buffer, ' ');
+            if (space != NULL) {
+                *space = '\0';
+            }
+        }
+        fclose(fp);
+    } else {
+        // Fallback if /proc is not available
+        strncpy(buffer, "V4P Application", buffer_size - 1);
+        buffer[buffer_size - 1] = '\0';
+    }
+}
 
 // A display context
 typedef struct v4pi_context_s {
@@ -144,6 +171,22 @@ Boolean v4pi_init(int quality, Boolean fullscreen) {
                            screenHeight,
                            8 /* pixel depth */,
                            (fullscreen ? SDL_FULLSCREEN : 0) | SDL_HWSURFACE /* flags */);
+
+    // Set window title and name based on program name
+    char title_buffer[256];
+    char name_buffer[64];
+    get_program_name(title_buffer, sizeof(title_buffer));
+    
+    // Create a shorter name for the window name (remove path if present)
+    char* last_slash = strrchr(title_buffer, '/');
+    if (last_slash != NULL) {
+        strncpy(name_buffer, last_slash + 1, sizeof(name_buffer) - 1);
+    } else {
+        strncpy(name_buffer, title_buffer, sizeof(name_buffer) - 1);
+    }
+    name_buffer[sizeof(name_buffer) - 1] = '\0';
+    
+    SDL_WM_SetCaption(title_buffer, name_buffer);
 
     // Set the ugly 256 colors palette
     init_palette();
