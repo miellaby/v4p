@@ -231,7 +231,7 @@ V4pPolygonP v4p_decodeSVGPath(V4pPolygonP p, char* s, float scale) {
                     status = MOVE;
                 } else if (c == 'C' || c == 'c' || c == 'Q' || c == 'q') {
                     status = LINE;  // Curves are not supported
-                } else if (c == 'z') {
+                } else if (c == 'z' || c == 'Z') {
                     toBeClosed = true;
                     status = NEXT;
                 }

@@ -1,7 +1,9 @@
 #include <stdio.h>
+#include <math.h>
 #include "g4p.h"
 #include "v4p.h"
 #include "v4pserial.h"
+#include "lowmath.h"  // For computeCosSin()
 
 // Car components
 V4pPolygonP car_body_proto;
@@ -11,14 +13,27 @@ V4pPolygonP car_lights_proto;
 
 V4pPolygonP car;
 
-// Car position and speed
-V4pCoord car_x = 0;
-V4pCoord car_y = 0;
-Int32 car_speed = 2;
-Int32 car_rotation = 0;
+// Car position and movement
+float car_x = 0;
+float car_y = 0;
+float car_angle = 90;  // Start facing right (90 degrees)
+float car_speed_x = 0;
+float car_speed_y = 0;
+Boolean thrusting = false;
+
+// Helper function to get sin/cos values using v4p's 512-unit circle system
+void getSinCosFromDegrees(float degrees, int* sina, int* cosa) {
+    // Convert degrees to v4p's 512-unit circle format
+    // computeCosSin will handle angle wrapping via bitmasking (angle & 0x1FF)
+    int v4p_angle = (int)(degrees * 512.0f / 360.0f);
+    computeCosSin((UInt16)v4p_angle);
+    *sina = lwmSina;
+    *cosa = lwmCosa;
+}
 
 Boolean g4p_onInit(int quality, Boolean fullscreen) {
     v4p_init2(quality, fullscreen);
+    v4p_setView(-0.44 * v4p_displayWidth, -0.44 * v4p_displayHeight, v4p_displayWidth * 0.44, v4p_displayHeight * 0.44);
     v4p_setBGColor(V4P_DARK);
 
     // Create car body (red main part)
@@ -67,29 +82,85 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
     v4p_addSub(car_body_proto, car_windows_proto);
     v4p_addSub(car_body_proto, car_wheels_proto);
     v4p_addSub(car_body_proto, car_lights_proto);
-    v4p_setAnchorToCenter(car_body_proto);
+    v4p_centerPolygon(car_body_proto);
 
     car = v4p_addClone(car_body_proto);
     // Position car at center
-    car_x = v4p_displayWidth / 2;
-    car_y = v4p_displayHeight / 2;
+    car_x = 0;
+    car_y = 0;
     
     return success;
 }
 
 Boolean g4p_onTick(Int32 deltaTime) {
-    // Simple animation - move car horizontally
-    car_x += car_speed;
-    car_rotation += 1;
-    
-    // Bounce at edges
-    if (car_x > v4p_displayWidth + 100) {
-        car_x = -100;
-        car_rotation = 0;
+    // Calculate current speed magnitude for realistic car handling
+    float current_speed = sqrtf(car_speed_x * car_speed_x + car_speed_y * car_speed_y);
+
+    // Handle rotation input - car can only rotate when moving
+    // Rotation rate proportional to speed (faster = easier to turn, but with limits)
+    float rotation_rate = fminf(current_speed * 0.4f, 0.3f);
+    if (g4p_state.buttons[G4P_LEFT]) {  // Left Arrow - rotate left
+        car_angle -= rotation_rate * deltaTime;
     }
+    if (g4p_state.buttons[G4P_RIGHT]) {  // Right Arrow - rotate right
+        car_angle += rotation_rate * deltaTime;
+    }
+
+    // Continuous convergence: gradually align speed vector with car direction
+    // This happens regardless of user input for realistic car physics
+    int target_sina, target_cosa;
+    getSinCosFromDegrees(car_angle, &target_sina, &target_cosa);
     
-    // Update all car parts
-    v4p_transform(car, car_x, car_y, car_rotation, 1, 256, 256);
+    // Calculate target velocity components for current direction
+    float target_speed_x = ((float)target_sina / 256.0f) * current_speed;
+    float target_speed_y = (-((float)target_cosa / 256.0f)) * current_speed;
+    
+    // Blend current velocity towards the target direction
+    // Faster convergence when moving faster, but with limits
+    float blend_factor = fminf(current_speed * 0.01f, 0.15f) * deltaTime;
+    car_speed_x = car_speed_x * (1.0f - blend_factor) + target_speed_x * blend_factor;
+    car_speed_y = car_speed_y * (1.0f - blend_factor) + target_speed_y * blend_factor;
+
+    thrusting = false;
+    if (g4p_state.buttons[G4P_UP]) {  // Up Arrow - thrust forward
+        thrusting = true;
+        // Apply thrust in the direction the car is facing
+        int sina, cosa;
+        getSinCosFromDegrees(car_angle, &sina, &cosa);
+        car_speed_x += ((float)sina / 256.0f) * 0.001f * deltaTime;  // Accelerate in thrust direction
+        car_speed_y -= ((float)cosa / 256.0f) * 0.001f * deltaTime;
+    } else {
+        // Apply friction/deceleration when no thrust
+        float friction_factor = powf(0.999f, deltaTime);
+        car_speed_x *= friction_factor;  // Slow down gradually
+        car_speed_y *= friction_factor;
+
+        // Small threshold to stop completely
+        if (fabs(car_speed_x) + fabs(car_speed_y) < 0.0001f) {
+            car_speed_x = 0;
+            car_speed_y = 0;
+        }
+    }
+
+    // Apply the speed vector to car position
+    car_x += car_speed_x * (float)deltaTime;
+    car_y += car_speed_y * (float)deltaTime;
+
+    // Wrap car around screen edges (like asteroids)
+    if (car_x < -v4p_displayWidth / 2) {
+        car_x = v4p_displayWidth / 2;
+    } else if (car_x > v4p_displayWidth / 2) {
+        car_x = -v4p_displayWidth / 2;
+    }
+
+    if (car_y < -v4p_displayHeight / 2) {
+        car_y = v4p_displayHeight / 2;
+    } else if (car_y > v4p_displayHeight / 2) {
+        car_y = -v4p_displayHeight / 2;
+    }
+
+    // Update car position and rotation (convert degrees to V4P format)
+    v4p_transform(car, car_x, car_y, car_angle * 512.f / 360.f, 0, 256, 256);
 
     return success;
 }
