@@ -487,9 +487,19 @@ V4pColor v4p_setColor(V4pPolygonP p, V4pColor c) {
 }
 
 // set polygon layer (z-depth)
-V4pColor v4p_setLayer(V4pPolygonP p, V4pLayer z) {
+V4pLayer v4p_setLayer(V4pPolygonP p, V4pLayer z) {
     // Not changed because not affecting geometry
     return p->z = z & 31;  // can't be more than 31 with 32-bit mask
+}
+
+// set polygon visibility (via property V4P_HIDDEN)
+Boolean v4p_setVisibility(V4pPolygonP p, Boolean visible) {
+    if (visible) {
+        return v4p_removeProp(p, V4P_HIDDEN);
+    } else {
+        return v4p_putProp(p, V4P_HIDDEN);
+    }
+    return visible;
 }
 
 // returns a polygon id
@@ -930,7 +940,7 @@ V4pPolygonP v4p_buildActiveEdgeList(V4pPolygonP p) {
     // ====================
     v4p_destroyActiveEdges(p);
 
-    if ((p->props & (V4P_DISABLED | V4P_IN_DISABLED | V4P_UNVISIBLE))) return p;
+    if ((p->props & (V4P_DISABLED | V4P_IN_DISABLED | V4P_HIDDEN))) return p;
 
     if (! isVisible) {
         // don't build AE lists of hidden polygons

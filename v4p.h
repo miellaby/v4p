@@ -13,7 +13,7 @@ typedef UInt32 V4pCollisionMask;  // Collision mask (<= 0xFFFFFFFF)
 
 typedef UInt16 V4pFlag;
 #define V4P_STANDARD (V4pFlag) 0
-#define V4P_UNVISIBLE (V4pFlag) 2  // invisibles help to gather polygons
+#define V4P_HIDDEN (V4pFlag) 2  // invisibles help to gather polygons
 #define V4P_TRANSLUCENT (V4pFlag) 4  // to be done
 #define V4P_ABSOLUTE (V4pFlag) 0
 #define V4P_RELATIVE (V4pFlag) 16  // view (not scene) related coordinates
@@ -106,8 +106,9 @@ V4pPointP v4p_addPoint(V4pPolygonP p, V4pCoord x, V4pCoord y);
 V4pPointP v4p_addJump(V4pPolygonP p);
 V4pPointP v4p_movePoint(V4pPolygonP p, V4pPointP s, V4pCoord x, V4pCoord y);
 V4pColor v4p_setColor(V4pPolygonP p, V4pColor c);
-V4pColor v4p_setLayer(V4pPolygonP p, V4pLayer z);
+V4pLayer v4p_setLayer(V4pPolygonP p, V4pLayer z);
 V4pCoord v4p_setRadius(V4pPolygonP p, V4pCoord radius);
+Boolean  v4p_setVisibility(V4pPolygonP p, Boolean visible);
 V4pPointP v4p_getPoints(V4pPolygonP p);
 V4pLayer v4p_getLayer(V4pPolygonP p);
 V4pCollisionMask v4p_getCollisionMask(V4pPolygonP p);

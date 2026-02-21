@@ -6,23 +6,13 @@
 #include "lowmath.h"  // For computeCosSin()
 
 // Background layers from circuit.svg
-V4pPolygonP land;  // Back layer (yellow)
-V4pPolygonP grass;  // Second layer (green)
-V4pPolygonP road;  // Road (dark gray)
-V4pPolygonP shades;  // Shades (dark green)
-V4pPolygonP building1;  // Buildings and panels (blue/red)
-V4pPolygonP building2;  // Buildings and panels (blue/red)
-V4pPolygonP hay_blocks;  // Small obstacles (orange)
-V4pPolygonP plots;  // Small obstacles (red)
-V4pPolygonP trees;  // Trees (light gray)
+V4pPolygonP level;
 
-// Car components
-V4pPolygonP car_body_proto;
-V4pPolygonP car_windows_proto;
-V4pPolygonP car_wheels_proto;
-V4pPolygonP car_lights_proto;
 
+// car
 V4pPolygonP car;
+// Prototype for the front wheels, which are rotated based on steering
+V4pPolygonP car_visible_front_wheels_proto;
 
 // Car position and movement
 float car_x = 0;
@@ -30,6 +20,7 @@ float car_y = 0;
 float car_angle = 90;  // Start facing right (90 degrees)
 float car_speed_x = 0;
 float car_speed_y = 0;
+float wheel_rotation_angle = 0;  // Front wheel rotation angle
 Boolean thrusting = false;
 
 const float LEVEL_SCALE = 12.0f;  // Scale factor for SVG paths to fit the view
@@ -44,8 +35,83 @@ void getSinCosFromDegrees(float degrees, int* sina, int* cosa) {
     *cosa = lwmCosa;
 }
 
+// Create a car prototype polygon with sub-polygons for windows, wheels, and lights. The prototype is created once and cloned for each car instance.
+V4pPolygonP create_car_proto() {
+    static V4pPolygonP car_proto = NULL;  // Prototype for the car, created once and cloned for instances
+    if (car_proto) {
+        return car_proto;  // Return existing prototype if already created
+    }
+
+    // Car components
+    V4pPolygonP car_windows_proto;
+    V4pPolygonP car_front_wheels_proto;
+    V4pPolygonP car_rear_wheels_proto;
+    V4pPolygonP car_lights_proto;
+
+    // Create car body (red main part)
+    car_proto = v4p_new(V4P_ABSOLUTE, V4P_RED, 1);
+    v4p_decodeSVGPath(car_proto,
+                      "M260,355.5L259,212.5L277,180.5L363.5,180.5L380,211.5L381,354.5L363.5,376.5L277.5,377.5Z", 0.5f);
+
+    // Create car windows (cyan parts)
+    car_windows_proto = v4p_new(V4P_ABSOLUTE, V4P_TEAL, 2);
+    v4p_decodeSVGPath(car_windows_proto,
+                      "M272,267L282,235.5L352.1,235.5L362,267L357.1,270.5L350.8,253.5L282,253L274.7,270Z", 0.5f);
+    v4p_decodeSVGPath(car_windows_proto,
+                      "M270,348.8L286.5,366L337.1,366L355.5,346.7L350,337.7L342.2,349.6L275.4,349.4L263.7,339.5Z",
+                      0.5f);
+
+    // Create car front wheels rotated based on steering
+    car_front_wheels_proto = v4p_new(V4P_ABSOLUTE, V4P_BLACK, 0);
+    v4p_rect(car_front_wheels_proto, 250 / 2, 216 / 2, 282 / 2, 269 / 2);
+    v4p_addPoint(car_front_wheels_proto, 250 / 2, 221 / 2);
+    v4p_rect(car_front_wheels_proto, 359 / 2, 216 / 2, 391 / 2, 269 / 2);
+    v4p_addPoint(car_front_wheels_proto, 359 / 2, 221 / 2);
+
+    // Create car rear wheels (black parts) - static
+    car_rear_wheels_proto = v4p_new(V4P_ABSOLUTE, V4P_BLACK, 0);
+    // Rear left wheel - proper rectangle using v4p_rect
+    v4p_rect(car_rear_wheels_proto, 250 / 2, 319 / 2, 282 / 2, 371 / 2);
+    // Rear right wheel - proper rectangle using v4p_rect
+    v4p_rect(car_rear_wheels_proto, 359 / 2, 319 / 2, 391 / 2, 371 / 2);
+
+    // Create car lights (gray parts)
+    car_lights_proto = v4p_new(V4P_ABSOLUTE, V4P_GRAY, 2);
+    v4p_decodeSVGPath(car_lights_proto, "M281.1,185.5L280.5,214.5L270.5,222.5L270.9,204.2L281,185.5Z", 0.5f);
+    v4p_decodeSVGPath(car_lights_proto, "M364,187.5L364,216L373,224.5L373,207.2L364,187.5Z", 0.5f);
+    v4p_setAnchorToCenter(car_lights_proto);
+
+    // Create car instances
+    v4p_addSub(car_proto, car_windows_proto);
+    v4p_addSub(car_proto, car_rear_wheels_proto);
+    v4p_addSub(car_proto, car_lights_proto);
+
+    // Front wheels are added with an intermediate prototype. The prototype is rotated with the car, then we rotate the
+    // clone for steering
+    v4p_addSub(car_proto, car_front_wheels_proto);
+    car_visible_front_wheels_proto = v4p_clone(car_front_wheels_proto);
+    v4p_addSub(car_proto, car_visible_front_wheels_proto);
+    v4p_setVisibility(car_front_wheels_proto,
+                      false);  // Hide the front wheels prototype, we'll use clones for the actual wheels
+    v4p_setAnchorToCenter(car_front_wheels_proto);
+
+    v4p_centerPolygon(car_proto);
+
+    return car_proto;
+}
+
 // Create background layers from circuit.svg using original paths
-void create_background_layers() {
+V4pPolygonP create_level() {
+    V4pPolygonP land;  // Back layer (yellow)
+    V4pPolygonP grass;  // Second layer (green)
+    V4pPolygonP road;  // Road (dark gray)
+    V4pPolygonP shades;  // Shades (dark green)
+    V4pPolygonP building1;  // Buildings and panels (blue/red)
+    V4pPolygonP building2;  // Buildings and panels (blue/red)
+    V4pPolygonP hay_blocks;  // Small obstacles (orange)
+    V4pPolygonP plots;  // Small obstacles (red)
+    V4pPolygonP trees;  // Trees (light gray)
+
     // Layer 1: Yellow background (back layer) - original SVG path
     land = v4p_new(V4P_ABSOLUTE, V4P_YELLOW, 0);
     v4p_decodeSVGPath(land,
@@ -223,6 +289,8 @@ void create_background_layers() {
                       LEVEL_SCALE);
 
     v4p_centerPolygon(land);
+
+    return land;
 }
 
 Boolean g4p_onInit(int quality, Boolean fullscreen) {
@@ -231,46 +299,13 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
     v4p_setBGColor(V4P_TEAL);
 
     // Create background layers
-    create_background_layers();
+    level = create_level();
 
     // Add background layers to scene (in order from back to front)
-    v4p_add(land);
+    v4p_add(level);
 
-    // Create car body (red main part)
-    car_body_proto = v4p_new(V4P_ABSOLUTE, V4P_RED, 1);
-    v4p_decodeSVGPath(car_body_proto,
-                      "M260,355.5L259,212.5L277,180.5L363.5,180.5L380,211.5L381,354.5L363.5,376.5L277.5,377.5Z", 0.5f);
+    car = v4p_addClone(create_car_proto());
 
-    // Create car windows (cyan parts)
-    car_windows_proto = v4p_new(V4P_ABSOLUTE, V4P_TEAL, 2);
-    v4p_decodeSVGPath(car_windows_proto,
-                      "M272,267L282,235.5L352.1,235.5L362,267L357.1,270.5L350.8,253.5L282,253L274.7,270Z", 0.5f);
-    v4p_decodeSVGPath(car_windows_proto,
-                      "M270,348.8L286.5,366L337.1,366L355.5,346.7L350,337.7L342.2,349.6L275.4,349.4L263.7,339.5Z",
-                      0.5f);
-    v4p_setAnchorToCenter(car_windows_proto);
-
-    // Create car wheels (black parts)
-    car_wheels_proto = v4p_new(V4P_ABSOLUTE, V4P_BLACK, 0);
-    v4p_decodeSVGPath(car_wheels_proto, "M264.5,240.5L245.5,198.5L270.5,184.5L289.5,221.5Z", 0.5f);
-    v4p_decodeSVGPath(car_wheels_proto, "M365.5,243.5L345.5,203.5L372.5,186.5L390.5,226.5Z", 0.5f);
-    v4p_decodeSVGPath(car_wheels_proto, "M250,319.5L276.4,319.5L277.5,370.5L250,370.5Z", 0.5f);
-    v4p_decodeSVGPath(car_wheels_proto, "M359.5,319.5L387.4,319.5L388.5,371.5L359.5,371.5Z", 0.5f);
-    v4p_setAnchorToCenter(car_wheels_proto);
-
-    // Create car lights (gray parts)
-    car_lights_proto = v4p_new(V4P_ABSOLUTE, V4P_GRAY, 2);
-    v4p_decodeSVGPath(car_lights_proto, "M281.1,185.5L280.5,214.5L270.5,222.5L270.9,204.2L281,185.5Z", 0.5f);
-    v4p_decodeSVGPath(car_lights_proto, "M364,187.5L364,216L373,224.5L373,207.2L364,187.5Z", 0.5f);
-    v4p_setAnchorToCenter(car_lights_proto);
-
-    // Create car instances
-    v4p_addSub(car_body_proto, car_windows_proto);
-    v4p_addSub(car_body_proto, car_wheels_proto);
-    v4p_addSub(car_body_proto, car_lights_proto);
-    v4p_centerPolygon(car_body_proto);
-
-    car = v4p_addClone(car_body_proto);
     // Position car at center
     car_x = 0;
     car_y = -800;
@@ -287,9 +322,19 @@ Boolean g4p_onTick(Int32 deltaTime) {
     float rotation_rate = fminf(current_speed * 0.4f, 0.3f);
     if (g4p_state.buttons[G4P_LEFT]) {  // Left Arrow - rotate left
         car_angle -= rotation_rate * deltaTime;
+        wheel_rotation_angle = -20.0f;  // Turn wheels left
     }
-    if (g4p_state.buttons[G4P_RIGHT]) {  // Right Arrow - rotate right
+    else if (g4p_state.buttons[G4P_RIGHT]) {  // Right Arrow - rotate right
         car_angle += rotation_rate * deltaTime;
+        wheel_rotation_angle = 20.0f;  // Turn wheels right
+    }
+    else {
+        // Gradually return wheels to straight position when no steering input
+        if (wheel_rotation_angle > 0) {
+            wheel_rotation_angle = fmaxf(0, wheel_rotation_angle - 0.5f * deltaTime);
+        } else if (wheel_rotation_angle < 0) {
+            wheel_rotation_angle = fminf(0, wheel_rotation_angle + 0.5f * deltaTime);
+        }
     }
 
     // Continuous convergence: gradually align speed vector with car direction
@@ -332,8 +377,13 @@ Boolean g4p_onTick(Int32 deltaTime) {
     car_x += car_speed_x * (float) deltaTime;
     car_y += car_speed_y * (float) deltaTime;
 
+    // Update front wheels position and rotation (wheels rotate around their own center)
+    // First position them at the car's location, then apply wheel rotation
+    v4p_transform(car_visible_front_wheels_proto, 0, 0, wheel_rotation_angle * 512.f / 360.f, 0, 256, 256);
+
     // Update car position and rotation (convert degrees to V4P format)
     v4p_transform(car, car_x, car_y, car_angle * 512.f / 360.f, 10, 256, 256);
+    
 
     // Update view to center on car position
     float zooming = current_speed < 0.5 ? 0.5 : current_speed;
