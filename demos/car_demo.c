@@ -4,6 +4,8 @@
 #include "v4p.h"
 #include "v4pserial.h"
 #include "lowmath.h"  // For computeCosSin()
+#include "../addons/game_engine/collision.h"
+#include "../backends/v4pi.h"  // For v4pi_debug
 
 // Background layers from circuit.svg
 V4pPolygonP level;
@@ -23,6 +25,9 @@ float car_speed_x = 0;
 float car_speed_y = 0;
 float wheel_rotation_angle = 0;  // Front wheel rotation angle
 Boolean thrusting = false;
+
+// Collision tracking
+UInt16 collision_count = 0;
 
 const float LEVEL_SCALE = 12.0f;  // Scale factor for SVG paths to fit the view
 
@@ -206,6 +211,7 @@ V4pPolygonP create_level() {
                       "m 117,237.55 -1.6,20.25 -9.6,17.8 -14.6,16.9 -9,16.1 -0.2,14.9 h 21.1 "
                       "l 2.4,-16.2 13.3,-12.7 9.6,-13 10,-19 0.9,-25.3 z",
                       LEVEL_SCALE);
+    v4p_setCollisionMask(road, 2);  // Road mask is 2
 
     // Layer 4: Shades (dark green) - original SVG path
     shades = v4p_addNewSub(land, V4P_ABSOLUTE, V4P_DARK_GREEN, 3);
@@ -219,30 +225,30 @@ V4pPolygonP create_level() {
     // shade2  (fill: #007f00 -> V4P_DARK_GREEN)
     v4p_decodeSVGPath(shades, "m 336.5,123.6 20.3,11.6 v 24.4 H 276 l -20.8,-9.2 v -26.8 z", LEVEL_SCALE);
 
-    building1 = v4p_addNewSub(land, V4P_ABSOLUTE, V4P_BLUE, 4);
 
     // build1_terrace  (fill: #00f -> V4P_BLUE)
+    building1 = v4p_addNewSub(land, V4P_ABSOLUTE, V4P_BLUE, 14);
     v4p_decodeSVGPath(building1, "M 258.5 150.6 L 258.4 124.8 L 332.4 124.4 L 332.4 150.8 Z", LEVEL_SCALE);
 
     // build1  (fill: #00007f -> V4P_NAVY)
     v4p_decodeSVGPath(v4p_addNewSub(building1, V4P_ABSOLUTE, V4P_NAVY, 5),
                       "M 256.1 145.4 L 256 119.6 L 336.4 119.2 L 336.4 145.6 Z", LEVEL_SCALE);
 
-    building2 = v4p_addNewSub(land, V4P_ABSOLUTE, V4P_RED, 4);
 
     // build2_terrace  (fill: #7f7f7f -> V4P_GRAY)
+    building2 = v4p_addNewSub(land, V4P_ABSOLUTE, V4P_GRAY, 4);
     v4p_decodeSVGPath(building2, "M 424.9 326.4 L 421.2 318.8 L 449.6 304 L 454 311.1", LEVEL_SCALE);
 
     // build2  (fill: #7f0000 -> V4P_DARK_RED)
-    v4p_decodeSVGPath(v4p_addNewSub(building2, V4P_ABSOLUTE, V4P_DARK_RED, 5),
+    v4p_decodeSVGPath(v4p_addNewSub(building2, V4P_ABSOLUTE, V4P_DARK_RED, 14),
                       "M 400.1 299.6 L 446 276 L 459.2 299.2 L 411.2 323.6 Z", LEVEL_SCALE);
 
     // build2_halfroof  (fill: red -> V4P_RED)
-    v4p_decodeSVGPath(v4p_addNewSub(building2, V4P_ABSOLUTE, V4P_RED, 6),
+    v4p_decodeSVGPath(v4p_addNewSub(building2, V4P_ABSOLUTE, V4P_RED, 15),
                       "M 407.3 311.6 L 401.6 300 L 446 277.6 L 452.8 288.4", LEVEL_SCALE);
 
     // build2_chemney  (fill: #bfbfbf -> V4P_SILVER)
-    v4p_decodeSVGPath(v4p_addNewSub(building2, V4P_ABSOLUTE, V4P_SILVER, 7),
+    v4p_decodeSVGPath(v4p_addNewSub(building2, V4P_ABSOLUTE, V4P_SILVER, 16),
                       "M 410 311.6 L 408.4 308.5 L 415.8 304.8 L 417.6 307.8", LEVEL_SCALE);
 
     hay_blocks = v4p_addNewSub(land, V4P_ABSOLUTE, 120, 5);  // Orange color
@@ -269,7 +275,7 @@ V4pPolygonP create_level() {
                       "176.1 201.3 L 174.8 195.6 L 180.8 195.2 L 181.6 200.8 Z",
                       LEVEL_SCALE);
 
-    trees = v4p_addNewSub(land, V4P_ABSOLUTE, V4P_LIMEGREEN, 6);
+    trees = v4p_addNewSub(land, V4P_ABSOLUTE, V4P_LIMEGREEN, 16);
 
     // tree_0  (fill: #c3ff00 -> V4P_LIMEGREEN)
     v4p_decodeSVGPath(trees,
@@ -300,10 +306,31 @@ V4pPolygonP create_level() {
     return land;
 }
 
+// Collision callback function
+void car_demo_onCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord avg_x, V4pCoord avg_y, UInt16 count) {
+    // Get collision layers for both polygons
+    V4pCollisionMask mask1 = v4p_getCollisionMask(p1);
+    V4pCollisionMask mask2 = v4p_getCollisionMask(p2);
+    
+    // Check if this is a car-road collision
+    Boolean isCar1 = (mask1 == 1); // Car mask is 1
+    Boolean isRoad1 = (mask1 == 2); // Road mask is 2
+    Boolean isCar2 = (mask2 == 1); // Car mask is 1
+    Boolean isRoad2 = (mask2 == 2); // Road mask is 2
+    
+    if ((isCar1 && isRoad2) || (isCar2 && isRoad1)) {
+        // Car-road collision detected
+        collision_count += count;
+    }
+}
+
 Boolean g4p_onInit(int quality, Boolean fullscreen) {
     v4p_init2(quality, fullscreen);
     v4p_setView(-0.44 * v4p_displayWidth, -0.44 * v4p_displayHeight, v4p_displayWidth * 0.44, v4p_displayHeight * 0.44);
     v4p_setBGColor(V4P_TEAL);
+
+    // Initialize collision system
+    g4p_setCollisionCallback(car_demo_onCollisionPoint);
 
     // Create background layers
     level = create_level();
@@ -312,6 +339,7 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
     v4p_add(level);
 
     car = v4p_addClone(create_car_proto());
+    v4p_setCollisionMask(car, 1); // Car mask is 1
 
     // Position car at center
     car_x = 0;
@@ -321,6 +349,7 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
 }
 
 Boolean g4p_onTick(Int32 deltaTime) {
+    
     // Calculate current speed magnitude for realistic car handling
     float current_speed = sqrtf(car_speed_x * car_speed_x + car_speed_y * car_speed_y);
 
@@ -359,6 +388,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
     car_speed_x = car_speed_x * (1.0f - blend_factor) + target_speed_x * blend_factor;
     car_speed_y = car_speed_y * (1.0f - blend_factor) + target_speed_y * blend_factor;
 
+    float friction_factor = 1.0f;  // Default no friction
     thrusting = false;
     if (g4p_state.buttons[G4P_UP]) {  // Up Arrow - thrust forward
         thrusting = true;
@@ -369,10 +399,19 @@ Boolean g4p_onTick(Int32 deltaTime) {
         car_speed_y -= ((float) cosa / 256.0f) * 0.001f * deltaTime;
     } else {
         // Apply friction/deceleration when no thrust
-        float friction_factor = powf(0.999f, deltaTime);
-        car_speed_x *= friction_factor;  // Slow down gradually
-        car_speed_y *= friction_factor;
+        friction_factor = powf(0.999f, deltaTime);
+    }
 
+    v4pi_debug("Collision count: %d - %s\n", collision_count, collision_count >= 50 ? "ON ROAD" : "OFF ROAD - SLOWING DOWN");
+    // Check if car is on the road (collision count >= 350)
+    if (collision_count < 50) { // FIXME the collision counts threshold depends on the zoom level squared.
+        // Off road: much higher friction (almost stops)
+        friction_factor = powf(0.995f, deltaTime);  // Much stronger deceleration
+    }
+
+    if (friction_factor < 1.f) {
+        car_speed_x *= friction_factor;
+        car_speed_y *= friction_factor;
         // Small threshold to stop completely
         if (fabs(car_speed_x) + fabs(car_speed_y) < 0.0001f) {
             car_speed_x = 0;
@@ -399,10 +438,13 @@ Boolean g4p_onTick(Int32 deltaTime) {
     float camera_y = car_y + car_speed_y * 100;
     v4p_setView(camera_x - v4p_displayWidth * zooming, camera_y - v4p_displayHeight * zooming,
                 camera_x + v4p_displayWidth * zooming, camera_y + v4p_displayHeight * zooming);
+    
     return success;
 }
 
 Boolean g4p_onFrame() {
+    // Reset collision count for this frame
+    collision_count = 0;
     v4p_render();
     return success;
 }
