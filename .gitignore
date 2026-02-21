@@ -4,6 +4,7 @@
 
 # "demos" directory - keep source files, ignore build artifacts
 demos/*
+!demos/art
 !demos/*.c
 !demos/*.h
 !demos/README*
