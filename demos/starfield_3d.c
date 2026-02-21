@@ -35,14 +35,9 @@ void initStar(Star3D* star) {
     star->twinkle_speed = TWINKLE_SPEED * (0.5f + (float) (rand() % 10) * 0.1f);
 
     // Different colors for different star types
-    int rnd = rand() % 10;
-    if (rnd < 1) {
-        star->color = V4P_BLUE;  // Blue stars
-    } else if (rnd < 3) {
-        star->color = V4P_YELLOW;  // Yellow stars
-    } else {
-        star->color = V4P_WHITE;  // Green stars
-    }
+    int rnd = rand() % 9;
+    V4pColor t[] = { V4P_WHITE, V4P_BLUE, V4P_YELLOW, V4P_RED, V4P_LIMEGREEN, V4P_PURPLE, V4P_PINK, V4P_ORANGE, V4P_CYAN };
+    star->color = t[rnd];
 }
 
 // Project 3D coordinates to 2D screen space
@@ -116,9 +111,26 @@ Boolean g4p_onTick(Int32 deltaTime) {
         // Update star position and appearance
         v4p_transform(starPolygons[i], screenX, screenY, 0, 0, screenSize * 1024, screenSize * 1024);
 
-        // Adjust color based on brightness
-        int brightColor = (stars[i].color + (int) (bright * 12)) % 128;
-        v4p_setColor(starPolygons[i], brightColor);
+        // Adjust color based on brightness using RGB palette mapping
+        // Calculate RGB values based on star color and brightness
+        UInt8 r = 0, g = 0, b = 0;
+        
+        // Get base RGB values from the star's color
+        const UInt8* baseRgb = V4P_PALETTE_RGB(stars[i].color);
+        r = baseRgb[0];
+        g = baseRgb[1];
+        b = baseRgb[2];
+        
+        // Apply brightness variation - make stars twinkle by adjusting RGB components
+        // Brighter stars have higher RGB values, dimmer stars have lower values
+        float brightnessFactor = 0.6f + 0.4f * sinf(stars[i].twinkle_phase * 3.14159f * 2.0f);
+        r = (UInt8)(r * brightnessFactor);
+        g = (UInt8)(g * brightnessFactor);
+        b = (UInt8)(b * brightnessFactor);
+        
+        // Convert the modified RGB back to palette index
+        V4pColor twinkleColor = v4p_rgb_to_palette_index(r, g, b);
+        v4p_setColor(starPolygons[i], twinkleColor);
         v4p_setLayer(starPolygons[i], 31 - (int) (31.f * stars[i].z / STAR_DEPTH));
     }
 

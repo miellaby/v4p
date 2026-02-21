@@ -35,6 +35,7 @@ const char* get_color_name(int color_index) {
         case V4P_BROWN: return "BROWN";
         
         // Green family
+        case V4P_LIMEGREEN: return "LIMEGREEN";
         case V4P_GREEN: return "GREEN";
         case V4P_DARK_GREEN: return "DARK_GREEN";
         case V4P_OLIVE: return "OLIVE";
@@ -48,9 +49,6 @@ const char* get_color_name(int color_index) {
         
         // Purple family
         case V4P_PURPLE: return "PURPLE";
-        
-        // Special
-        case V4P_LIMEGREEN: return "LIMEGREEN";
         
         default: return "";
     }

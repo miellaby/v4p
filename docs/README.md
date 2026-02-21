@@ -5,6 +5,7 @@ This directory contains web demos of the V4P vector graphics engine compiled to 
 ## Available Demos
 
 - **[Asteroids Game](asteroids.html)** - Classic asteroids game with full physics and particle effects
+- **[3D Star field](starfield_3D.html)** - 3D starfield effect with twinkling stars
 
 ## How to Play Asteroids
 

@@ -27,6 +27,7 @@ extern const UInt8 v4p_palette[256][3];
 #define V4P_DARK_RED 161
 #define V4P_ORANGE 123
 #define V4P_YELLOW 120
+#define V4P_LIMEGREEN 210
 #define V4P_GREEN 229
 #define V4P_DARK_GREEN 213
 #define V4P_OLIVE 214
@@ -39,7 +40,6 @@ extern const UInt8 v4p_palette[256][3];
 #define V4P_PINK 9
 #define V4P_BROWN 160
 #define V4P_MAROON 227
-#define V4P_LIMEGREEN 138
 
 // Color index to RGB triplet
 #define V4P_PALETTE_RGB(index) ((const UInt8*)v4p_palette[index])
