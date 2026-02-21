@@ -179,28 +179,63 @@ char* v4p_encodePolygon(V4pPolygonP p, int scale) {
     }
 }
 
-// add points to a polygon with coordinates decoded from a c-string
+// Helper: parse one or two floats from s+j, advance *j, return count parsed
+static int parse_coords(char* s, int* j, float* p1, float* p2) {
+    int offset = 0, count = 0;
+    if (sscanf(&s[*j], "%f,%f%n", p1, p2, &offset) >= 2) {
+        *j += offset;
+        count = 2;
+    } else if (sscanf(&s[*j], "%f %f%n", p1, p2, &offset) >= 2) {
+        *j += offset;
+        count = 2;
+    } else if (sscanf(&s[*j], "%f%n", p1, &offset) >= 1) {
+        *j += offset;
+        int j2 = *j;
+        int offset2 = 0;
+        if (sscanf(&s[j2], "%f%n", p2, &offset2) >= 1) {
+            *j += offset2;  // advance by offset2, not offset2-1 (j already at end of p1)
+            count = 2;
+        } else {
+            count = 1;
+        }
+    }
+    return count;
+}
+
 V4pPolygonP v4p_decodeSVGPath(V4pPolygonP p, char* s, float scale) {
     int j;
-    Boolean toBeClosed = false, knowFirstPoint = false, nextIsRelative = false;
-    char c;
+    Boolean knowFirstPoint = false, nextIsRelative = false;
+    char cmd = 0;
     enum e_status { INIT, MOVE, LINE, NEXT } status = INIT;
-    float param_1, xs = 0, xs1;
-    float param_2, ys = 0, ys1;
-    int offset;
-
-    // Use float scaling for better precision with SVG coordinates
+    float param_1, param_2;
+    float xs = 0, ys = 0, xs1 = 0, ys1 = 0;
 
     for (j = 0; s[j]; j++) {
-        c = s[j];
-        if (c == ' ' || c == '\t' || c == '\r' || c == '\n')
-            continue;
+        char c = s[j];
+
+        if (c == ' ' || c == '\t' || c == '\r' || c == '\n') continue;
 
         switch (status) {
-            case NEXT:  // way to add more points
-                if (c >= '0' && c <= '9') {
-                    if (sscanf(&s[j], "%f,%f%n", &param_1, &param_2, &offset) >= 2) {
-                        j += offset - 1;
+            case NEXT:
+                // A digit, dot, minus, or plus signals another coordinate pair
+                if ((c >= '0' && c <= '9') || c == '.' || c == '-' || c == '+') {
+                    int count = parse_coords(s, &j, &param_1, &param_2);
+                    if (count < 1) continue;
+                    j--;
+
+                    // Apply coordinates according to current command
+                    if (cmd == 'h' || cmd == 'H') {
+                        if (nextIsRelative)
+                            xs += param_1;
+                        else
+                            xs = param_1;
+                    } else if (cmd == 'v' || cmd == 'V') {
+                        if (nextIsRelative)
+                            ys += param_1;
+                        else
+                            ys = param_1;
+                    } else {
+                        if (count < 2) continue;  // need both coords for all other commands
                         if (nextIsRelative) {
                             xs += param_1;
                             ys += param_2;
@@ -208,73 +243,98 @@ V4pPolygonP v4p_decodeSVGPath(V4pPolygonP p, char* s, float scale) {
                             xs = param_1;
                             ys = param_2;
                         }
-                        // Apply float scaling with rounding
-                        v4p_addPoint(p, 
-                            (V4pCoord)roundf(xs * scale),
-                            (V4pCoord)roundf(ys * scale));
-                        if (! knowFirstPoint) {
-                            xs1 = xs;
-                            ys1 = ys;
-                            knowFirstPoint = true;
-                        }
-                        continue;  // iterate for loop
                     }
+
+                    v4p_addPoint(p, (V4pCoord) roundf(xs * scale), (V4pCoord) roundf(ys * scale));
+
+                    if (! knowFirstPoint) {
+                        xs1 = xs;
+                        ys1 = ys;
+                        knowFirstPoint = true;
+                    }
+                    continue;  // stay in NEXT, consume more implicit coords
                 }
-                // there is no break here, NEXT case also handled hereafter
+                // Not a number — fall through to parse the next command letter
                 __attribute__((fallthrough));
+
             case INIT:
-                if ((c == 'M' || c == 'm') && knowFirstPoint)
-                    v4p_addJump(p);
+                // Close any open subpath before starting a new one
+                if ((c == 'M' || c == 'm') && knowFirstPoint) v4p_addJump(p);
+
+                cmd = c;  // save command before j advances in LINE/MOVE case
+                // Implicit coords after m/M are treated as l/L
+                if (cmd == 'm')
+                    cmd = 'l';
+                else if (cmd == 'M')
+                    cmd = 'L';
+
                 if (c == 'L' || c == 'l') {
                     status = LINE;
                 } else if (c == 'M' || c == 'm') {
                     status = MOVE;
                 } else if (c == 'C' || c == 'c' || c == 'Q' || c == 'q') {
-                    status = LINE;  // Curves are not supported
+                    status = LINE;
+                }  // curves: endpoint only
+                else if (c == 'h' || c == 'H' || c == 'v' || c == 'V') {
+                    status = LINE;
                 } else if (c == 'z' || c == 'Z') {
-                    toBeClosed = true;
-                    status = NEXT;
+                    if (knowFirstPoint) {
+                        v4p_addPoint(p, (V4pCoord) roundf(xs1 * scale), (V4pCoord) roundf(ys1 * scale));
+                        knowFirstPoint = false;
+                    }
+                    // After z, implicit next command is M from current position.
+                    // Reset cmd so stale h/v/l don't misinterpret any following chars.
+                    cmd = 0;
+                    status = INIT;  // not NEXT — z consumes no coordinates
                 }
-                nextIsRelative = (c == 'm' || c == 'l');
+
+                nextIsRelative = (c == 'm' || c == 'l' || c == 'h' || c == 'v');
                 break;
+
             case LINE:
             case MOVE:
-                if (sscanf(&s[j], "%f,%f%n", &param_1, &param_2, &offset) >= 2) {
-                    j += offset - 1;
-                    if (toBeClosed && knowFirstPoint) {
-                        // Apply float scaling with rounding
-                        v4p_addPoint(p, 
-                            (V4pCoord)roundf(xs1 * scale),
-                            (V4pCoord)roundf(ys1 * scale));
-                        toBeClosed = knowFirstPoint = false;
+                {
+                    int count = parse_coords(s, &j, &param_1, &param_2);
+                    if (count > 0) {
+                        j--;
                     }
-                    if (nextIsRelative) {
-                        xs += param_1;
-                        ys += param_2;
+
+                    // For h/v only one coordinate is valid
+                    if (cmd == 'h' || cmd == 'H') {
+                        if (count < 1) continue;
+                        if (nextIsRelative)
+                            xs += param_1;
+                        else
+                            xs = param_1;
+                    } else if (cmd == 'v' || cmd == 'V') {
+                        if (count < 1) continue;
+                        if (nextIsRelative)
+                            ys += param_1;
+                        else
+                            ys = param_1;
                     } else {
-                        xs = param_1;
-                        ys = param_2;
+                        if (count < 2) continue;
+                        if (nextIsRelative) {
+                            xs += param_1;
+                            ys += param_2;
+                        } else {
+                            xs = param_1;
+                            ys = param_2;
+                        }
                     }
-                    // Apply float scaling with rounding
-                    v4p_addPoint(p, 
-                        (V4pCoord)roundf(xs * scale),
-                        (V4pCoord)roundf(ys * scale));
+
+                    v4p_addPoint(p, (V4pCoord) roundf(xs * scale), (V4pCoord) roundf(ys * scale));
+
                     if (! knowFirstPoint) {
                         xs1 = xs;
                         ys1 = ys;
                         knowFirstPoint = true;
                     }
                     status = NEXT;
+                    break;
                 }
-                break;
-        }  // switch status
-    }  // j
-    if (toBeClosed && knowFirstPoint) {
-        // Apply float scaling with rounding
-        v4p_addPoint(p, 
-            (V4pCoord)roundf(xs1 * scale),
-            (V4pCoord)roundf(ys1 * scale));
-        toBeClosed = knowFirstPoint = false;
-    }
+        }  // switch
+    }  // for j
+
     return p;
 }

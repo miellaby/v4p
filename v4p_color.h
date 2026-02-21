@@ -18,6 +18,7 @@ typedef UInt8 V4pColor;
 
 extern const UInt8 v4p_palette[256][3];
 
+#define V4P_SILVER 224
 #define V4P_GRAY 225
 #define V4P_MAROON 226
 #define V4P_PURPLE 227
