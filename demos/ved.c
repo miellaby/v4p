@@ -83,8 +83,8 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
     bLayer = addButton(V4P_BLUE);
     bScroll = addButton(V4P_YELLOW);
     bCol = addButton(V4P_BLACK);
-    bGrid = addButton(V4P_CYAN);
-    // bSave = addButton(V4P_FLUO);
+    bGrid = addButton(V4P_TEAL);
+    // bSave = addButton(V4P_LIMEGREEN);
     sel = 0;
     currentColor = V4P_BLACK;
     currentZ = 7;

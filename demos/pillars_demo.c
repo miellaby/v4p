@@ -146,7 +146,7 @@ void createPillar(int x, int z, int y, int height) {
 
     // 4. Left side face (quadrilateral) - visible if left front x > left back x
     if (points2D[0][0] > points2D[3][0]) {  // Bottom left front x >  Bottom left back x
-        V4pPolygonP leftFace = v4p_addNew(V4P_ABSOLUTE, V4P_CYAN, layer);
+        V4pPolygonP leftFace = v4p_addNew(V4P_ABSOLUTE, V4P_TEAL, layer);
         v4p_addPoint(leftFace, points2D[0][0], points2D[0][1]); // Bottom left front
         v4p_addPoint(leftFace, points2D[3][0], points2D[3][1]); // Bottom left back
         v4p_addPoint(leftFace, points2D[7][0], points2D[7][1]); // Top left back

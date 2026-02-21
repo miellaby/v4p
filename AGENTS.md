@@ -55,7 +55,7 @@ Build with V=1 to see compilation steps.
 
 ## Quick test
 
-To unit-test your changes, write a test/some_change.c (adapt name accordingly) and simply build with `make tests/some_change.c` to get a `tests/some_change` executable.
+To unit-test your changes, write your test in **the ./tests/ folder** like tests/some_change.c (adapt name accordingly) and simply build with `make tests/some_change.c` to get a `tests/some_change` executable.
 
 ## Coding a demo/app with v4p AND g4p
 

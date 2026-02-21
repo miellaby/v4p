@@ -20,9 +20,48 @@
  *   // G : 0   1   2   3  4    5
  *   // e.g  12+54+5 = $99 B + $66 R +$0 G
  *   // 216..224 = GRAY 22 44 55 77 88 aa bb dd
- *   // 225..229 = specials: LIGHT GRAY, MAROON, PURPLE, GREEN, CYAN
- *  // 230..255 = unused (BLACK)
+ *   // 225..230 = specials: SILVER, GRAY, MAROON, PURPLE, GREEN, TEAL
+ *  // 231..255 = unused (BLACK)
  */
+
+/**
+ * Compute palette color index from RGB values
+ * 
+ * This function maps RGB values to the closest color index in the V4P palette.
+ * The palette uses 6 levels for each color channel (0, 51, 102, 153, 204, 255).
+ * 
+ * Based on analysis of the actual palette data, the organization is:
+ * - Red varies slowest (changes every 36 entries)
+ * - Blue varies next (changes every 6 entries)
+ * - Green varies fastest (changes every entry)
+ * 
+ * The formula is: index = r_index * 36 + b_index * 6 + g_index
+ * 
+ * @param r Red component (0-255)
+ * @param g Green component (0-255)
+ * @param b Blue component (0-255)
+ * @return Color index (0-255) in the V4P palette
+ */
+V4pColor v4p_rgb_to_palette_index(UInt8 r, UInt8 g, UInt8 b) {
+    // Quantize each color channel to 6 levels (0, 51, 102, 153, 204, 255)
+    // Note: We need to invert the indices because the palette starts with
+    // highest values (255) and goes down to lowest (0)
+    UInt8 r_index = 5 - (r / 51);  // 5-0 (255->0, 204->1, ..., 0->5)
+    UInt8 g_index = 5 - (g / 51);  // 5-0
+    UInt8 b_index = 5 - (b / 51);  // 5-0
+    
+    // Clamp to valid range (0-5)
+    if (r_index > 5) r_index = 5;
+    if (g_index > 5) g_index = 5;
+    if (b_index > 5) b_index = 5;
+    
+    // Calculate index using the formula: r_index * 36 + b_index * 6 + g_index
+    // This matches the palette organization where:
+    // - Red varies slowest (36 values)
+    // - Blue varies next (6 values)
+    // - Green varies fastest (1 value)
+    return (V4pColor)(r_index * 36 + b_index * 6 + g_index);
+}
 const UInt8 v4p_palette[256][3] = {
     { 255, 255, 255 }, { 255, 204, 255 }, { 255, 153, 255 }, { 255, 102, 255 },
     { 255, 51, 255 },  { 255, 0, 255 },   { 255, 255, 204 }, { 255, 204, 204 },
@@ -80,12 +119,11 @@ const UInt8 v4p_palette[256][3] = {
     { 0, 153, 0 },     { 0, 102, 0 },     { 0, 51, 0 },      { 17, 17, 17 },
     { 34, 34, 34 },    { 68, 68, 68 },    { 85, 85, 85 },    { 119, 119, 119 },
     { 136, 136, 136 }, { 170, 170, 170 }, { 187, 187, 187 }, { 221, 221, 221 },
-    { 238, 238, 238 }, { 192, 192, 192 }, { 128, 0, 0 },     { 128, 0, 128 },
-    { 0, 128, 0 },     { 0, 128, 128 },   { 0, 0, 0 },       { 0, 0, 0 },
+    { 238, 238, 238 }, { 192, 192, 192 }, { 128, 128, 128 }, { 128, 0, 0 },
+    { 128, 0, 128 },   { 0, 128, 0 },     { 0, 128, 128 },   { 0, 0, 0 },
     { 0, 0, 0 },       { 0, 0, 0 },       { 0, 0, 0 },       { 0, 0, 0 },
     { 0, 0, 0 },       { 0, 0, 0 },       { 0, 0, 0 },       { 0, 0, 0 },
     { 0, 0, 0 },       { 0, 0, 0 },       { 0, 0, 0 },       { 0, 0, 0 },
     { 0, 0, 0 },       { 0, 0, 0 },       { 0, 0, 0 },       { 0, 0, 0 },
     { 0, 0, 0 },       { 0, 0, 0 },       { 0, 0, 0 },       { 0, 0, 0 },
-    { 0, 0, 0 },       { 0, 0, 0 },       { 0, 0, 0 },       { 0, 0, 0 }
 };

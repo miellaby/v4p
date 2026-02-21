@@ -32,6 +32,8 @@ float car_speed_x = 0;
 float car_speed_y = 0;
 Boolean thrusting = false;
 
+const float LEVEL_SCALE = 12.0f;  // Scale factor for SVG paths to fit the view
+
 // Helper function to get sin/cos values using v4p's 512-unit circle system
 void getSinCosFromDegrees(float degrees, int* sina, int* cosa) {
     // Convert degrees to v4p's 512-unit circle format
@@ -52,7 +54,7 @@ void create_background_layers() {
                       "L 359.4 454 L 398.4 405 L 449.4 368 L 489.4 355 L 583.4 409 L 619.4 "
                       "401 L 628.4 358 L 607.4 303 L 546.4 284 L 487.4 257 L 477.4 199 L "
                       "534.4 169 L 583.4 120 L 560.4 57 L 506.4 26 L 450.4 37 L 406.4 72",
-                      16.0f);
+                      LEVEL_SCALE);
 
     // Layer 2: Green background (second layer) - original SVG path
     grass = v4p_addNewSub(land, V4P_ABSOLUTE, V4P_GREEN, 1);
@@ -63,7 +65,7 @@ void create_background_layers() {
                       "L 547 391.4 L 485 349.4 L 438 347.4 L 404 368.4 L 339 403.4 L 277 "
                       "434.4 L 191 425.4 L 124 391.4 L 95 362.4 L 89 305.4 L 69 265.4 L 67 "
                       "249.4 L 69 222.4 L 90 202.4 L 103.6 170.4 Z",
-                      16.0f);
+                      LEVEL_SCALE);
 
     // Layer 3: Road (dark gray) - original SVG path
     road = v4p_addNewSub(land, V4P_ABSOLUTE, V4P_GRAY, 2);
@@ -73,102 +75,102 @@ void create_background_layers() {
                       "M 182.6 168.2 L 156.4 177 L 136.2 193.4 L 122.2 215.4 L 117 237.55 L "
                       "139.3 237.3 L 147.6 218.4 L 160.4 202 L 183.8 190.8 L 207 186.8 L "
                       "207.3 165.55 Z",
-                      16.0f);
+                      LEVEL_SCALE);
 
     // road_2  (fill: #7f7f7f -> V4P_GRAY)
-    v4p_decodeSVGPath(road, "m 207,186.8 0.3,-21.25 45.5,0.05 v 21.2 z", 16.0f);
+    v4p_decodeSVGPath(road, "m 207,186.8 0.3,-21.25 45.5,0.05 v 21.2 z", LEVEL_SCALE);
 
     // road_3  (fill: #7f7f7f -> V4P_GRAY)
-    v4p_decodeSVGPath(road, "m 252.8,186.8 v -21.2 l 45.6,-0.2 v 21.2 z", 16.0f);
+    v4p_decodeSVGPath(road, "m 252.8,186.8 v -21.2 l 45.6,-0.2 v 21.2 z", LEVEL_SCALE);
 
     // path6  (fill: #7f7f7f -> V4P_GRAY)
-    v4p_decodeSVGPath(road, "m 82,323.5 h 21.1 l -0.05,36.5 -21.25,0.1 z", 16.0f);
+    v4p_decodeSVGPath(road, "m 82,323.5 h 21.1 l -0.05,36.5 -21.25,0.1 z", LEVEL_SCALE);
 
     // road_4  (fill: #7f7f7f -> V4P_GRAY)
-    v4p_decodeSVGPath(road, "m 298.4,186.6 v -21.2 l 45.8,-0.2 -0.1,21.3 z", 16.0f);
+    v4p_decodeSVGPath(road, "m 298.4,186.6 v -21.2 l 45.8,-0.2 -0.1,21.3 z", LEVEL_SCALE);
 
     // road_5  (fill: #7f7f7f -> V4P_GRAY)
     v4p_decodeSVGPath(road,
                       "m 421.3,214.3 -14,-23.7 -20.3,-16.3 -24.5,-9 -18.3,-0.1 -0.1,21.3 "
                       "20.9,4.1 18.6,9.1 15.9,20.6 9.4,22.35 20.7,-4.6 z",
-                      16.0f);
+                      LEVEL_SCALE);
 
     // road_6  (fill: #7f7f7f -> V4P_GRAY)
     v4p_decodeSVGPath(road,
                       "M 408.9 242.65 L 411 253 L 407.5 255.7 L 397.1 237.3 L 376.1 222.3 L "
                       "345.1 219.2 L 347.7 241.2 L 370.7 246.2 L 386.5 263.2 L 397.2 281.2 L "
                       "413.8 287.3 L 428 279 L 435 260.8 L 429.6 238.05 Z",
-                      16.0f);
+                      LEVEL_SCALE);
 
     // road_7  (fill: #7f7f7f -> V4P_GRAY)
     v4p_decodeSVGPath(road,
                       "m 323.3,222.5 -26.2,8.8 -20.2,16.4 -14,22 -4.9,22.45 22.25,-0.3 "
                       "8.05,-19.15 12.8,-16.4 23.4,-11.2 23.2,-3.9 -2.6,-22 z",
-                      16.0f);
+                      LEVEL_SCALE);
 
     // road_8  (fill: #7f7f7f -> V4P_GRAY)
     v4p_decodeSVGPath(road,
                       "M 258 292.15 L 256.6 312.6 L 247 330.4 L 232.4 347.3 L 223.4 363.4 L "
                       "222.75 378.1 L 244.35 378.1 L 246.7 362.1 L 260 349.4 L 269.6 336.4 L "
                       "279.6 317.4 L 280.25 291.85 Z",
-                      16.0f);
+                      LEVEL_SCALE);
 
     // road_9  (fill: #7f7f7f -> V4P_GRAY)
     v4p_decodeSVGPath(road,
                       "M 178.9 447.6 L 205.1 438.8 L 225.3 422.4 L 239.3 400.4 L 244.35 "
                       "378.1 L 222.75 378.1 L 213.9 397.4 L 201.1 413.8 L 177.7 425 L 153.9 "
                       "428.5 L 154 450.3 Z",
-                      16.0f);
+                      LEVEL_SCALE);
 
     // road_10  (fill: #7f7f7f -> V4P_GRAY)
     v4p_decodeSVGPath(road,
                       "m 84.3,384.7 8.8,26.2 16.4,20.2 22,14 22.5,5.2 -0.1,-21.8 -19.4,-8.9 "
                       "-16.4,-12.8 -11.2,-23.4 -3.85,-23.4 -21.25,0.1 z",
-                      16.0f);
+                      LEVEL_SCALE);
 
     // road_11  (fill: #7f7f7f -> V4P_GRAY)
     v4p_decodeSVGPath(road,
                       "m 117,237.55 -1.6,20.25 -9.6,17.8 -14.6,16.9 -9,16.1 -0.2,14.9 h 21.1 "
                       "l 2.4,-16.2 13.3,-12.7 9.6,-13 10,-19 0.9,-25.3 z",
-                      16.0f);
+                      LEVEL_SCALE);
 
     // Layer 4: Shades (dark green) - original SVG path
-    shades = v4p_addNewSub(land, V4P_ABSOLUTE, V4P_OLIVE, 3);
+    shades = v4p_addNewSub(land, V4P_ABSOLUTE, V4P_DARK_GREEN, 3);
 
-    // shade1  (fill: #007f00 -> V4P_OLIVE)
+    // shade1  (fill: #007f00 -> V4P_DARK_GREEN)
     v4p_decodeSVGPath(shades,
                       "m 446.5,276.8 20.3,11.6 12.4,12.4 -8.4,8.8 -40,20.4 -19.6,-6.4 "
                       "-11.2,-24 z",
-                      16.0f);
+                      LEVEL_SCALE);
 
-    // shade2  (fill: #007f00 -> V4P_OLIVE)
-    v4p_decodeSVGPath(shades, "m 336.5,123.6 20.3,11.6 v 24.4 H 276 l -20.8,-9.2 v -26.8 z", 16.0f);
+    // shade2  (fill: #007f00 -> V4P_DARK_GREEN)
+    v4p_decodeSVGPath(shades, "m 336.5,123.6 20.3,11.6 v 24.4 H 276 l -20.8,-9.2 v -26.8 z", LEVEL_SCALE);
 
     building1 = v4p_addNewSub(land, V4P_ABSOLUTE, V4P_BLUE, 4);
 
     // build1_terrace  (fill: #00f -> V4P_BLUE)
-    v4p_decodeSVGPath(building1, "M 258.5 150.6 L 258.4 124.8 L 332.4 124.4 L 332.4 150.8 Z", 16.0f);
+    v4p_decodeSVGPath(building1, "M 258.5 150.6 L 258.4 124.8 L 332.4 124.4 L 332.4 150.8 Z", LEVEL_SCALE);
 
-    // build1  (fill: #00007f -> V4P_DARKBLUE)
-    v4p_decodeSVGPath(v4p_addNewSub(building1, V4P_ABSOLUTE, V4P_DARK, 5),
-                      "M 256.1 145.4 L 256 119.6 L 336.4 119.2 L 336.4 145.6 Z", 16.0f);
+    // build1  (fill: #00007f -> V4P_NAVY)
+    v4p_decodeSVGPath(v4p_addNewSub(building1, V4P_ABSOLUTE, V4P_NAVY, 5),
+                      "M 256.1 145.4 L 256 119.6 L 336.4 119.2 L 336.4 145.6 Z", LEVEL_SCALE);
 
     building2 = v4p_addNewSub(land, V4P_ABSOLUTE, V4P_RED, 4);
 
     // build2_terrace  (fill: #7f7f7f -> V4P_GRAY)
-    v4p_decodeSVGPath(building2, "M 424.9 326.4 L 421.2 318.8 L 449.6 304 L 454 311.1", 16.0f);
+    v4p_decodeSVGPath(building2, "M 424.9 326.4 L 421.2 318.8 L 449.6 304 L 454 311.1", LEVEL_SCALE);
 
-    // build2  (fill: #7f0000 -> V4P_DARKRED)
-    v4p_decodeSVGPath(v4p_addNewSub(building2, V4P_ABSOLUTE, V4P_MAROON, 5),
-                      "M 400.1 299.6 L 446 276 L 459.2 299.2 L 411.2 323.6 Z", 16.0f);
+    // build2  (fill: #7f0000 -> V4P_DARK_RED)
+    v4p_decodeSVGPath(v4p_addNewSub(building2, V4P_ABSOLUTE, V4P_DARK_RED, 5),
+                      "M 400.1 299.6 L 446 276 L 459.2 299.2 L 411.2 323.6 Z", LEVEL_SCALE);
 
     // build2_halfroof  (fill: red -> V4P_RED)
     v4p_decodeSVGPath(v4p_addNewSub(building2, V4P_ABSOLUTE, V4P_RED, 6),
-                      "M 407.3 311.6 L 401.6 300 L 446 277.6 L 452.8 288.4", 16.0f);
+                      "M 407.3 311.6 L 401.6 300 L 446 277.6 L 452.8 288.4", LEVEL_SCALE);
 
-    // build2_chemney  (fill: #bfbfbf -> V4P_LIGHTGRAY)
+    // build2_chemney  (fill: #bfbfbf -> V4P_SILVER)
     v4p_decodeSVGPath(v4p_addNewSub(building2, V4P_ABSOLUTE, V4P_SILVER, 7),
-                      "M 410 311.6 L 408.4 308.5 L 415.8 304.8 L 417.6 307.8", 16.0f);
+                      "M 410 311.6 L 408.4 308.5 L 415.8 304.8 L 417.6 307.8", LEVEL_SCALE);
 
     hay_blocks = v4p_addNewSub(land, V4P_ABSOLUTE, 120, 5);  // Orange color
 
@@ -181,7 +183,7 @@ void create_background_layers() {
                       "269.3 241 L 277.5 232.8 L 280.8 237.6 L 272.9 243.6 Z M 298 225.4 L "
                       "288.4 231.8 L 286.1 226.5 L 295.1 222.1 Z M 316.2 220.9 L 304.7 223.9 "
                       "L 302.6 218.6 L 313.1 217.2 Z",
-                      16.0f);
+                      LEVEL_SCALE);
 
     plots = v4p_addNewSub(land, V4P_ABSOLUTE, V4P_RED, 5);
 
@@ -192,33 +194,33 @@ void create_background_layers() {
                       "L 160.8 420 L 161.6 425.6 Z M 325 253 L 323.6 247.2 L 329.6 246.8 L "
                       "330.4 252.4 Z M 407 256.5 L 405.6 250.8 L 411.6 250.4 L 412.4 256 Z M "
                       "176.1 201.3 L 174.8 195.6 L 180.8 195.2 L 181.6 200.8 Z",
-                      16.0f);
+                      LEVEL_SCALE);
 
-    trees = v4p_addNewSub(land, V4P_ABSOLUTE, V4P_WHITE, 6);
+    trees = v4p_addNewSub(land, V4P_ABSOLUTE, V4P_LIMEGREEN, 6);
 
     // tree_0  (fill: #c3ff00 -> V4P_LIMEGREEN)
     v4p_decodeSVGPath(trees,
                       "m 156.9,413 3,-14.5 16.7,-3.8 9.6,8.3 -2.4,6.8 -5.6,10 -10.5,3.9 "
                       "-4,-6.6 z",
-                      16.0f);
+                      LEVEL_SCALE);
 
     // tree_1  (fill: #c3ff00 -> V4P_LIMEGREEN)
     v4p_decodeSVGPath(trees,
                       "m 161.7,221 3,-14.5 16.7,-3.8 9.6,8.3 -2.4,6.8 -5.6,10 -10.5,3.9 "
                       "-4,-6.6 z",
-                      16.0f);
+                      LEVEL_SCALE);
 
     // tree_2  (fill: #c3ff00 -> V4P_LIMEGREEN)
     v4p_decodeSVGPath(trees,
                       "m 314.6,278.6 -4,-14.2 13,-11 12.4,2.8 1,7.2 -0.3,11.4 -7.6,8.3 "
                       "-6.5,-4 z",
-                      16.0f);
+                      LEVEL_SCALE);
 
     // tree_4  (fill: #c3ff00 -> V4P_LIMEGREEN)
     v4p_decodeSVGPath(trees,
                       "m 365,149 11,-9.8 15.6,6.8 2.8,12.4 -6,4 -10.4,4.8 -10.8,-3.2 "
                       "0.8,-7.6 z",
-                      16.0f);
+                      LEVEL_SCALE);
 
     v4p_centerPolygon(land);
 }
@@ -226,7 +228,7 @@ void create_background_layers() {
 Boolean g4p_onInit(int quality, Boolean fullscreen) {
     v4p_init2(quality, fullscreen);
     v4p_setView(-0.44 * v4p_displayWidth, -0.44 * v4p_displayHeight, v4p_displayWidth * 0.44, v4p_displayHeight * 0.44);
-    v4p_setBGColor(V4P_DARK);
+    v4p_setBGColor(V4P_TEAL);
 
     // Create background layers
     create_background_layers();
@@ -240,7 +242,7 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
                       "M260,355.5L259,212.5L277,180.5L363.5,180.5L380,211.5L381,354.5L363.5,376.5L277.5,377.5Z", 0.5f);
 
     // Create car windows (cyan parts)
-    car_windows_proto = v4p_new(V4P_ABSOLUTE, V4P_CYAN, 2);
+    car_windows_proto = v4p_new(V4P_ABSOLUTE, V4P_TEAL, 2);
     v4p_decodeSVGPath(car_windows_proto,
                       "M272,267L282,235.5L352.1,235.5L362,267L357.1,270.5L350.8,253.5L282,253L274.7,270Z", 0.5f);
     v4p_decodeSVGPath(car_windows_proto,
@@ -271,7 +273,7 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
     car = v4p_addClone(car_body_proto);
     // Position car at center
     car_x = 0;
-    car_y = 0;
+    car_y = -800;
 
     return success;
 }

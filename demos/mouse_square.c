@@ -26,7 +26,7 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
     for (j = 0; j < GRID_SIZE; j++) {
         for (i = 0; i < GRID_SIZE; i++) {
             grid_squares[j][i] = v4p_addClone(proto);
-            v4p_setColor(grid_squares[j][i], (i + j) % 2 == 0 ? V4P_CYAN : V4P_BLUE);
+            v4p_setColor(grid_squares[j][i], (i + j) % 2 == 0 ? V4P_TEAL : V4P_BLUE);
             v4p_transform(grid_squares[j][i],
                           start_x + GAP_SIZE + i * (SQUARE_SIZE + GAP_SIZE),
                           start_y + GAP_SIZE + j * (SQUARE_SIZE + GAP_SIZE),
