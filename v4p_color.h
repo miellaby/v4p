@@ -27,9 +27,9 @@ extern const UInt8 v4p_palette[256][3];
 #define V4P_DARK_RED 161
 #define V4P_ORANGE 123
 #define V4P_YELLOW 120
-#define V4P_LIMEGREEN 210
-#define V4P_GREEN 229
-#define V4P_DARK_GREEN 213
+#define V4P_LIMEGREEN 138
+#define V4P_GREEN 210
+#define V4P_DARK_GREEN 229
 #define V4P_OLIVE 214
 #define V4P_CYAN 90
 #define V4P_BLUE 95

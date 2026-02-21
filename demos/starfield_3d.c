@@ -36,7 +36,7 @@ void initStar(Star3D* star) {
 
     // Different colors for different star types
     int rnd = rand() % 9;
-    V4pColor t[] = { V4P_WHITE, V4P_BLUE, V4P_YELLOW, V4P_RED, V4P_LIMEGREEN, V4P_PURPLE, V4P_PINK, V4P_ORANGE, V4P_CYAN };
+    V4pColor t[] = { V4P_WHITE, V4P_BLUE, V4P_YELLOW, V4P_RED, V4P_GREEN, V4P_PURPLE, V4P_PINK, V4P_ORANGE, V4P_CYAN };
     star->color = t[rnd];
 }
 
