@@ -11,8 +11,9 @@ V4pPolygonP level;
 
 // car
 V4pPolygonP car;
-// Prototype for the front wheels, which are rotated based on steering
-V4pPolygonP car_visible_front_wheels_proto;
+// Prototypes for the front wheels, which are rotated based on steering
+V4pPolygonP car_visible_left_front_wheel_proto;
+V4pPolygonP car_visible_right_front_wheel_proto;
 
 // Car position and movement
 float car_x = 0;
@@ -44,9 +45,10 @@ V4pPolygonP create_car_proto() {
 
     // Car components
     V4pPolygonP car_windows_proto;
-    V4pPolygonP car_front_wheels_proto;
     V4pPolygonP car_rear_wheels_proto;
     V4pPolygonP car_lights_proto;
+    V4pPolygonP car_left_front_wheel_proto;
+    V4pPolygonP car_right_front_wheel_proto;
 
     // Create car body (red main part)
     car_proto = v4p_new(V4P_ABSOLUTE, V4P_RED, 1);
@@ -61,18 +63,19 @@ V4pPolygonP create_car_proto() {
                       "M270,348.8L286.5,366L337.1,366L355.5,346.7L350,337.7L342.2,349.6L275.4,349.4L263.7,339.5Z",
                       0.5f);
 
-    // Create car front wheels rotated based on steering
-    car_front_wheels_proto = v4p_new(V4P_ABSOLUTE, V4P_BLACK, 0);
-    v4p_rect(car_front_wheels_proto, 250 / 2, 216 / 2, 282 / 2, 269 / 2);
-    v4p_addPoint(car_front_wheels_proto, 250 / 2, 221 / 2);
-    v4p_rect(car_front_wheels_proto, 359 / 2, 216 / 2, 391 / 2, 269 / 2);
-    v4p_addPoint(car_front_wheels_proto, 359 / 2, 221 / 2);
+    // Car front left wheel
+    car_left_front_wheel_proto = v4p_new(V4P_ABSOLUTE, V4P_BLACK, 0);
+    v4p_rect(car_left_front_wheel_proto, 250 / 2, 216 / 2, 282 / 2, 269 / 2);
 
-    // Create car rear wheels (black parts) - static
+    // Car front right wheel
+    car_right_front_wheel_proto = v4p_new(V4P_ABSOLUTE, V4P_BLACK, 0);
+    v4p_rect(car_right_front_wheel_proto, 359 / 2, 216 / 2, 391 / 2, 269 / 2);
+
+    // Car rear wheels
     car_rear_wheels_proto = v4p_new(V4P_ABSOLUTE, V4P_BLACK, 0);
-    // Rear left wheel - proper rectangle using v4p_rect
+    // Rear left wheel
     v4p_rect(car_rear_wheels_proto, 250 / 2, 319 / 2, 282 / 2, 371 / 2);
-    // Rear right wheel - proper rectangle using v4p_rect
+    // Rear right wheel 
     v4p_rect(car_rear_wheels_proto, 359 / 2, 319 / 2, 391 / 2, 371 / 2);
 
     // Create car lights (gray parts)
@@ -86,16 +89,20 @@ V4pPolygonP create_car_proto() {
     v4p_addSub(car_proto, car_rear_wheels_proto);
     v4p_addSub(car_proto, car_lights_proto);
 
-    // Front wheels are added with an intermediate prototype. The prototype is rotated with the car, then we rotate the
-    // clone for steering
-    v4p_addSub(car_proto, car_front_wheels_proto);
-    car_visible_front_wheels_proto = v4p_clone(car_front_wheels_proto);
-    v4p_addSub(car_proto, car_visible_front_wheels_proto);
-    v4p_setVisibility(car_front_wheels_proto,
-                      false);  // Hide the front wheels prototype, we'll use clones for the actual wheels
-    v4p_setAnchorToCenter(car_front_wheels_proto);
+    // Front wheels are added as clones of hidden intermediate prototypes.
+    // The intermediate prototypes are tranformed with the car, then we rotate the clones
+    v4p_addSub(car_proto, car_left_front_wheel_proto);
+    v4p_addSub(car_proto, car_right_front_wheel_proto);
+    car_visible_left_front_wheel_proto = v4p_clone(car_left_front_wheel_proto);
+    car_visible_right_front_wheel_proto = v4p_clone(car_right_front_wheel_proto);
+    v4p_addSub(car_proto, car_visible_left_front_wheel_proto);
+    v4p_addSub(car_proto, car_visible_right_front_wheel_proto);
+    v4p_setVisibility(car_left_front_wheel_proto, false);
+    v4p_setVisibility(car_right_front_wheel_proto, false);
 
     v4p_centerPolygon(car_proto);
+    v4p_setAnchorToCenter(car_visible_left_front_wheel_proto);
+    v4p_setAnchorToCenter(car_visible_right_front_wheel_proto);
 
     return car_proto;
 }
@@ -379,7 +386,8 @@ Boolean g4p_onTick(Int32 deltaTime) {
 
     // Update front wheels position and rotation (wheels rotate around their own center)
     // First position them at the car's location, then apply wheel rotation
-    v4p_transform(car_visible_front_wheels_proto, 0, 0, wheel_rotation_angle * 512.f / 360.f, 0, 256, 256);
+    v4p_transform(car_visible_left_front_wheel_proto, 0, 0, wheel_rotation_angle * 512.f / 360.f, 0, 256, 256);
+    v4p_transform(car_visible_right_front_wheel_proto, 0, 0, wheel_rotation_angle * 512.f / 360.f, 0, 256, 256);
 
     // Update car position and rotation (convert degrees to V4P format)
     v4p_transform(car, car_x, car_y, car_angle * 512.f / 360.f, 10, 256, 256);

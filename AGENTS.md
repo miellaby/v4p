@@ -18,11 +18,8 @@ make BACKEND=xlib
 # Verbose make (ALWAYS USE IT WHEN CODING)
 make V=1
 
-# Install to system
-make install
-
-# build demos
-make demos # or demos/single_demo
+# build one demo
+make demos/some_demo
 ```
 
 ## Build Options
@@ -53,9 +50,9 @@ You prefer a crash-early design pattern (guards are useless), integer/binary ops
 v4p_error and v4pi_debug may be used for tracing. Note v4pi_debug is enabled only in DEBUG=1 builds.
 Build with V=1 to see compilation steps.
 
-## Quick test
+## Unit testing
 
-To unit-test your changes, write your test in **the ./tests/ folder** like tests/some_change.c (adapt name accordingly) and simply build with `make tests/some_change.c` to get a `tests/some_change` executable.
+To unit-test your modifications, put your test **in the ./tests/ folder** like `./tests/test_changes.c` and simply build with `make tests/test_changes` to get a `./tests/test_changes` exe.
 
 ## Coding a demo/app with v4p AND g4p
 
