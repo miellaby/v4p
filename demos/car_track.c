@@ -36,7 +36,7 @@ UInt32 checkpoints_passed = 0;  // Bitmask: bits 0-6 (bit 6 = start line)
 V4pPolygonP lap_text_poly = NULL;  // Polygon for displaying lap count
 
 // Checkpoint visualization
-V4pPolygonP checkpoint_polygons[6] = {NULL};  // Individual polygons for each checkpoint
+V4pPolygonP checkpoint_polygons[7] = {NULL};  // Individual polygons for each checkpoint
 int last_crossed_checkpoint = -1;  // Track the last checkpoint that was crossed
 
 // Forward declaration
@@ -160,7 +160,7 @@ void create_checkpoints() {
     };  // left-up direction
 
     // Create checkpoint polygons for control
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 7; i++) {
         checkpoint_polygons[i] = v4p_addNewSub(level, V4P_ABSOLUTE, V4P_CYAN, 27);
         v4p_rect(checkpoint_polygons[i], checkpoints[i].x - 15, checkpoints[i].y - 15, checkpoints[i].x + 15, checkpoints[i].y + 15);
 
@@ -433,9 +433,9 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
 
 // Track checkpoint crossings using vector-based direction detection
 void track_checkpoint_crossings() {
-    static V4pCoord last_cross[6] = { 0 };
+    static V4pCoord last_cross[7] = { 0 };
 
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 7; i++) {
         V4pCoord dx = (V4pCoord) car_x - checkpoints[i].x;
         V4pCoord dy = (V4pCoord) car_y - checkpoints[i].y;
         V4pCoord distance = gaugeDist(dx, dy);
