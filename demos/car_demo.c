@@ -3,8 +3,9 @@
 #include "g4p.h"
 #include "v4p.h"
 #include "v4pserial.h"
-#include "lowmath.h"  // For computeCosSin()
+#include "lowmath.h"  // For computeCosSin() and gaugeDist()
 #include "../addons/game_engine/collision.h"
+#include "../addons/qfont/qfont.h"  // For text rendering
 #include "../backends/v4pi.h"  // For v4pi_debug
 
 // Background layers from circuit.svg
@@ -28,6 +29,26 @@ Boolean thrusting = false;
 
 // Collision tracking
 UInt16 collision_count = 0;
+
+// Lap counting
+UInt16 lap_count = 0;
+UInt32 checkpoints_passed = 0;  // Bitmask: bits 0-6 (bit 6 = start line)
+V4pPolygonP lap_text_poly = NULL;  // Polygon for displaying lap count
+
+// Checkpoint visualization
+V4pPolygonP checkpoint_polygons[6] = {NULL};  // Individual polygons for each checkpoint
+int last_crossed_checkpoint = -1;  // Track the last checkpoint that was crossed
+
+// Forward declaration
+void track_checkpoint_crossings();
+
+// Checkpoint definition
+typedef struct {
+    V4pCoord x, y; // position
+    V4pCoord ref_dx, ref_dy; // Reference vector for required crossing direction
+    Boolean requires_clockwise; // Whether the crossing should be clockwise or counter-clockwise
+} Checkpoint;
+Checkpoint checkpoints[7];
 
 const float LEVEL_SCALE = 12.0f;  // Scale factor for SVG paths to fit the view
 
@@ -110,6 +131,50 @@ V4pPolygonP create_car_proto() {
     v4p_setAnchorToCenter(car_visible_right_front_wheel_proto);
 
     return car_proto;
+}
+
+void create_checkpoints() {
+    // Initialize checkpoints with reference vectors for required crossing directions
+    // Reference vectors point in the direction the car should cross each checkpoint's semiline
+    // TODO encode the checkpoints in the SVG
+    checkpoints[0] = (Checkpoint) {
+        (263 * LEVEL_SCALE), (165 * LEVEL_SCALE), 0, 30, false
+    };  // Start line: counter-clockwise down direction
+    checkpoints[1] = (Checkpoint) {
+        (113 * LEVEL_SCALE), (309 * LEVEL_SCALE), -40, 0, true
+    };  // left direction
+    checkpoints[2] = (Checkpoint) {
+        (249 * LEVEL_SCALE), (314 * LEVEL_SCALE), 30, 15, true
+    };  // right-up direction
+    checkpoints[3] = (Checkpoint) {
+        (158 * LEVEL_SCALE), (423 * LEVEL_SCALE), -25, 20, true
+    };  // left-down direction
+    checkpoints[4] = (Checkpoint) {
+        (327 * LEVEL_SCALE), (250 * LEVEL_SCALE), -15, -25, false
+    };  // left-up direction (counter-clockwise)
+    checkpoints[5] = (Checkpoint) {
+        (409 * LEVEL_SCALE), (253 * LEVEL_SCALE), 30, 0, true
+    };  // right direction
+    checkpoints[6] = (Checkpoint) {
+        (178 * LEVEL_SCALE), (198 * LEVEL_SCALE), -25, -20, true
+    };  // left-up direction
+
+    // Create checkpoint polygons for control
+    for (int i = 0; i < 7; i++) {
+        checkpoint_polygons[i] = v4p_addNewSub(level, V4P_ABSOLUTE, V4P_CYAN, 27);
+        v4p_rect(checkpoint_polygons[i], checkpoints[i].x - 15, checkpoints[i].y - 15, checkpoints[i].x + 15, checkpoints[i].y + 15);
+
+        // direction visualization (smaller rectangle)
+        V4pCoord vec_x = checkpoints[i].x + (V4pCoord) (checkpoints[i].ref_dx);
+        V4pCoord vec_y = checkpoints[i].y + (V4pCoord) (checkpoints[i].ref_dy);
+        V4pPolygonP direction_poly = v4p_addNewSub(checkpoint_polygons[i], V4P_ABSOLUTE, V4P_YELLOW, 28);
+        v4p_rect(direction_poly, vec_x - 5, vec_y - 5, vec_x + 5, vec_y + 5);
+
+        // v4pi_debug("Checkpoint %d marker at: (%d, %d) %s turn\n", i, checkpoints[i].x, checkpoints[i].y,
+        //           checkpoints[i].requires_clockwise ? "clockwise" : "counter-clockwise");
+    }
+
+    // v4pi_debug("Start line at: (%d, %d)\n", checkpoints[0].x, checkpoints[0].y);
 }
 
 // Create background layers from circuit.svg using original paths
@@ -301,7 +366,7 @@ V4pPolygonP create_level() {
                       "0.8,-7.6 z",
                       LEVEL_SCALE);
 
-    v4p_centerPolygon(land);
+    // v4p_centerPolygon(land);
 
     return land;
 }
@@ -324,6 +389,18 @@ void car_demo_onCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord avg_x, V
     }
 }
 
+// Update lap count display using qfont
+void update_lap_count_display() {
+    static char lap_text[32];
+    snprintf(lap_text, sizeof(lap_text), "LAPS %d", lap_count);
+
+    if (lap_text_poly) {
+        v4p_destroyFromScene(lap_text_poly);
+    }
+    lap_text_poly = v4p_addNew(V4P_RELATIVE, V4P_BLACK, 30);
+    qfontDefinePolygonFromString(lap_text, lap_text_poly, v4p_displayWidth - 200, v4p_displayHeight - 20, 8, 8, 2);
+}
+
 Boolean g4p_onInit(int quality, Boolean fullscreen) {
     v4p_init2(quality, fullscreen);
     v4p_setView(-0.44 * v4p_displayWidth, -0.44 * v4p_displayHeight, v4p_displayWidth * 0.44, v4p_displayHeight * 0.44);
@@ -335,17 +412,89 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
     // Create background layers
     level = create_level();
 
+    // Create checkpoints for lap counting
+    create_checkpoints();
+
     // Add background layers to scene (in order from back to front)
     v4p_add(level);
 
     car = v4p_addClone(create_car_proto());
     v4p_setCollisionMask(car, 1); // Car mask is 1
 
-    // Position car at center
-    car_x = 0;
-    car_y = -800;
+    // Update lap count
+    update_lap_count_display();
+
+    // Position car at start line
+    car_x = 2800;
+    car_y = 2100;
 
     return success;
+}
+
+// Track checkpoint crossings using vector-based direction detection
+void track_checkpoint_crossings() {
+    static V4pCoord last_cross[6] = { 0 };
+
+    for (int i = 0; i < 7; i++) {
+        V4pCoord dx = (V4pCoord) car_x - checkpoints[i].x;
+        V4pCoord dy = (V4pCoord) car_y - checkpoints[i].y;
+        V4pCoord distance = gaugeDist(dx, dy);
+        // If car is near this checkpoint, check for crossing of the reference vector
+        if (distance < 700) {
+            // Calculate cross product between car-checkpoint vector and reference vector
+            // This tells us which side of the reference vector the car is on
+            V4pCoord cross = dx * checkpoints[i].ref_dy - dy * checkpoints[i].ref_dx;
+            // v4pi_debug("Near checkpoint %d: distance to : %d, cross product: %d\n", i, distance, cross);
+
+            // Detect crossing of the reference vector in the correct direction
+            Boolean crossed_now = false;
+
+            if (checkpoints[i].requires_clockwise) {
+                // Clockwise: looking for positive->negative crossing
+                // This means car crossed the reference vector from right to left
+                if (last_cross[i] > 0 && cross <= 0) {
+                    crossed_now = true;
+                }
+            } else {
+                // Counter-clockwise: looking for negative->positive crossing
+                // This means car crossed the reference vector from left to right
+                if (last_cross[i] < 0 && cross >= 0) {
+                    crossed_now = true;
+                }
+            }
+
+            // Update last cross product for next frame
+            last_cross[i] = cross;
+
+            if (crossed_now) {
+                // Mark this checkpoint as correctly passed
+                checkpoints_passed |= (1 << i);
+                // v4pi_debug("Checkpoint %d crossed correctly %s\n", i, checkpoints[i].requires_clockwise ? "clockwise" : "counter-clockwise");
+
+                // Visual feedback: change colors
+                if (last_crossed_checkpoint != -1) {
+                    // Reset previous checkpoint to cyan
+                    v4p_setColor(checkpoint_polygons[last_crossed_checkpoint], V4P_CYAN);
+                }
+                // Set passed checkpoint to black
+                v4p_setColor(checkpoint_polygons[i], V4P_BLACK);
+                last_crossed_checkpoint = i;
+
+                if (i == 0) {  // Start line - check for lap completion
+                    // Check if all required checkpoints have been passed
+                    UInt32 required_checkpoints = 0b01111111;  // Checkpoints 0-5 must be passed (bits 0-5 set to 1)
+                    v4pi_debug("Checking lap completion: checkpoints passed %08X, required %08X\n",
+                               checkpoints_passed, required_checkpoints);
+                    if ((checkpoints_passed & required_checkpoints) == required_checkpoints) {
+                        lap_count++;
+                        update_lap_count_display();
+                        v4pi_debug("LAP COMPLETED! Total laps: %d\n", lap_count);
+                    }
+                    checkpoints_passed = 0;  // Reset for next lap (whatever it was complete or not)
+                }
+            }
+        }
+    }
 }
 
 Boolean g4p_onTick(Int32 deltaTime) {
@@ -374,7 +523,6 @@ Boolean g4p_onTick(Int32 deltaTime) {
     }
 
     // Continuous convergence: gradually align speed vector with car direction
-    // This happens regardless of user input for realistic car physics
     int target_sina, target_cosa;
     getSinCosFromDegrees(car_angle, &target_sina, &target_cosa);
 
@@ -383,7 +531,6 @@ Boolean g4p_onTick(Int32 deltaTime) {
     float target_speed_y = (-((float) target_cosa / 256.0f)) * current_speed;
 
     // Blend current velocity towards the target direction
-    // Faster convergence when moving faster, but with limits
     float blend_factor = fminf(current_speed * 0.01f, 0.15f) * deltaTime;
     car_speed_x = car_speed_x * (1.0f - blend_factor) + target_speed_x * blend_factor;
     car_speed_y = car_speed_y * (1.0f - blend_factor) + target_speed_y * blend_factor;
@@ -395,15 +542,16 @@ Boolean g4p_onTick(Int32 deltaTime) {
         // Apply thrust in the direction the car is facing
         int sina, cosa;
         getSinCosFromDegrees(car_angle, &sina, &cosa);
-        car_speed_x += ((float) sina / 256.0f) * 0.001f * deltaTime;  // Accelerate in thrust direction
+        // Accelerate in thrust direction
+        car_speed_x += ((float) sina / 256.0f) * 0.001f * deltaTime;
         car_speed_y -= ((float) cosa / 256.0f) * 0.001f * deltaTime;
     } else {
         // Apply friction/deceleration when no thrust
         friction_factor = powf(0.999f, deltaTime);
     }
 
-    v4pi_debug("Collision count: %d - %s\n", collision_count, collision_count >= 50 ? "ON ROAD" : "OFF ROAD - SLOWING DOWN");
-    // Check if car is on the road (collision count >= 350)
+    // v4pi_debug("Collision count: %d - %s\n", collision_count, collision_count >= 50 ? "ON ROAD" : "OFF ROAD - SLOWING DOWN");
+    // Check if car is on the road (collision count >= 50)
     if (collision_count < 50) { // FIXME the collision counts threshold depends on the zoom level squared.
         // Off road: much higher friction (almost stops)
         friction_factor = powf(0.995f, deltaTime);  // Much stronger deceleration
@@ -438,7 +586,10 @@ Boolean g4p_onTick(Int32 deltaTime) {
     float camera_y = car_y + car_speed_y * 100;
     v4p_setView(camera_x - v4p_displayWidth * zooming, camera_y - v4p_displayHeight * zooming,
                 camera_x + v4p_displayWidth * zooming, camera_y + v4p_displayHeight * zooming);
-    
+
+    // Track checkpoint crossings for lap counting
+    track_checkpoint_crossings();
+
     return success;
 }
 
