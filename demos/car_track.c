@@ -160,7 +160,7 @@ void create_checkpoints() {
     };  // left-up direction
 
     // Create checkpoint polygons for control
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < 6; i++) {
         checkpoint_polygons[i] = v4p_addNewSub(level, V4P_ABSOLUTE, V4P_CYAN, 27);
         v4p_rect(checkpoint_polygons[i], checkpoints[i].x - 15, checkpoints[i].y - 15, checkpoints[i].x + 15, checkpoints[i].y + 15);
 
@@ -435,7 +435,7 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
 void track_checkpoint_crossings() {
     static V4pCoord last_cross[6] = { 0 };
 
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < 6; i++) {
         V4pCoord dx = (V4pCoord) car_x - checkpoints[i].x;
         V4pCoord dy = (V4pCoord) car_y - checkpoints[i].y;
         V4pCoord distance = gaugeDist(dx, dy);
