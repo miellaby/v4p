@@ -68,7 +68,7 @@ ifeq ($(TARGET),emscripten)
   AR_emscripten ?= emar
   CFLAGS_emscripten =
   CPPFLAGS_emscripten = -I. -Iquick -Ibackends -Ibackends/emscripten -DV4P_PLATFORM_EMSCRIPTEN
-  LDFLAGS_emscripten = -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=1 -s ASYNCIFY -s EXPORTED_FUNCTIONS='["_g4p_setFramerate", "_g4p_getFramerate", "_main"]'
+  LDFLAGS_emscripten = -s WASM=1 -s INITIAL_MEMORY=2MB -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=1 -s ASYNCIFY -s EXPORTED_FUNCTIONS='["_g4p_setFramerate", "_g4p_getFramerate", "_main"]'
   CC := $(CC_emscripten)
   AR := $(AR_emscripten)
 endif

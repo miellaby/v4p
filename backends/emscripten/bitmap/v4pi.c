@@ -127,9 +127,7 @@ Boolean v4pi_end() {
         var canvas = document.getElementById(UTF8ToString($0));
         if (canvas) {
             var ctx = canvas.getContext('2d');
-            var imageData = ctx.createImageData($1, $2);
-            var data = new Uint8ClampedArray(HEAPU8.buffer, $3, $4);
-            imageData.data.set(data);
+            var imageData = new ImageData(new Uint8ClampedArray(HEAPU8.buffer, $3, $4), $1, $2);
             ctx.putImageData(imageData, 0, 0);
         }
     }, v4pi_context->canvas_id, v4pi_context->width, v4pi_context->height,
