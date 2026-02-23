@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V4P Demo: asteroids Demo</title>
+    <title>V4P asteroids Demo</title>
     <style>
         body {
             margin: 0;
@@ -18,6 +18,11 @@
             min-height: 100vh;
         }
 
+        a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+
         /* Mobile adjustment - move content higher on screen */
         @media (max-width: 768px) {
             body {
@@ -25,7 +30,16 @@
                 padding-top: 20px;
             }
             
-            /* Hide FPS controls on mobile to save space */
+            /* Hide controls on mobile to save space */
+
+            .subtitle {
+                display: none;
+            }
+
+            .info {
+                display: none;
+            }
+
             .fps-control-container {
                 display: none;
             }
@@ -68,17 +82,14 @@
         }
 
         /* Fullscreen mode adjustments */
-        :-webkit-full-screen .fullscreen-container,
-        :fullscreen .fullscreen-container {
+        :fullscreen {
             width: 100vw;
             height: 100vh;
         }
 
         /* Ensure canvas scales properly in fullscreen */
-        :-webkit-full-screen #v4p-bitmap-canvas,
-        :fullscreen #v4p-bitmap-canvas {
-            width: 100vw;
-            height: 100vh;
+        :fullscreen .canvas-container {
+            margin: 0;
             max-width: none;
             max-height: none;
         }
@@ -276,8 +287,8 @@
 </head>
 <body>
     <div class="container">
-        <div class="title">V4P Bitmap Demo</div>
-        <div class="subtitle">WebAssembly Vector Graphics Engine</div>
+        <div class="title">asteroids Demo</div>
+        <div class="subtitle">part of the <a href='https://github.com/miellaby/v4p'>V4P project</a></div>
 
         <div class="fullscreen-container">
             <div class="canvas-container">
