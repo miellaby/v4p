@@ -579,26 +579,33 @@
                         Module._g4pi_handle_key_event(0, 39); // Right
                         Module._g4pi_handle_key_event(0, 40); // Down
                         
-                        // Calculate angle
+                        // Calculate angle in degrees
                         const angle = Math.atan2(dy, dx);
                         const degrees = angle * (180 / Math.PI);
                         
-                        // Determine primary direction
+                        // Allow diagonal movement by checking angle ranges
                         if (distance > 10) { // Dead zone
-                            if (Math.abs(dx) > Math.abs(dy)) {
-                                // Left/Right
-                                if (dx < -5) {
-                                    Module._g4pi_handle_key_event(1, 37); // Left
-                                } else if (dx > 5) {
-                                    Module._g4pi_handle_key_event(1, 39); // Right
-                                }
-                            } else {
-                                // Up/Down
-                                if (dy < -5) {
-                                    Module._g4pi_handle_key_event(1, 38); // Up
-                                } else if (dy > 5) {
-                                    Module._g4pi_handle_key_event(1, 40); // Down
-                                }
+                            // Convert degrees to positive range [0, 360]
+                            const normalizedDegrees = (degrees + 360) % 360;
+                            
+                            // Define angle ranges for each direction with diagonal support
+                            const isDown = normalizedDegrees >= 45 && normalizedDegrees <= 135;
+                            const isUp = normalizedDegrees >= 225 && normalizedDegrees <= 315;
+                            const isLeft = normalizedDegrees >= 135 && normalizedDegrees <= 225;
+                            const isRight = (normalizedDegrees >= 315 && normalizedDegrees <= 360) || (normalizedDegrees >= 0 && normalizedDegrees <= 45);
+                            
+                            // Press keys based on angle ranges (allows diagonals)
+                            if (isUp) {
+                                Module._g4pi_handle_key_event(1, 38); // Up
+                            }
+                            if (isDown) {
+                                Module._g4pi_handle_key_event(1, 40); // Down
+                            }
+                            if (isLeft) {
+                                Module._g4pi_handle_key_event(1, 37); // Left
+                            }
+                            if (isRight) {
+                                Module._g4pi_handle_key_event(1, 39); // Right
                             }
                         }
                     }
