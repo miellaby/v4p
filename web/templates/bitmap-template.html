@@ -70,6 +70,7 @@
             pointer-events: none; /* Allow events to pass through to UI elements */
             width: 100%;
             max-width: 800px; /* Limit to 800px maximum width */
+            max-width: min(800px, calc(0.8 * 100vh * 4 / 3)); /* Also limit by viewport height while maintaining 4:3 ratio */
             aspect-ratio: 4/3; /* Maintain 4:3 aspect ratio (640x480) */
             overflow: hidden;
         }
@@ -89,8 +90,8 @@
 
         /* Ensure canvas scales properly in fullscreen */
         :fullscreen .canvas-container {
-            margin: 0;
-            max-width: none;
+            margin: auto;
+            max-width: calc(100vh * 4 / 3); /* limit by viewport height while maintaining 4:3 ratio */
             max-height: none;
         }
 
