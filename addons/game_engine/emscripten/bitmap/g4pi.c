@@ -136,6 +136,69 @@ EM_BOOL gamepad_callback(int eventType, const EmscriptenGamepadEvent* gamepadEve
     return true;
 }
 
+// Handle key events from JavaScript (for touch controls)
+EMSCRIPTEN_KEEPALIVE
+void g4pi_handle_key_event(int eventType, int keyCode) {
+    if (eventType == 1) { // Key down
+        g4p_state.key = keyCode;
+        
+        // Map common keys to buttons
+        switch (keyCode) {
+            case 37:  // Left arrow
+                g4p_state.buttons[G4P_LEFT] = true;
+                break;
+            case 38:  // Up arrow
+                g4p_state.buttons[G4P_UP] = true;
+                break;
+            case 39:  // Right arrow
+                g4p_state.buttons[G4P_RIGHT] = true;
+                break;
+            case 40:  // Down arrow
+                g4p_state.buttons[G4P_DOWN] = true;
+                break;
+            case 32:  // Space
+                g4p_state.buttons[G4P_SPACE] = true;
+                break;
+            case 16:  // Shift
+                g4p_state.buttons[G4P_SHIFT] = true;
+                break;
+            case 17:  // Ctrl
+                g4p_state.buttons[G4P_CTRL] = true;
+                break;
+        }
+    } else { // Key up
+        // Map common keys to buttons
+        switch (keyCode) {
+            case 37:  // Left arrow
+                g4p_state.buttons[G4P_LEFT] = false;
+                break;
+            case 38:  // Up arrow
+                g4p_state.buttons[G4P_UP] = false;
+                break;
+            case 39:  // Right arrow
+                g4p_state.buttons[G4P_RIGHT] = false;
+                break;
+            case 40:  // Down arrow
+                g4p_state.buttons[G4P_DOWN] = false;
+                break;
+            case 32:  // Space
+                g4p_state.buttons[G4P_SPACE] = false;
+                break;
+            case 16:  // Shift
+                g4p_state.buttons[G4P_SHIFT] = false;
+                break;
+            case 17:  // Ctrl
+                g4p_state.buttons[G4P_CTRL] = false;
+                break;
+        }
+        
+        // Clear the current key if this was the last key pressed
+        if (keyCode == g4p_state.key) {
+            g4p_state.key = 0;
+        }
+    }
+}
+
 // Initialize input system
 void g4pi_init() {
     if (g4p_initialized) return;

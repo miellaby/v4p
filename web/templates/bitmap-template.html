@@ -18,11 +18,19 @@
             min-height: 100vh;
         }
 
+        /* Mobile adjustment - move content higher on screen */
+        @media (max-width: 768px) {
+            body {
+                justify-content: flex-start;
+                padding-top: 20px;
+            }
+        }
+
         .container {
             text-align: center;
-            max-width: 800px;
             width: 100%;
-            padding: 20px;
+            max-width: 100%;
+            overflow: hidden;
         }
 
         .title {
@@ -39,12 +47,19 @@
 
         .canvas-container {
             position: relative;
-            margin: 20px 0;
+            margin: 20px auto;
             pointer-events: none; /* Allow events to pass through to UI elements */
+            width: 100%;
+            max-width: 800px; /* Limit to 800px maximum width */
+            aspect-ratio: 4/3; /* Maintain 4:3 aspect ratio (640x480) */
+            overflow: hidden;
         }
 
         #v4p-bitmap-canvas {
             pointer-events: auto; /* Enable pointer events only for the canvas itself */
+            width: 100%;
+            height: 100%;
+            display: block;
         }
 
         #loading {
@@ -103,6 +118,71 @@
             z-index: 30;
             cursor: pointer;
             margin: 0 10px;
+        }
+
+        /* T-Shape D-Pad Layout (Up, Left, Right only) */
+        #touch-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+            display: none;
+        }
+
+        /* T layout: Up on top, Left+Right below */
+        .d-pad {
+            display: grid;
+            grid-template-columns: 60px 60px;
+            grid-template-rows: 60px 60px;
+            gap: 8px;
+            width: 128px;
+            height: 128px;
+        }
+
+        /* Position buttons in T shape */
+        #up {
+            grid-column: 1 / span 2;
+            grid-row: 1;
+        }
+
+        #left {
+            grid-column: 1;
+            grid-row: 2;
+        }
+
+        #right {
+            grid-column: 2;
+            grid-row: 2;
+        }
+
+        /* D-Pad button styling */
+        .d-pad button {
+            width: 100%;
+            height: 100%;
+            font-size: 24px;
+            font-weight: bold;
+            border: none;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border-radius: 10px;
+            touch-action: manipulation;
+        }
+
+        /* Space button - fixed position on right */
+        #space {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 90px;
+            height: 90px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border-radius: 50%;
+            touch-action: manipulation;
+            z-index: 1000;
         }
 
         #fps-slider:active {
@@ -190,6 +270,16 @@
             <button id="fullscreen">Fullscreen</button>
             <button id="restart">Restart</button>
         </div>
+    </div>
+
+    <!-- Touch Controls -->
+    <div id="touch-controls">
+        <div class="d-pad">
+            <button id="up">↑</button>
+            <button id="left">←</button>
+            <button id="right">→</button>
+        </div>
+        <button id="space">Space</button>
     </div>
 
     <script>
@@ -316,6 +406,65 @@
 
         // Start FPS monitoring after a short delay to let the engine initialize
         setTimeout(updateActualFPS, 1000);
+
+        // Touch device detection
+        function shouldShowTouchControls() {
+            const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            const userAgent = navigator.userAgent;
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+            const isSmallScreen = window.innerWidth < 768;
+            return isTouchDevice && (isMobile || isSmallScreen);
+        }
+
+        // Show/hide touch controls based on device detection
+        document.addEventListener('DOMContentLoaded', function() {
+            const touchControls = document.getElementById('touch-controls');
+            if (shouldShowTouchControls()) {
+                touchControls.style.display = 'block';
+            }
+
+            // Set up touch control event handlers
+            const setupTouchControl = function(buttonId, keyCode) {
+                const button = document.getElementById(buttonId);
+                if (button) {
+                    button.addEventListener('touchstart', function(e) {
+                        e.preventDefault();
+                        if (Module && Module._g4pi_handle_key_event) {
+                            Module._g4pi_handle_key_event(1, keyCode); // 1 = key down
+                        }
+                    });
+                    
+                    button.addEventListener('touchend', function(e) {
+                        e.preventDefault();
+                        if (Module && Module._g4pi_handle_key_event) {
+                            Module._g4pi_handle_key_event(0, keyCode); // 0 = key up
+                        }
+                    });
+                    
+                    // Also support mouse clicks for testing on desktop
+                    button.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        if (Module && Module._g4pi_handle_key_event) {
+                            Module._g4pi_handle_key_event(1, keyCode); // 1 = key down
+                        }
+                    });
+                    
+                    button.addEventListener('mouseup', function(e) {
+                        e.preventDefault();
+                        if (Module && Module._g4pi_handle_key_event) {
+                            Module._g4pi_handle_key_event(0, keyCode); // 0 = key up
+                        }
+                    });
+                }
+            };
+
+            // Set up individual controls
+            setupTouchControl('up', 38);    // ArrowUp
+            setupTouchControl('down', 40);  // ArrowDown
+            setupTouchControl('left', 37);  // ArrowLeft
+            setupTouchControl('right', 39); // ArrowRight
+            setupTouchControl('space', 32);  // Space
+        });
     </script>
 
     <script src="{{DEMO_NAME}}.js"></script>
