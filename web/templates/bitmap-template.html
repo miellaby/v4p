@@ -558,8 +558,8 @@
                     const y = clientY - rect.top;
                     
                     // Calculate distance from center
-                    const dx = x - centerX;
-                    const dy = y - centerY;
+                    let dx = x - centerX;
+                    let dy = y - centerY;
                     const distance = Math.sqrt(dx * dx + dy * dy);
                     
                     // Limit to max distance
@@ -590,10 +590,10 @@
                             const normalizedDegrees = (degrees + 360) % 360;
                             
                             // Define angle ranges for each direction with diagonal support
-                            const isDown = normalizedDegrees >= 45 && normalizedDegrees <= 135;
-                            const isUp = normalizedDegrees >= 225 && normalizedDegrees <= 315;
-                            const isLeft = normalizedDegrees >= 135 && normalizedDegrees <= 225;
-                            const isRight = (normalizedDegrees >= 315 && normalizedDegrees <= 360) || (normalizedDegrees >= 0 && normalizedDegrees <= 45);
+                            const isDown = normalizedDegrees >= 25 && normalizedDegrees <= 155;
+                            const isUp = normalizedDegrees >= 205 && normalizedDegrees <= 335;
+                            const isLeft = normalizedDegrees >= 115 && normalizedDegrees <= 245;
+                            const isRight = (normalizedDegrees >= 295 || normalizedDegrees <= 65);
                             
                             // Press keys based on angle ranges (allows diagonals)
                             if (isUp) {
