@@ -60,6 +60,17 @@ typedef struct activeEdge_s {
 
 typedef struct activeEdge_s* ActiveEdgeP;
 
+// Balanced BST node for depth-sorted polygons
+typedef struct depth_tree_node_s {
+    V4pPolygonP polygon;
+    V4pLayer depth;  // Full UInt32 depth support
+    int height;  // Height for AVL balancing
+    struct depth_tree_node_s* left;
+    struct depth_tree_node_s* right;
+} DepthTreeNode;
+
+typedef struct depth_tree_node_s* DepthTreeNodeP;
+
 // V4P context
 typedef struct v4p_context_s {
     V4piContextP display;
@@ -69,9 +80,10 @@ typedef struct v4p_context_s {
     V4pCoord viewMaxX, viewMaxY;  // Bottom-right corner of view (maximum coordinates)
     Polygon dummyBgPoly;  // Just for color
     int debug1;
-    QuickHeap pointHeap, polygonHeap, activeEdgeHeap;
+    QuickHeap pointHeap, polygonHeap, activeEdgeHeap, depthTreeNodeHeap;
     List openedAEList;  // ActiveEdge lists
     QuickTable openableAETable;  // ActiveEdge Hash Table
+    DepthTreeNodeP openedPolygons;  // AVL tree of active polygons sorted by depth
     V4pCoord viewWidth, viewHeight;  // View dimensions (viewMaxX - viewMinX, viewMaxY - viewMinY)
     // Integer scaling factors for coordinate transformations
     // Uses quotient-remainder technique to avoid overflow (see integer_scaling.md)

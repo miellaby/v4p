@@ -28,7 +28,7 @@ V4pPolygonP starPolygons[NUM_STARS];
 void initStar(Star3D* star) {
     star->x = (float) (rand() % (v4p_displayWidth * 32) - v4p_displayWidth * 16);
     star->y = (float) (rand() % (v4p_displayHeight * 32) - v4p_displayHeight * 16);
-    star->z = (float) (rand() % (int) STAR_DEPTH);
+    star->z = (float) (rand() % (int) STAR_DEPTH * 100 + 100) / 100.0f + 1.0f;  // Avoid z=0 for division
     star->size = (1.0f + (float) (rand() % 5) * 0.1f);
     star->brightness = 0.1f + (float) (rand() % 20) * 0.01f;
     star->twinkle_phase = (float) (rand() % 100) * 0.01f;
@@ -131,7 +131,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
         // Convert the modified RGB back to palette index
         V4pColor twinkleColor = v4p_rgb_to_palette_index(r, g, b);
         v4p_setColor(starPolygons[i], twinkleColor);
-        v4p_setLayer(starPolygons[i], 31 - (int) (31.f * stars[i].z / STAR_DEPTH));
+        v4p_setLayer(starPolygons[i], 0xFFFF - (int) ((0xFFFF / STAR_DEPTH) * stars[i].z));
     }
 
     return success;  // Run indefinitely

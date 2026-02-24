@@ -3,7 +3,6 @@
 /**
  * Sortable Lists
  * Experimental inline version of a Divide & Conquer type sort algorithm
- * Support: Garden Sylvain sylvain.garden@gmail.com
  */
 
 // A settable function to compare lists. Please set it before sorting!

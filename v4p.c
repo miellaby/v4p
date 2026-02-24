@@ -113,6 +113,199 @@ V4pSceneP v4p_getScene() {
     return v4p->scene;
 }
 
+// AVL Tree helper functions for depth-sorted polygons
+
+// Get height of a node
+static int depthTreeHeight(DepthTreeNodeP node) {
+    return node ? node->height : 0;
+}
+
+// Get balance factor
+static int depthTreeBalance(DepthTreeNodeP node) {
+    return node ? depthTreeHeight(node->left) - depthTreeHeight(node->right) : 0;
+}
+
+// Update height
+static void depthTreeUpdateHeight(DepthTreeNodeP node) {
+    if (node) {
+        node->height = 1 + IMIN(depthTreeHeight(node->left), depthTreeHeight(node->right));
+    }
+}
+
+// Right rotation
+static DepthTreeNodeP depthTreeRotateRight(DepthTreeNodeP y) {
+    DepthTreeNodeP x = y->left;
+    DepthTreeNodeP T2 = x->right;
+
+    x->right = y;
+    y->left = T2;
+
+    depthTreeUpdateHeight(y);
+    depthTreeUpdateHeight(x);
+
+    return x;
+}
+
+// Left rotation
+static DepthTreeNodeP depthTreeRotateLeft(DepthTreeNodeP x) {
+    DepthTreeNodeP y = x->right;
+    DepthTreeNodeP T2 = y->left;
+
+    y->left = x;
+    x->right = T2;
+
+    depthTreeUpdateHeight(x);
+    depthTreeUpdateHeight(y);
+
+    return y;
+}
+
+// Insert a polygon into the depth tree
+static DepthTreeNodeP depthTreeInsert(DepthTreeNodeP node, V4pPolygonP polygon, V4pLayer depth) {
+    // Standard BST insertion
+    if (!node) {
+        DepthTreeNodeP newNode = QuickHeapAlloc(v4p->depthTreeNodeHeap);
+        newNode->polygon = polygon;
+        newNode->depth = depth;
+        newNode->height = 1;
+        newNode->left = newNode->right = NULL;
+        return newNode;
+    }
+
+    if (depth > node->depth) {
+        node->right = depthTreeInsert(node->right, polygon, depth);
+    } else if (depth < node->depth) {
+        node->left = depthTreeInsert(node->left, polygon, depth);
+    } else {
+        // Same depth, update polygon (shouldn't happen in normal operation)
+        node->polygon = polygon;
+        return node;
+    }
+
+    // Update height
+    depthTreeUpdateHeight(node);
+
+    // Balance the tree
+    int balance = depthTreeBalance(node);
+
+    // Left Left Case
+    if (balance > 1 && depth < node->left->depth) {
+        return depthTreeRotateRight(node);
+    }
+
+    // Right Right Case
+    if (balance < -1 && depth > node->right->depth) {
+        return depthTreeRotateLeft(node);
+    }
+
+    // Left Right Case
+    if (balance > 1 && depth > node->left->depth) {
+        node->left = depthTreeRotateLeft(node->left);
+        return depthTreeRotateRight(node);
+    }
+
+    // Right Left Case
+    if (balance < -1 && depth < node->right->depth) {
+        node->right = depthTreeRotateRight(node->right);
+        return depthTreeRotateLeft(node);
+    }
+
+    return node;
+}
+
+// Find node with minimum depth (leftmost)
+static DepthTreeNodeP depthTreeFindMin(DepthTreeNodeP node) {
+    DepthTreeNodeP current = node;
+    while (current && current->left) {
+        current = current->left;
+    }
+    return current;
+}
+
+// Delete a polygon from the depth tree
+static DepthTreeNodeP depthTreeDelete(DepthTreeNodeP node, V4pLayer depth) {
+    if (!node) return NULL;
+
+    if (depth < node->depth) {
+        node->left = depthTreeDelete(node->left, depth);
+    } else if (depth > node->depth) {
+        node->right = depthTreeDelete(node->right, depth);
+    } else {
+        // Node to be deleted found
+        if (!node->left || !node->right) {
+            DepthTreeNodeP temp = node->left ? node->left : node->right;
+            if (!temp) {
+                temp = node;
+                node = NULL;
+            } else {
+                *node = *temp;  // Copy contents
+            }
+            QuickHeapFree(v4p->depthTreeNodeHeap, temp);
+        } else {
+            DepthTreeNodeP temp = depthTreeFindMin(node->right);
+            node->depth = temp->depth;
+            node->polygon = temp->polygon;
+            node->right = depthTreeDelete(node->right, temp->depth);
+        }
+    }
+
+    if (!node) return NULL;
+
+    // Update height
+    depthTreeUpdateHeight(node);
+
+    // Balance the tree
+    int balance = depthTreeBalance(node);
+
+    // Left Left Case
+    if (balance > 1 && depthTreeBalance(node->left) >= 0) {
+        return depthTreeRotateRight(node);
+    }
+
+    // Left Right Case
+    if (balance > 1 && depthTreeBalance(node->left) < 0) {
+        node->left = depthTreeRotateLeft(node->left);
+        return depthTreeRotateRight(node);
+    }
+
+    // Right Right Case
+    if (balance < -1 && depthTreeBalance(node->right) <= 0) {
+        return depthTreeRotateLeft(node);
+    }
+
+    // Right Left Case
+    if (balance < -1 && depthTreeBalance(node->right) > 0) {
+        node->right = depthTreeRotateRight(node->right);
+        return depthTreeRotateLeft(node);
+    }
+
+    return node;
+}
+
+// Find polygon with maximum depth (rightmost - visible polygon)
+static V4pPolygonP depthTreeFindMaxPolygon(DepthTreeNodeP node) {
+    if (!node) return NULL;
+    DepthTreeNodeP current = node;
+    while (current->right) {
+        current = current->right;
+    }
+    return current->polygon;
+}
+
+// Check if a depth exists in the tree
+static Boolean depthTreeContains(DepthTreeNodeP node, V4pLayer depth) {
+    while (node) {
+        if (depth == node->depth) {
+            return true;
+        } else if (depth < node->depth) {
+            node = node->left;
+        } else {
+            node = node->right;
+        }
+    }
+    return false;
+}
+
 // Create a v4p context
 V4pContextP v4p_newContext() {
     V4pContextP v4p = (V4pContextP) malloc(sizeof(V4pContext));
@@ -123,6 +316,7 @@ V4pContextP v4p_newContext() {
     v4p->pointHeap = QuickHeapNewFor(V4pPoint);
     v4p->polygonHeap = QuickHeapNewFor(Polygon);
     v4p->activeEdgeHeap = QuickHeapNewFor(ActiveEdge);
+    v4p->depthTreeNodeHeap = QuickHeapNewFor(DepthTreeNode);
     v4p->openableAETable = QuickTableNew(YHASH_SIZE);  // Vertical sort
     v4p->dummyBgPoly.color = 0;
     v4p->viewMinX = 0;
@@ -131,6 +325,7 @@ V4pContextP v4p_newContext() {
     v4p->viewMaxY = lineNb;
     v4p->viewWidth = lineWidth;
     v4p->viewHeight = lineNb;
+    v4p->openedPolygons = NULL;
     // Initialize integer scaling factors for 1:1 mapping (no scaling)
     v4p->screenToView_wholeX = 1;
     v4p->screenToView_remX = 0;
@@ -152,6 +347,7 @@ void v4p_destroyContext(V4pContextP p) {
     QuickHeapDestroy(v4p->pointHeap);
     QuickHeapDestroy(v4p->polygonHeap);
     QuickHeapDestroy(v4p->activeEdgeHeap);
+    QuickHeapDestroy(v4p->depthTreeNodeHeap);
     QuickTableDestroy(v4p->openableAETable);
     free(p);
 }
@@ -489,7 +685,7 @@ V4pColor v4p_setColor(V4pPolygonP p, V4pColor c) {
 // set polygon layer (z-depth)
 V4pLayer v4p_setLayer(V4pPolygonP p, V4pLayer z) {
     // Not changed because not affecting geometry
-    return p->z = z & 31;  // can't be more than 31 with 32-bit mask
+    return p->z = z;  // Full UInt32 depth support
 }
 
 // set polygon visibility (via property V4P_HIDDEN)
@@ -1114,8 +1310,6 @@ Boolean v4p_render() {
     V4pCoord yu;
     int su, ou1, ou2, ru1, ru2;
 
-    V4pPolygonP openedPolygons[32];  // Active polygon per layer
-    UInt32 openBitmask;  // Bitmask of layers with active polygon
     V4pPolygonP visiblePolygon;  // Visible (opened at top) polygon
 
     V4pPolygonP concretePolygons[32];  // Concrete active polygon per layer
@@ -1224,16 +1418,15 @@ Boolean v4p_render() {
                 = (v4p->openedAEList ? ListMerge(v4p->openedAEList, newlyOpenedAEList) : newlyOpenedAEList);
         }
 
-        // Reset opened polygons
-        memset(openedPolygons, 0, sizeof(openedPolygons));
-        openBitmask = 0;
+        // Reset depth tree for opened polygons (keep AVL tree for depth management)
+        QuickHeapReset(v4p->depthTreeNodeHeap);
+        v4p->openedPolygons = NULL;
 
         // Reset concrete polygons
         memset(concretePolygons, 0, sizeof(concretePolygons));
         concreteBitmask = 0;
 
         // Reset visible polygon
-        int zMax = -1;  // background
         visiblePolygon = &(v4p->dummyBgPoly);  // background
 
         // Loop among active edges
@@ -1241,13 +1434,17 @@ Boolean v4p_render() {
         for (l = v4p->openedAEList; l; l = ListNext(l)) {
             b = (ActiveEdgeP) ListData(l);
             p = b->p;
-            z = p->z & 31;  // Use 32-bit mask
+            V4pLayer depth = p->z;  // Full UInt32 depth support
 
-            if ((int) z >= zMax) {  // edge not hidden by upper layers
-                if (b->x > 0) {  // slice before current edge
-                    v4pi_slice(y, px, IMIN(b->x, v4p_displayWidth), visiblePolygon->color);
-                    px = b->x;
-                }
+            // Get current visible polygon (max depth in tree)
+            V4pPolygonP currentVisible = depthTreeFindMaxPolygon(v4p->openedPolygons);
+            if (!currentVisible) {
+                currentVisible = &(v4p->dummyBgPoly);
+            }
+
+            if (b->x > 0) {  // slice before current edge
+                v4pi_slice(y, px, IMIN(b->x, v4p_displayWidth), currentVisible->color);
+                px = b->x;
             }
 
             // Check collisions between concrete polygons
@@ -1268,30 +1465,22 @@ Boolean v4p_render() {
                 }
             }
 
-            UInt32 bit_z = (UInt32) 1 << z;
-            openBitmask ^= bit_z;
-            if (openBitmask & bit_z) {
-                // Entering polygon - set as visible for this layer
-                openedPolygons[z] = p;
+            // Update depth tree for opened polygons (AVL tree for depth management)
+            if (depthTreeContains(v4p->openedPolygons, depth)) {
+                // Leaving polygon - remove from tree
+                v4p->openedPolygons = depthTreeDelete(v4p->openedPolygons, depth);
             } else {
-                // Leaving polygon - clear the layer
-                openedPolygons[z] = NULL;
+                // Entering polygon - add to tree
+                v4p->openedPolygons = depthTreeInsert(v4p->openedPolygons, p, depth);
             }
 
-            if ((int) z > zMax) {  // new top polygon
-                visiblePolygon = p;
-                zMax = z;
-            } else if ((int) z == zMax) {  // leaving polygon at zMax
-                // Find new top polygon
-                if (openBitmask == 0) {  // No visible polygon
-                    zMax = -1;
-                    visiblePolygon = &(v4p->dummyBgPoly);  // Background polygon
-                } else {  // Find highest visible polygon
-                    zMax = floorLog2(openBitmask);
-                    visiblePolygon = openedPolygons[zMax];
-                }
+            // Update visible polygon
+            visiblePolygon = depthTreeFindMaxPolygon(v4p->openedPolygons);
+            if (!visiblePolygon) {
+                visiblePolygon = &(v4p->dummyBgPoly);
             }
 
+            // Handle collision detection (original array-based approach)
             if (collisionCallback != NULL) {
                 px_collide = b->x;
                 if (p->collisionMask != 0) {
