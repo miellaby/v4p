@@ -121,10 +121,10 @@ Boolean g4p_onTick(Int32 deltaTime) {
     int b = v4p_palette[current_color][2];
     
     if (color_name[0] != '\0') {
-        snprintf(info_buffer, sizeof(info_buffer), "INDEX: %d RGB: <%d,%d,%d> %s", 
+        snprintf(info_buffer, sizeof(info_buffer), "Index: %d RGB: (%d,%d,%d) %s", 
                  current_color, r, g, b, color_name);
     } else {
-        snprintf(info_buffer, sizeof(info_buffer), "INDEX: %d RGB: <%d,%d,%d>", 
+        snprintf(info_buffer, sizeof(info_buffer), "Index: %d RGB: (%d,%d,%d)", 
                  current_color, r, g, b);
     }
     

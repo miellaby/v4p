@@ -28,7 +28,7 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
                                  v4p_displayWidth / 16,
                                  v4p_displayHeight / 16,
                                  12);
-    qfontDefinePolygonFromString("THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG",
+    qfontDefinePolygonFromString("the quick brown fox jumps over the lazy dog",
                                  proto,
                                  -v4p_displayWidth / 2,
                                  v4p_displayHeight / 32 + 12,
@@ -42,13 +42,21 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
                               v4p_displayWidth / 16,
                               v4p_displayHeight / 16,
                               12);
+        // all punctation ascii chars from 32 to 47
+    qfontDefinePolygonFromString("!\"#$%&'()*+,-./",
+                                 proto,
+                                 -v4p_displayWidth / 2,
+                                 v4p_displayHeight / 32 + 2 * (v4p_displayHeight / 16) + 36,
+                                 v4p_displayWidth / 16,
+                                 v4p_displayHeight / 16,
+                                 12);
     for (j = 0; j < STRESS_AMOUNT * 2; j++) {
         for (k = 0; k < STRESS_AMOUNT; k++) {
             textMatrix[j][k] = v4p_addClone(proto);
             v4p_transformClone(proto,
                                textMatrix[j][k],
-                               v4p_displayWidth * (2 + 2 * k - STRESS_AMOUNT) * 2,
-                               v4p_displayHeight * (1 + j - STRESS_AMOUNT / 2) / 2.5,
+                               v4p_displayWidth * (2.2 + 2 * k - STRESS_AMOUNT) * 2,
+                               v4p_displayHeight * (1 + j - STRESS_AMOUNT / 2) / 2,
                                0,
                                10,
                                256,
