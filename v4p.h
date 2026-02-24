@@ -7,7 +7,7 @@
 #include "v4p_color.h"
 #include "v4p_trace.h"
 
-typedef UInt32 V4pLayer;  // Rendering layer (< 32)
+typedef UInt32 V4pLayer;  // Rendering layer
 typedef UInt32 V4pCollisionLayer;  // Collision layer (< 32)
 typedef UInt32 V4pCollisionMask;  // Collision mask (<= 0xFFFFFFFF)
 

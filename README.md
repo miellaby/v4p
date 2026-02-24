@@ -16,7 +16,7 @@ Play the emscripten WASM build of the Asteroids clone made with V4P and its addo
 - **Embeddable**: Easy integration into any GUI/game project
 - **Efficient algorithm**: Bresenham-like scanline polygon conversion
 - **Collision detection**: Nice side-effect
-- **Memory ultra-efficient**: No Z-buffer/S-buffer needed
+- **Memory ultra-efficient**: No Z-buffer, no S-buffer, no cell-buffer needed
 
 ## Integration
 
@@ -24,19 +24,20 @@ Copy V4P C files into your project and implement the horizontal line drawing fun
 
 ## Technical Details
 
-- **Algorithm**: Scanline-based polygon rendering with incremental active edge computation
-- **Sorting**: Quick-sorted lists for efficient rendering
+- **Algorithm**: Scanline-based polygon rendering with inline active edge computation
+- **Sorting**:   Optimized merge-sort for mostly ordered edge lists + AVL balanced trees for polygon layering
+- **Precision**: Perfect integer based computation: Bresenham's line and [integer scaling](integer_scaling.md)
 - **Collision**: Bit-based computation for pixel-perfect detection
 - **Platforms**: Originally developed for Palm OS, easily adaptable to embedded linux and tiny devices
 
 ## Limitations
 
-- No anti-aliasing (downscaling workaround possible)
-- No translucent polygons (requires algorithm changes)
+- No inline anti-aliasing (downscaling an oversized framebuffer does the trick, see libcaca backend)
+- No translucent polygons
 - No curve support (polygons and discs only)
-- Limited to 32 layers (bit-based operations)
-- Basic approximated trigonometry functions
-- No partial scene refresh optimizations
+- Approximate trigonometry
+- No partial scene refresh
+- No modern font support
 
 # Similar Projects
 
