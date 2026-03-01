@@ -173,7 +173,7 @@ ifdef TRACE
   TRACE_TAGS := CIRCLE POLYGON SCAN EDGE SHIFT OPEN COLLISION RENDER TRANSFORM G4P
 
   ifeq ($(TRACE),all)
-    TRACE := $(TRACE_TAGS)
+    override TRACE = $(TRACE_TAGS)
   endif
 
   # 2. For each tag, if it's found in $(TRACE), add -DTRACE_TAG=1, else -DTRACE_TAG=0

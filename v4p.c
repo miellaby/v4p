@@ -16,32 +16,40 @@
  */
 
 /**
- * Concepts:
+
+Concepts
+======
+
  * Display: lineNb*lineWidth sized straight rectangle
  * View: rectangular part of scene to render
  * Scene: a list of polygons
  * Polygon: path of n Points (ideally closed), V4pColor and Depth
- * Depth = z: Layer number (the highest layer masks the others)
+ * Depth = z: Layer number ;
+   The highest layer masks the others.
  * V4pColor: any data needed by the drawing function
  * Point: x,y coordinates in scene referential
- * Radius: polygon may have a radius. Turn its points into disks. A 1-point
- * polygon with a radius is a regular Disk. Sub: attached sub-polygon will be
- * transformed within its parent Clone: Clone transformation is always derived
- * from its Source rather than its current geometry ActiveEdge: non horizontal
- * edge inside view Bounding Box: smallest straight rectangle containing polygon
+ * Radius: polygon may have a radius. Turn its points into disks.
+ * Disk: A 1-point polygon with a radius is a regular Disk.
+ * Sub: sub-polygon attached to a parent polygon;
+         A sub-polygon will betransformed within its parent.
+ * Clone: Clone transformation is always derived from its Parent rather than its current geometry
+ * ActiveEdge: non horizontal edge inside view
+ * Bounding Box: smallest straight rectangle containing polygon
  * ActiveEdge: non horizontal edge inside view
  * Sub: sub-polygon related to a parent polygon (rotation, moving, optimization)
  * z = depth = layer #
  * XHeap: reserved memory for X
  * XP: X pointer
  * IX: X table index
- * v4pDisplayX: lower layer function call
- * Opened polygon: polygon intersected by the scan-line: min(y(points)) < y <
- *                 max(y(points)) To be opened polygon: y(scan-line) < min(y(points)) Closed
- * polygon: y(scan-line) > max(y(points))
- *    - Absolute: in scene-referential (position on screen depends on view)
- *    - Relative: in screen-referential (0,0 ==> screen corner)
- */
+ * v4pi_...(): backend functions
+ * Opened Polygon: polygon intersected by the scan-line
+                   when min(y(points)) < y(scan-line) < max(y(points))
+ * To be Opened Polygon: when min(y(points)) > y(scan-line)
+ * Closed Polygon: when max(y(points)) < y(scan-line)
+ * Absolute: in scene-referential (position on screen depends on view)
+ * Relative: in screen-referential (0,0 ==> screen corner)
+
+*/
 #define _V4P_C
 #include <stdlib.h>
 #include <string.h>

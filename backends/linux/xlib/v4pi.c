@@ -82,7 +82,7 @@ Boolean v4pi_start() {
     // remember start time
     t1 = getTicks();
 
-    // Reset buffer pointer used by v4pDisplaySplice()
+    // Reset buffer pointer used by v4pi_slice()
     iBuffer = 0;
 
     return success;
