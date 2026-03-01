@@ -3,7 +3,7 @@
 #include "v4p.h"
 
 #include "qfont.h"
-#include "lowmath.h"
+#include "quick/math.h"
 
 #define STRESS_AMOUNT 10
 V4pPolygonP proto;

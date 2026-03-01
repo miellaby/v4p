@@ -5,7 +5,7 @@
 #include "v4p.h"
 #include "v4pi.h"
 #include "v4pserial.h"
-#include "quick/lowmath.h"
+#include "quick/math.h"
 
 // Transform hexa char ('0-9,A-F') to int
 int v4p_parseHexDigit(char c) {

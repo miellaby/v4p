@@ -3,7 +3,7 @@
 #include "g4p.h"
 #include "v4p.h"
 #include "v4pserial.h"
-#include "lowmath.h"  // For computeCosSin() and gaugeDist()
+#include "quick/math.h"  // For computeCosSin() and gaugeDist()
 #include "../addons/game_engine/collision.h"
 #include "../addons/qfont/qfont.h"  // For text rendering
 #include "../backends/v4pi.h"  // For v4pi_debug

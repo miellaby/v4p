@@ -2,7 +2,7 @@
 #define COLLISION_POINTS_H
 
 #include "g4p.h"
-#include "quick/quicktable.h"
+#include "quick/table.h"
 
 /**
  * Collision point averaging system

@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "sortable.h"
-#include "quickheap.h"
-#include "quicktable.h"
+#include "heap.h"
+#include "table.h"
 
 QuickTable QuickTableNew(size_t sizeOfTable) {
     QuickTable q = (QuickTable) malloc(sizeof(struct sQuickTable));

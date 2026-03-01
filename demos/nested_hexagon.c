@@ -1,7 +1,7 @@
 #include "g4p.h"
 #include "v4p.h"
 
-#include "lowmath.h"  // For iabs() and computeCosSin() functions
+#include "quick/math.h"  // For iabs() and computeCosSin() functions
 
 #define NUM_STARS 6
 

@@ -4,7 +4,7 @@
 #include <getopt.h>
 #include "v4p.h"
 #include "g4p.h"
-#include "lowmath.h"
+#include "quick/math.h"
 
 /** global options with their default values */
 

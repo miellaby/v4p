@@ -9,7 +9,7 @@
  */
 #include <stdlib.h>
 #include "sortable.h"
-#include "quickheap.h"
+#include "heap.h"
 
 // A Heap for lists
 static QuickHeapS listHeapS = QuickHeapInitializerFor(struct sList);

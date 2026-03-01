@@ -1,6 +1,6 @@
 #include "g4p.h"
 #include "v4p.h"
-#include "lowmath.h"  // For iabs() function
+#include "quick/math.h"  // For iabs() function
 #define RADIUS 20
 #define SPACING 70
 #define GRID_SIZE 30

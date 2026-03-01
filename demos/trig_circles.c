@@ -1,6 +1,6 @@
 #include "g4p.h"
 #include "v4p.h"
-#include "lowmath.h"
+#include "quick/math.h"
 
 #define BIG_CIRCLE_RADIUS 400
 #define SMALL_CIRCLE_RADIUS 1

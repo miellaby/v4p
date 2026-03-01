@@ -3,7 +3,7 @@
 #include "v4pserial.h"
 #include <stdlib.h>
 #include <math.h>    // For fabs()
-#include "lowmath.h"  // For computeCosSin()
+#include "quick/math.h"  // For computeCosSin()
 #include "addons/game_engine/collision.h"
 #include "addons/qfont/qfont.h"  // For score display
 #include "addons/particles/particles.h"  // For particle effects

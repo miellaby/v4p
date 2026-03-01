@@ -143,11 +143,13 @@ int g4p_main(int argc, char* argv[]) {
             frameCount++;
             g4pi_delay(sleepTime);
             g4p_avgFramePeriod = (3 * g4p_avgFramePeriod + timeDiff + sleepTime) / 4;
+#if TRACE_G4P
             if (frameCount % g4p_framerate == 0) {
                 // Print average frame period every second
                 int avgFPS = (g4p_avgFramePeriod > 0) ? (1000 / g4p_avgFramePeriod) : 0;
                 v4p_trace(G4P, "Average Framerate: %d FPS\n", avgFPS);
             }
+#endif
         }
 
         // we're done.

@@ -7,10 +7,11 @@
         #warning "This file should only be included by v4p.c or debug addon"
     #endif
 #endif
-#include "lowmath.h"
-#include "quickheap.h"
-#include "sortable.h"
-#include "quicktable.h"
+#include "quick/math.h"
+#include "quick/heap.h"
+#include "quick/sortable.h"
+#include "quick/sorted.h"
+#include "quick/table.h"
 #include "v4p.h"
 #include "v4pi.h"
 
@@ -60,16 +61,8 @@ typedef struct activeEdge_s {
 
 typedef struct activeEdge_s* ActiveEdgeP;
 
-// Balanced BST node for depth-sorted polygons
-typedef struct depth_tree_node_s {
-    V4pPolygonP polygon;
-    V4pLayer depth;  // Full UInt32 depth support
-    int height;  // Height for AVL balancing
-    struct depth_tree_node_s* left;
-    struct depth_tree_node_s* right;
-} DepthTreeNode;
-
-typedef struct depth_tree_node_s* DepthTreeNodeP;
+// Forward declaration for Tree (defined in quick/sorted.h)
+typedef struct sTree QuickTree;
 
 // V4P context
 typedef struct v4p_context_s {
@@ -80,10 +73,10 @@ typedef struct v4p_context_s {
     V4pCoord viewMaxX, viewMaxY;  // Bottom-right corner of view (maximum coordinates)
     Polygon dummyBgPoly;  // Just for color
     int debug1;
-    QuickHeap pointHeap, polygonHeap, activeEdgeHeap, depthTreeNodeHeap;
+    QuickHeap pointHeap, polygonHeap, activeEdgeHeap;
     List openedAEList;  // ActiveEdge lists
     QuickTable openableAETable;  // ActiveEdge Hash Table
-    DepthTreeNodeP openedPolygons;  // AVL tree of active polygons sorted by depth
+    QuickTree* openedPolygons;  // AVL tree of active polygons sorted by depth
     V4pCoord viewWidth, viewHeight;  // View dimensions (viewMaxX - viewMinX, viewMaxY - viewMinY)
     // Integer scaling factors for coordinate transformations
     // Uses quotient-remainder technique to avoid overflow (see integer_scaling.md)

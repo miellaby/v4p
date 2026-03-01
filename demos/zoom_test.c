@@ -1,7 +1,7 @@
 #include "g4p.h"
 #include "v4p.h"
 
-#include "lowmath.h"  // For iabs() function
+#include "quick/math.h"  // For iabs() function
 
 #define BOX_SIZE 50
 #define SPACING 70

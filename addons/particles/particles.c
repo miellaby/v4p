@@ -1,7 +1,7 @@
 #include "particles.h"
 #include "v4p.h"
-#include "quick/quickheap.h"
-#include "lowmath.h"
+#include "quick/heap.h"
+#include "quick/math.h"
 #include <stdlib.h>
 #include <math.h>
 

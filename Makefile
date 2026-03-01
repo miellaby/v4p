@@ -36,7 +36,7 @@ ifeq ($(TARGET),linux)
   CC_linux ?= gcc
   AR_linux ?= ar
   CFLAGS_linux =
-  CPPFLAGS_linux = -I. -Iquick -Ibackends -Ibackends/linux -DV4P_PLATFORM_LINUX
+  CPPFLAGS_linux = -I. -Ibackends -Ibackends/linux -DV4P_PLATFORM_LINUX
   CC := $(CC_linux)
   AR := $(AR_linux)
 endif
@@ -201,7 +201,7 @@ endif
 # Core library
 CORE_SRCS = \
     v4p.c v4p_color.c \
-    quick/quickheap.c quick/quicktable.c quick/sortable.c quick/lowmath.c \
+    quick/heap.c quick/table.c quick/sortable.c quick/sorted.c quick/math.c \
     backends/$(TARGET)/v4p_ll.c
 
 BACKEND_SRCS = backends/$(TARGET)/$(BACKEND)/v4pi.c

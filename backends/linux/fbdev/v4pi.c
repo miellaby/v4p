@@ -15,7 +15,7 @@
 
 #include "v4pi.h"
 #include "v4p_color.h"
-#include "lowmath.h"
+#include "quick/math.h"
 
 // A display context
 typedef struct v4pi_context_s {

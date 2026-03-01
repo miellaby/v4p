@@ -2,7 +2,7 @@
 #define PARTICLES_H
 
 #include "v4p.h"
-#include "quick/quickheap.h"
+#include "quick/heap.h"
 
 // Particle structure
 typedef struct Particle {

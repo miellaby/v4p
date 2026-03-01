@@ -3,8 +3,8 @@
 /**
  * QuickHeap based many-in-one-cell table
  */
-#include "quickheap.h"
-#include "sortable.h"
+#include "quick/heap.h"
+#include "quick/sortable.h"
 typedef struct sQuickTable {
     size_t sizeOfTable;
     List* table;

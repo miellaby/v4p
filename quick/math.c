@@ -2,7 +2,7 @@
  * Name: LowMath
  * Content: Inaccurate integer only Math routines for game authoring
  */
-#include "lowmath.h"
+#include "quick/math.h"
 int lwmCosa = 255;
 int lwmSina = 0;
 static UInt16 lastAngle = 0;
