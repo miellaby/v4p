@@ -1,5 +1,16 @@
 /**
- * "QuickHeap" based many-in-one-cell table
+ * A simple hash Table to store "shortcuts" into preexisting sorted lists.
+ *
+ * So an entry is actually a quick/sortable.h List element, not a data pointer.
+ * Colliding list elements are linked together using the 'quick' pointer of each List element.
+ * The 'quick' pointer is independent of the 'next' pointer used by the List itself.
+ *
+ * Memory Model:
+ * - Does NOT own the List data - only manages table structure
+ * - List elements must be allocated elsewhere (typically via ListNew())
+ * - QuickTableResetAndFree() frees List nodes but NOT their data pointers
+ *   so be sure to free data separately if needed
+ *
  */
 #include <stdlib.h>
 #include <string.h>

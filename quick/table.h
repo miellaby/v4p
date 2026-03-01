@@ -1,7 +1,8 @@
 #ifndef QUICKTABLE_H
 #define QUICKTABLE_H
 /**
- * QuickHeap based many-in-one-cell table
+ * A simple hash Table to store "shortcuts" into preexisting sorted lists.
+ * See table.c for implementation details and memory model.
  */
 #include "quick/heap.h"
 #include "quick/sortable.h"

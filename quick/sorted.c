@@ -10,20 +10,23 @@
 // AVL Tree node
 typedef struct sTreeNode {
     void* data;
-    UInt32 key;
     int height;
     struct sTreeNode* left;
     struct sTreeNode* right;
 } TreeNode;
 
-// Default comparator for key=value ordering
-int TreeDefaultKeyComparator(UInt32 a, UInt32 b) {
-    return a < b;
+// Default comparator for data ordering (assumes data is UInt32)
+int TreeDefaultDataComparator(void* a, void* b) {
+    UInt32 valA = *(UInt32*)a;
+    UInt32 valB = *(UInt32*)b;
+    if (valA < valB) return -1;
+    if (valA > valB) return 1;
+    return 0;
 }
 
-// A settable function to compare tree nodes. Please set it before using!
-// Must return (arg1 < arg2)
-int (*TreeDataPrior)(UInt32, UInt32) = TreeDefaultKeyComparator;
+// A settable function to compare tree data. Please set it before using!
+// Must return <0 if a<b, 0 if a==b, >0 if a>b
+int (*TreeDataPrior)(void*, void*) = TreeDefaultDataComparator;
 
 // Create a new tree
 QuickTree* TreeNew() {
@@ -85,23 +88,23 @@ TreeNodeP TreeRotateLeft(TreeNodeP x) {
 }
 
 // Helper function to insert a node
-TreeNodeP TreeInsertNode(QuickTree* tree, TreeNodeP node, void* data, UInt32 key) {
+TreeNodeP TreeInsertNode(QuickTree* tree, TreeNodeP node, void* data) {
     // Standard BST insertion
     if (!node) {
         TreeNodeP newNode = (TreeNodeP) QuickHeapAlloc(tree->nodeHeap);
         newNode->data = data;
-        newNode->key = key;
         newNode->height = 1;
         newNode->left = newNode->right = NULL;
         return newNode;
     }
 
-    if (TreeDataPrior(key, node->key)) {
-        node->left = TreeInsertNode(tree, node->left, data, key);
-    } else if (TreeDataPrior(node->key, key)) {
-        node->right = TreeInsertNode(tree, node->right, data, key);
+    int cmp = TreeDataPrior(data, node->data);
+    if (cmp < 0) {
+        node->left = TreeInsertNode(tree, node->left, data);
+    } else if (cmp > 0) {
+        node->right = TreeInsertNode(tree, node->right, data);
     } else {
-        // Same key, update data (shouldn't happen in normal operation)
+        // Same data, update data (shouldn't happen in normal operation)
         node->data = data;
         return node;
     }
@@ -112,24 +115,24 @@ TreeNodeP TreeInsertNode(QuickTree* tree, TreeNodeP node, void* data, UInt32 key
     // Balance the tree
     int balance = TreeBalance(node);
 
-    // Left Left Case (key < node->left->key)
-    if (balance > 1 && node->left && TreeDataPrior(key, node->left->key)) {
+    // Left Left Case (data < node->left->data)
+    if (balance > 1 && node->left && TreeDataPrior(data, node->left->data) < 0) {
         return TreeRotateRight(node);
     }
 
-    // Right Right Case (key > node->right->key)
-    if (balance < -1 && node->right && TreeDataPrior(node->right->key, key)) {
+    // Right Right Case (data > node->right->data)
+    if (balance < -1 && node->right && TreeDataPrior(node->right->data, data) < 0) {
         return TreeRotateLeft(node);
     }
 
-    // Left Right Case (key > node->left->key)
-    if (balance > 1 && node->left && TreeDataPrior(node->left->key, key)) {
+    // Left Right Case (data > node->left->data)
+    if (balance > 1 && node->left && TreeDataPrior(node->left->data, data) < 0) {
         node->left = TreeRotateLeft(node->left);
         return TreeRotateRight(node);
     }
 
-    // Right Left Case (key < node->right->key)
-    if (balance < -1 && node->right && TreeDataPrior(key, node->right->key)) {
+    // Right Left Case (data < node->right->data)
+    if (balance < -1 && node->right && TreeDataPrior(data, node->right->data) < 0) {
         node->right = TreeRotateRight(node->right);
         return TreeRotateLeft(node);
     }
@@ -138,8 +141,8 @@ TreeNodeP TreeInsertNode(QuickTree* tree, TreeNodeP node, void* data, UInt32 key
 }
 
 // Insert data into the tree
-TreeNodeP TreeInsert(QuickTree* tree, void* data, UInt32 key) {
-    tree->root = TreeInsertNode(tree, tree->root, data, key);
+TreeNodeP TreeInsert(QuickTree* tree, void* data) {
+    tree->root = TreeInsertNode(tree, tree->root, data);
     return tree->root;
 }
 
@@ -153,13 +156,14 @@ TreeNodeP TreeFindMinNode(TreeNodeP node) {
 }
 
 // Helper function to delete a node
-TreeNodeP TreeDeleteNode(QuickTree* tree, TreeNodeP node, UInt32 key) {
+TreeNodeP TreeDeleteNode(QuickTree* tree, TreeNodeP node, void* data) {
     if (!node) return NULL;
 
-    if (TreeDataPrior(key, node->key)) {
-        node->left = TreeDeleteNode(tree, node->left, key);
-    } else if (TreeDataPrior(node->key, key)) {
-        node->right = TreeDeleteNode(tree, node->right, key);
+    int cmp = TreeDataPrior(data, node->data);
+    if (cmp < 0) {
+        node->left = TreeDeleteNode(tree, node->left, data);
+    } else if (cmp > 0) {
+        node->right = TreeDeleteNode(tree, node->right, data);
     } else {
         // Node to be deleted found
         if (!node->left || !node->right) {
@@ -173,9 +177,8 @@ TreeNodeP TreeDeleteNode(QuickTree* tree, TreeNodeP node, UInt32 key) {
             QuickHeapFree(tree->nodeHeap, temp);
         } else {
             TreeNodeP temp = TreeFindMinNode(node->right);
-            node->key = temp->key;
             node->data = temp->data;
-            node->right = TreeDeleteNode(tree, node->right, temp->key);
+            node->right = TreeDeleteNode(tree, node->right, temp->data);
         }
     }
 
@@ -213,8 +216,8 @@ TreeNodeP TreeDeleteNode(QuickTree* tree, TreeNodeP node, UInt32 key) {
 }
 
 // Delete data from the tree
-TreeNodeP TreeDelete(QuickTree* tree, UInt32 key) {
-    tree->root = TreeDeleteNode(tree, tree->root, key);
+TreeNodeP TreeDelete(QuickTree* tree, void* data) {
+    tree->root = TreeDeleteNode(tree, tree->root, data);
     return tree->root;
 }
 
@@ -238,13 +241,14 @@ void* TreeFindMin(QuickTree* tree) {
     return current->data;
 }
 
-// Check if a key exists in the tree
-Boolean TreeContains(QuickTree* tree, UInt32 key) {
+// Check if data exists in the tree
+Boolean TreeContains(QuickTree* tree, void* data) {
     TreeNodeP node = tree->root;
     while (node) {
-        if (key == node->key) {
+        int cmp = TreeDataPrior(data, node->data);
+        if (cmp == 0) {
             return true;
-        } else if (TreeDataPrior(key, node->key)) {
+        } else if (cmp < 0) {
             node = node->left;
         } else {
             node = node->right;

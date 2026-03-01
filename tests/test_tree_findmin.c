@@ -2,19 +2,31 @@
 #include <stdlib.h>
 #include "../quick/sorted.h"
 
+// Comparison function for int data
+static int intComparator(void* a, void* b) {
+    int valA = *(int*)a;
+    int valB = *(int*)b;
+    if (valA < valB) return -1;
+    if (valA > valB) return 1;
+    return 0;
+}
+
 int main() {
     printf("Testing TreeFindMin functionality...\n");
     
     // Create a tree
     QuickTree* tree = TreeNew();
     
-    // Insert some data with different keys
-    int data1 = 100, data2 = 200, data3 = 50, data4 = 150, data5 = 25;
-    TreeInsert(tree, &data1, 100);  // key=100, data=100
-    TreeInsert(tree, &data2, 200);  // key=200, data=200
-    TreeInsert(tree, &data3, 50);   // key=50, data=50
-    TreeInsert(tree, &data4, 150);  // key=150, data=150
-    TreeInsert(tree, &data5, 25);   // key=25, data=25
+    // Set comparator for int data
+    TreeSetDataPrior(intComparator);
+    
+    // Insert some data
+    int data1 = 25, data2 = 50, data3 = 100, data4 = 150, data5 = 200;
+    TreeInsert(tree, &data1);
+    TreeInsert(tree, &data2);
+    TreeInsert(tree, &data3);
+    TreeInsert(tree, &data4);
+    TreeInsert(tree, &data5);
     
     // Test TreeFindMin
     void* minData = TreeFindMin(tree);

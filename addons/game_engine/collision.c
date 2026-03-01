@@ -61,9 +61,7 @@ void g4p_resetCollisions() {
     QuickTableResetAndFree(g4p_collision_points_system.table);
     
     // Reset the QuickHeap to clear all collision data efficiently
-    if (g4p_collision_points_system.data_heap) {
-        QuickHeapReset(g4p_collision_points_system.data_heap);
-    }
+    QuickHeapReset(g4p_collision_points_system.data_heap);
     
     v4p_trace(COLLISION, "Collision points system reset\n");
 }
@@ -105,20 +103,16 @@ void g4p_finalizeCollisions() {
 
 // Destroy collision points system
 void g4p_destroyCollisions() {
-    if (g4p_collision_points_system.table) {
-        g4p_resetCollisions();
-        QuickTableDestroy(g4p_collision_points_system.table);
-        g4p_collision_points_system.table = NULL;
-        g4p_collision_points_system.table_size = 0;
-        g4p_collision_points_system.callback = NULL;
-        v4p_trace(COLLISION, "Collision points system destroyed\n");
-    }
+    g4p_resetCollisions();
+    QuickTableDestroy(g4p_collision_points_system.table);
+    g4p_collision_points_system.table = NULL;
+    g4p_collision_points_system.table_size = 0;
+    g4p_collision_points_system.callback = NULL;
+    v4p_trace(COLLISION, "Collision points system destroyed\n");
     
     // Clean up the QuickHeap
-    if (g4p_collision_points_system.data_heap) {
-        QuickHeapDestroy(g4p_collision_points_system.data_heap);
-        g4p_collision_points_system.data_heap = NULL;
-    }
+    QuickHeapDestroy(g4p_collision_points_system.data_heap);
+    g4p_collision_points_system.data_heap = NULL;
 }
 
 // Set callback function for collision point finalization
@@ -129,7 +123,7 @@ void g4p_setCollisionCallback(G4pCollisionCallback callback) {
 
 // Get average collision point for a polygon pair
 Boolean g4p_getCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord* avg_x, V4pCoord* avg_y) {
-    if (!g4p_collision_points_system.table || !p1 || !p2) {
+    if (!p1 || !p2) {
         return false;
     }
     

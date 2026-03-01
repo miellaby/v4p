@@ -49,6 +49,16 @@
 #include "v4p.h"
 #include "_v4p.h"
 
+// Comparison function for polygons based on their depth (z) field
+static int polygonDepthComparator(void* a, void* b) {
+    V4pPolygonP polyA = (V4pPolygonP)a;
+    V4pPolygonP polyB = (V4pPolygonP)b;
+    
+    if (polyA->z < polyB->z) return -1;
+    if (polyA->z > polyB->z) return 1;
+    return 0;
+}
+
 static V4pContextP v4p = NULL;  // current (selected) v4p Context
 V4pSceneP v4p_defaultScene = NULL;
 V4pContextP v4p_defaultContext = NULL;
@@ -133,6 +143,8 @@ V4pContextP v4p_newContext() {
     v4p->viewWidth = lineWidth;
     v4p->viewHeight = lineNb;
     v4p->openedPolygons = TreeNew();
+    // Set polygon comparison function (compare by z/depth)
+    TreeSetDataPrior(polygonDepthComparator);
     // Initialize integer scaling factors for 1:1 mapping (no scaling)
     v4p->screenToView_wholeX = 1;
     v4p->screenToView_remX = 0;
@@ -1227,7 +1239,7 @@ Boolean v4p_render() {
 
         // Reset depth tree for opened polygons (keep AVL tree for depth management)
         TreeReset(v4p->openedPolygons);
-        TreeSetDataPrior(NULL);  // Use default comparator (key=value)
+        // TreeSetDataPrior(TreeSetDataPrior); // alreay set in v4p_init
 
         // Reset concrete polygons
         memset(concretePolygons, 0, sizeof(concretePolygons));
@@ -1273,12 +1285,12 @@ Boolean v4p_render() {
             }
 
             // Update depth tree for opened polygons (AVL tree for depth management)
-            if (TreeContains(v4p->openedPolygons, depth)) {
+            if (TreeContains(v4p->openedPolygons, p)) {
                 // Leaving polygon - remove from tree
-                TreeDelete(v4p->openedPolygons, depth);
+                TreeDelete(v4p->openedPolygons, p);
             } else {
                 // Entering polygon - add to tree
-                TreeInsert(v4p->openedPolygons, p, depth);
+                TreeInsert(v4p->openedPolygons, p);
             }
 
             // Update visible polygon

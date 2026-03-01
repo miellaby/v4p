@@ -1,6 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "sorted.h"
+#include "../quick/sorted.h"
+
+// Comparison function for int data
+static int intComparator(void* a, void* b) {
+    int valA = *(int*)a;
+    int valB = *(int*)b;
+    if (valA < valB) return -1;
+    if (valA > valB) return 1;
+    return 0;
+}
 
 // Forward declaration
 void testTreeReset();
@@ -14,17 +23,22 @@ int main() {
         return 1;
     }
 
+    // Set comparator for int data
+    TreeSetDataPrior(intComparator);
+    
     // Insert some data
-    int data1 = 42, data2 = 84, data3 = 16;
-    TreeInsert(tree, &data1, 1);
-    TreeInsert(tree, &data2, 2);
-    TreeInsert(tree, &data3, 3);
+    int data1 = 1, data2 = 2, data3 = 3;
+    TreeInsert(tree, &data1);
+    TreeInsert(tree, &data2);
+    TreeInsert(tree, &data3);
 
-    // Check if keys exist
-    printf("Tree contains key 1: %s\n", TreeContains(tree, 1) ? "yes" : "no");
-    printf("Tree contains key 2: %s\n", TreeContains(tree, 2) ? "yes" : "no");
-    printf("Tree contains key 3: %s\n", TreeContains(tree, 3) ? "yes" : "no");
-    printf("Tree contains key 4: %s\n", TreeContains(tree, 4) ? "yes" : "no");
+    // Check if data exists
+    printf("Tree contains data 1: %s\n", TreeContains(tree, &data1) ? "yes" : "no");
+    printf("Tree contains data 2: %s\n", TreeContains(tree, &data2) ? "yes" : "no");
+    printf("Tree contains data 3: %s\n", TreeContains(tree, &data3) ? "yes" : "no");
+    
+    int data4 = 4;
+    printf("Tree contains data 4: %s\n", TreeContains(tree, &data4) ? "yes" : "no");
 
     // Find max
     void* maxData = TreeFindMax(tree);
@@ -33,8 +47,8 @@ int main() {
     }
 
     // Delete a node
-    TreeDelete(tree, 2);
-    printf("After deleting key 2, contains key 2: %s\n", TreeContains(tree, 2) ? "yes" : "no");
+    TreeDelete(tree, &data2);
+    printf("After deleting data 2, contains data 2: %s\n", TreeContains(tree, &data2) ? "yes" : "no");
 
     // Clean up
     TreeDestroy(tree);
@@ -54,33 +68,36 @@ void testTreeReset() {
     // Create a tree and add some data
     QuickTree* tree = TreeNew();
     
+    // Set comparator for int data
+    TreeSetDataPrior(intComparator);
+    
     // Insert some test data
-    int data1 = 42, data2 = 100, data3 = 7;
-    TreeInsert(tree, &data1, 1);
-    TreeInsert(tree, &data2, 2);
-    TreeInsert(tree, &data3, 3);
+    int data1 = 1, data2 = 2, data3 = 3;
+    TreeInsert(tree, &data1);
+    TreeInsert(tree, &data2);
+    TreeInsert(tree, &data3);
     
     // Verify data is in the tree
-    printf("Before reset - Tree contains key 1: %s\n", TreeContains(tree, 1) ? "yes" : "no");
-    printf("Before reset - Tree contains key 2: %s\n", TreeContains(tree, 2) ? "yes" : "no");
-    printf("Before reset - Tree contains key 3: %s\n", TreeContains(tree, 3) ? "yes" : "no");
+    printf("Before reset - Tree contains data 1: %s\n", TreeContains(tree, &data1) ? "yes" : "no");
+    printf("Before reset - Tree contains data 2: %s\n", TreeContains(tree, &data2) ? "yes" : "no");
+    printf("Before reset - Tree contains data 3: %s\n", TreeContains(tree, &data3) ? "yes" : "no");
     printf("Before reset - Tree max data: %p\n", TreeFindMax(tree));
     
     // Reset the tree
     TreeReset(tree);
     
     // Verify tree is empty
-    printf("After reset - Tree contains key 1: %s\n", TreeContains(tree, 1) ? "yes" : "no");
-    printf("After reset - Tree contains key 2: %s\n", TreeContains(tree, 2) ? "yes" : "no");
-    printf("After reset - Tree contains key 3: %s\n", TreeContains(tree, 3) ? "yes" : "no");
+    printf("After reset - Tree contains data 1: %s\n", TreeContains(tree, &data1) ? "yes" : "no");
+    printf("After reset - Tree contains data 2: %s\n", TreeContains(tree, &data2) ? "yes" : "no");
+    printf("After reset - Tree contains data 3: %s\n", TreeContains(tree, &data3) ? "yes" : "no");
     printf("After reset - Tree max data: %p\n", TreeFindMax(tree));
     
     // Insert new data after reset
-    int data4 = 200;
-    TreeInsert(tree, &data4, 4);
+    int data4 = 4;
+    TreeInsert(tree, &data4);
     
     // Verify new data is in the tree
-    printf("After reset and new insert - Tree contains key 4: %s\n", TreeContains(tree, 4) ? "yes" : "no");
+    printf("After reset and new insert - Tree contains data 4: %s\n", TreeContains(tree, &data4) ? "yes" : "no");
     printf("After reset and new insert - Tree max data: %p\n", TreeFindMax(tree));
     
     // Clean up
