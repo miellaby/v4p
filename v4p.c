@@ -144,7 +144,7 @@ V4pContextP v4p_newContext() {
     v4p->viewHeight = lineNb;
     v4p->openedPolygons = TreeNew();
     // Set polygon comparison function (compare by z/depth)
-    TreeSetDataPrior(polygonDepthComparator);
+    TreeSetCompareFunc(polygonDepthComparator);
     // Initialize integer scaling factors for 1:1 mapping (no scaling)
     v4p->screenToView_wholeX = 1;
     v4p->screenToView_remX = 0;
@@ -612,7 +612,7 @@ ActiveEdgeP v4p_addNewActiveEdge(V4pPolygonP p, V4pPointP a, V4pPointP b) {
     ActiveEdgeP ae = QuickHeapAlloc(v4p->activeEdgeHeap);
     ae->p = p;
     ae->circle = false;
-    ListAddData(p->ActiveEdge1, ae);
+    ListPrepend(p->ActiveEdge1, ae);
     int sx0, sy0, sx1, sy1;
     if (a->y < b->y) {
         sx0 = a->x;
@@ -1027,7 +1027,7 @@ int compareActiveEdgeX(void* data1, void* data2) {
 
 // sort an ActiveEdge list ordered by 'x'
 List v4p_sortActiveEdge(List list) {
-    ListSetDataPrior(compareActiveEdgeX);
+    ListSetCompareFunc(compareActiveEdgeX);
     return ListSort(list);
 }
 
@@ -1111,7 +1111,7 @@ List v4p_openActiveEdge(V4pCoord yl, V4pCoord yu) {
                 b->s += (dy2 * r) % dy;
             }
         }
-        ListAddData(newlyOpenedAEList, b);
+        ListPrepend(newlyOpenedAEList, b);
     }
     if (newlyOpenedAEList) newlyOpenedAEList = v4p_sortActiveEdge(newlyOpenedAEList);
     return newlyOpenedAEList;
@@ -1232,14 +1232,14 @@ Boolean v4p_render() {
         // Open newly intersected ActiveEdge
         List newlyOpenedAEList = v4p_openActiveEdge(y, yu);
         if (newlyOpenedAEList) {
-            ListSetDataPrior(compareActiveEdgeX);
+            ListSetCompareFunc(compareActiveEdgeX);
             v4p->openedAEList
                 = (v4p->openedAEList ? ListMerge(v4p->openedAEList, newlyOpenedAEList) : newlyOpenedAEList);
         }
 
         // Reset depth tree for opened polygons (keep AVL tree for depth management)
         TreeReset(v4p->openedPolygons);
-        // TreeSetDataPrior(TreeSetDataPrior); // alreay set in v4p_init
+        // TreeSetCompareFunc(TreeSetCompareFunc); // alreay set in v4p_init
 
         // Reset concrete polygons
         memset(concretePolygons, 0, sizeof(concretePolygons));

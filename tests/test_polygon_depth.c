@@ -19,7 +19,7 @@ int main() {
     
     // Create a tree
     QuickTree* tree = TreeNew();
-    TreeSetDataPrior(polygonDepthComparator);
+    TreeSetCompareFunc(polygonDepthComparator);
     
     // Create some mock polygons with different depths
     // Note: We can't use v4p_new directly here without full initialization,

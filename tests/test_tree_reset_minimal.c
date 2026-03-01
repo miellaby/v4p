@@ -17,7 +17,7 @@ int main() {
     // Create a tree
     QuickTree* tree = TreeNew();
     // Set comparator for int data
-    TreeSetDataPrior(intComparator);
+    TreeSetCompareFunc(intComparator);
     
     // Test multiple reset cycles to ensure no memory leaks or corruption
     for (int cycle = 0; cycle < 5; cycle++) {

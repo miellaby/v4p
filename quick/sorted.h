@@ -9,7 +9,7 @@
 
 // A settable function to compare tree data. Please set it before using!
 // Must return <0 if a<b, 0 if a==b, >0 if a>b
-extern int (*TreeDataPrior)(void*, void*);
+extern int (*TreeCompareFunc)(void*, void*);
 
 typedef struct sTreeNode* TreeNodeP;
 
@@ -43,10 +43,7 @@ Boolean TreeContains(QuickTree* tree, void* data);
 // Reset the tree by clearing all nodes and resetting the root
 void TreeReset(QuickTree* tree);
 
-// Default data comparator (assumes data is UInt32 and compares directly)
-int TreeDefaultDataComparator(void* a, void* b);
-
-// macro to set the data comparator, defaults to TreeDefaultDataComparator if NULL
-#define TreeSetDataPrior(p) TreeDataPrior = (p ? p : TreeDefaultDataComparator)
+// macro to set the data comparator, defaults to TreeDefaultComparator if NULL
+#define TreeSetCompareFunc(p) TreeCompareFunc = (p)
 
 #endif // SORTED_H

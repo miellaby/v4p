@@ -24,7 +24,7 @@ int main() {
     }
 
     // Set comparator for int data
-    TreeSetDataPrior(intComparator);
+    TreeSetCompareFunc(intComparator);
     
     // Insert some data
     int data1 = 1, data2 = 2, data3 = 3;
@@ -69,7 +69,7 @@ void testTreeReset() {
     QuickTree* tree = TreeNew();
     
     // Set comparator for int data
-    TreeSetDataPrior(intComparator);
+    TreeSetCompareFunc(intComparator);
     
     // Insert some test data
     int data1 = 1, data2 = 2, data3 = 3;

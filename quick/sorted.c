@@ -15,18 +15,9 @@ typedef struct sTreeNode {
     struct sTreeNode* right;
 } TreeNode;
 
-// Default comparator for data ordering (assumes data is UInt32)
-int TreeDefaultDataComparator(void* a, void* b) {
-    UInt32 valA = *(UInt32*)a;
-    UInt32 valB = *(UInt32*)b;
-    if (valA < valB) return -1;
-    if (valA > valB) return 1;
-    return 0;
-}
-
 // A settable function to compare tree data. Please set it before using!
 // Must return <0 if a<b, 0 if a==b, >0 if a>b
-int (*TreeDataPrior)(void*, void*) = TreeDefaultDataComparator;
+int (*TreeCompareFunc)(void*, void*) = NULL;
 
 // Create a new tree
 QuickTree* TreeNew() {
@@ -98,7 +89,7 @@ TreeNodeP TreeInsertNode(QuickTree* tree, TreeNodeP node, void* data) {
         return newNode;
     }
 
-    int cmp = TreeDataPrior(data, node->data);
+    int cmp = TreeCompareFunc(data, node->data);
     if (cmp < 0) {
         node->left = TreeInsertNode(tree, node->left, data);
     } else if (cmp > 0) {
@@ -116,23 +107,23 @@ TreeNodeP TreeInsertNode(QuickTree* tree, TreeNodeP node, void* data) {
     int balance = TreeBalance(node);
 
     // Left Left Case (data < node->left->data)
-    if (balance > 1 && node->left && TreeDataPrior(data, node->left->data) < 0) {
+    if (balance > 1 && node->left && TreeCompareFunc(data, node->left->data) < 0) {
         return TreeRotateRight(node);
     }
 
     // Right Right Case (data > node->right->data)
-    if (balance < -1 && node->right && TreeDataPrior(node->right->data, data) < 0) {
+    if (balance < -1 && node->right && TreeCompareFunc(node->right->data, data) < 0) {
         return TreeRotateLeft(node);
     }
 
     // Left Right Case (data > node->left->data)
-    if (balance > 1 && node->left && TreeDataPrior(node->left->data, data) < 0) {
+    if (balance > 1 && node->left && TreeCompareFunc(node->left->data, data) < 0) {
         node->left = TreeRotateLeft(node->left);
         return TreeRotateRight(node);
     }
 
     // Right Left Case (data < node->right->data)
-    if (balance < -1 && node->right && TreeDataPrior(data, node->right->data) < 0) {
+    if (balance < -1 && node->right && TreeCompareFunc(data, node->right->data) < 0) {
         node->right = TreeRotateRight(node->right);
         return TreeRotateLeft(node);
     }
@@ -159,7 +150,7 @@ TreeNodeP TreeFindMinNode(TreeNodeP node) {
 TreeNodeP TreeDeleteNode(QuickTree* tree, TreeNodeP node, void* data) {
     if (!node) return NULL;
 
-    int cmp = TreeDataPrior(data, node->data);
+    int cmp = TreeCompareFunc(data, node->data);
     if (cmp < 0) {
         node->left = TreeDeleteNode(tree, node->left, data);
     } else if (cmp > 0) {
@@ -245,7 +236,7 @@ void* TreeFindMin(QuickTree* tree) {
 Boolean TreeContains(QuickTree* tree, void* data) {
     TreeNodeP node = tree->root;
     while (node) {
-        int cmp = TreeDataPrior(data, node->data);
+        int cmp = TreeCompareFunc(data, node->data);
         if (cmp == 0) {
             return true;
         } else if (cmp < 0) {
