@@ -37,10 +37,10 @@
  * IX: X table index
  * v4pDisplayX: lower layer function call
  * Opened polygon: polygon intersected by the scan-line: min(y(points)) < y <
- * max(y(points)) To be opened polygon: y(scan-line) < min(y(points)) Closed
- * polygon: y(scan-line) > max(y(points)) Absolute: in scene-referential
- * (position on screen depends on view) Relative: in screen-referential (0,0 ==>
- * screen corner)
+ *                 max(y(points)) To be opened polygon: y(scan-line) < min(y(points)) Closed
+ * polygon: y(scan-line) > max(y(points))
+ *    - Absolute: in scene-referential (position on screen depends on view)
+ *    - Relative: in screen-referential (0,0 ==> screen corner)
  */
 #define _V4P_C
 #include <stdlib.h>
