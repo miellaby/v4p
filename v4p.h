@@ -37,7 +37,7 @@ typedef struct v4p_polygon_s* V4pPolygonP;
 typedef struct v4p_context_s* V4pContextP;
 
 typedef struct v4p_scene_s {
-    char* label;
+    const char* label;
     V4pPolygonP polygons;
 } V4pScene, *V4pSceneP;
 
@@ -70,7 +70,7 @@ Boolean v4p_render();
 void v4p_quit();
 
 // v4p context
-V4pContextP v4p_newContext();
+V4pContextP v4p_newContext(V4pSceneP scene);
 void v4p_destroyContext(V4pContextP);
 V4pColor v4p_setBGColor(V4pColor bg);
 Boolean v4p_setView(V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1);
@@ -78,7 +78,7 @@ void v4p_setScene(V4pSceneP s);
 V4pSceneP v4p_getScene();
 
 // v4p scene
-V4pSceneP v4p_newScene();
+V4pSceneP v4p_newScene(const char* label);
 void v4p_destroyScene(V4pSceneP);
 V4pSceneP v4p_sceneAdd(V4pSceneP, V4pPolygonP);
 V4pSceneP v4p_sceneRemove(V4pSceneP, V4pPolygonP);
@@ -132,12 +132,16 @@ V4pPolygonP v4p_transform(V4pPolygonP p, V4pCoord dx, V4pCoord dy, int angle, V4
                           V4pCoord zoom_y);
 V4pPolygonP v4p_centerPolygon(V4pPolygonP p);
 
+// clipping
+V4pPolygonP v4p_clipClone(V4pPolygonP p, V4pPolygonP c, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1);
+V4pPolygonP v4p_clip(V4pPolygonP p, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1);
+
 // anchor point management
 V4pPolygonP v4p_setAnchorToCenter(V4pPolygonP p);
 V4pPolygonP v4p_setAnchor(V4pPolygonP p, V4pCoord x, V4pCoord y);
 
 // helpers & combo
-V4pPolygonP v4p_rect(V4pPolygonP p, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1);
+V4pPolygonP v4p_addCorners(V4pPolygonP p, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1);
 V4pPolygonP v4p_add(V4pPolygonP p);
 V4pPolygonP v4p_remove(V4pPolygonP);
 V4pPolygonP v4p_sceneAddNewPoly(V4pSceneP, V4pProps t, V4pColor col, V4pLayer z);

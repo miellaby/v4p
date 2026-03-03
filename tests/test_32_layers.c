@@ -17,7 +17,7 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
     // Create polygons on various layers including those > 16
     for (V4pLayer z = 0; z < 32; z++) {
         V4pPolygonP p = v4p_addNew(V4P_ABSOLUTE, V4P_WHITE, z);
-        v4p_rect(p, z * 10, z * 10, z * 10 + 50, z * 10 + 50);
+        v4p_addCorners(p, z * 10, z * 10, z * 10 + 50, z * 10 + 50);
         
         // Set collision mask for odd layers
         if (z % 2 == 1) {

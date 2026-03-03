@@ -1,19 +1,23 @@
 #include "g4p.h"
 #include "v4p.h"
 #include "quick/math.h"  // For iabs() function
-#define RADIUS 20
-#define SPACING 70
-#define GRID_SIZE 30
 #define DEPTH 6
+#define GRID_SIZE 10
 V4pPolygonP circle_matrix[GRID_SIZE][GRID_SIZE];
 
 Boolean g4p_onInit(int quality, Boolean fullscreen) {
     int i, j;
     v4p_init2(quality, fullscreen);  // Normal quality, windowed
     v4p_setBGColor(V4P_WHITE);  // Black background
-
-    // Create a prototype
-    V4pPolygonP original = v4p_newDisk(V4P_ABSOLUTE, V4P_RED, DEPTH, 0, 0, RADIUS);
+    // Calculate dynamic sizing based on display dimensions
+    int min_dimension = IMIN(v4p_displayWidth, v4p_displayHeight);
+    int spacing = min_dimension / GRID_SIZE;    // Scale spacing with screen size
+    int radius = min_dimension / GRID_SIZE / 3; // Scale radius with screen size
+    int grid_width = (GRID_SIZE - 1) * spacing;
+    int grid_height = (GRID_SIZE - 1) * spacing;
+    v4p_setView(-grid_width / 2, -grid_height / 2, grid_width / 2, grid_height / 2);  // Center the grid on screen
+    // Create a prototype with dynamic radius
+    V4pPolygonP original = v4p_newDisk(V4P_ABSOLUTE, V4P_RED, DEPTH, 0, 0, radius);
 
     // Create a grid of clones
     for (j = 0; j < GRID_SIZE; j++) {
@@ -32,6 +36,11 @@ Boolean g4p_onTick(Int32 deltaTime) {
 
     elapsedTime += deltaTime;
 
+    // Calculate dynamic spacing (same as in init)
+    int min_dimension = IMIN(v4p_displayWidth, v4p_displayHeight);
+    int spacing = min_dimension / GRID_SIZE;  // Scale spacing with screen size
+    int radius = min_dimension / GRID_SIZE / 3;  // Scale radius with screen size
+
     // Apply different zoom levels to each box
     for (j = 0; j < GRID_SIZE; j++) {
         for (i = 0; i < GRID_SIZE; i++) {
@@ -41,8 +50,12 @@ Boolean g4p_onTick(Int32 deltaTime) {
 
             // v4pi_debug("scale %d\n", scale);
 
-            // Transform clones with different zoom levels
-            v4p_transform(circle_matrix[j][i], i * SPACING, j * SPACING + 100, 0, 0, scale, scale);
+            // Transform clones with different zoom levels, centered on screen
+            int grid_width = (GRID_SIZE - 1) * spacing;
+            int grid_height = (GRID_SIZE - 1) * spacing;
+            int center_x = i * spacing - grid_width / 2;
+            int center_y = j * spacing - grid_height / 2;
+            v4p_transform(circle_matrix[j][i], center_x, center_y, 0, 0, scale, scale);
         }
     }
 

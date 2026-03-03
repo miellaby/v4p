@@ -44,7 +44,7 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
                test_cases[i].x1, test_cases[i].y1);
         
         // Create the rectangle
-        v4p_rect(p, test_cases[i].x0, test_cases[i].y0, test_cases[i].x1, test_cases[i].y1);
+        v4p_addCorners(p, test_cases[i].x0, test_cases[i].y0, test_cases[i].x1, test_cases[i].y1);
 
         
         // Position the rectangle so it's visible

@@ -16,7 +16,7 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
     v4p_setBGColor(V4P_BLUE);
 
     proto = v4p_new(V4P_ABSOLUTE, V4P_RED, 10);
-    v4p_rect(proto,
+    v4p_addCorners(proto,
              -v4p_displayWidth / 3 + v4p_displayWidth,
              -v4p_displayHeight / 3,
              v4p_displayWidth / 3,

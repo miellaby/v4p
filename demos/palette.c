@@ -61,7 +61,7 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
     v4p_init2(quality, fullscreen);  // Normal quality, windowed
     v4p_setBGColor(V4P_BLACK);  // Black background
     box = v4p_new(V4P_ABSOLUTE, 0, 4);
-    v4p_rect(box, 0, 0, COLOR_BOX_SIZE, COLOR_BOX_SIZE);
+    v4p_addCorners(box, 0, 0, COLOR_BOX_SIZE, COLOR_BOX_SIZE);
 
     // Create a polygon for each color in the palette
     for (i = 0; i < 256; i++) {

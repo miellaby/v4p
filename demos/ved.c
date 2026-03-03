@@ -39,7 +39,7 @@ V4pPolygonP buttons[16];
 int addButton(V4pColor col) {
     V4pPolygonP button = v4p_addNew(V4P_RELATIVE, col, 14);
     buttons[iButton] = button;
-    v4p_rect(button, v4p_displayWidth - 10, yButton, v4p_displayWidth - 1, 9 + yButton);
+    v4p_addCorners(button, v4p_displayWidth - 10, yButton, v4p_displayWidth - 1, 9 + yButton);
     yButton += 10;
     return iButton++;
 }
@@ -91,24 +91,24 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
     currentPolygon = NULL;
     //(-xvu,-yvu)=milieu �cran
     pSel = v4p_addNew(V4P_RELATIVE, V4P_BLACK, 13);
-    v4p_rect(pSel, v4p_displayWidth - 11, 0, v4p_displayWidth, 11);
+    v4p_addCorners(pSel, v4p_displayWidth - 11, 0, v4p_displayWidth, 11);
 
     pCol = v4p_addNew(V4P_RELATIVE, V4P_BLACK, 14);
-    v4p_rect(pCol, -xvu - 20, -yvu - 20, -xvu + 20, -yvu + 20);
+    v4p_addCorners(pCol, -xvu - 20, -yvu - 20, -xvu + 20, -yvu + 20);
     pSelCol = v4p_addNewSub(pCol, V4P_RELATIVE, V4P_BLACK, 15);
-    v4p_rect(pSelCol, -xvu - 18, -yvu - 18, -xvu + 18, -yvu + 18);
+    v4p_addCorners(pSelCol, -xvu - 18, -yvu - 18, -xvu + 18, -yvu + 18);
     v4p_disable(pCol);
 
     pLayer = v4p_addNew(V4P_RELATIVE, V4P_BLACK, 14);
-    v4p_rect(pLayer, -xvu - 3, -yvu - 17, -xvu + 3, -yvu + 17);
+    v4p_addCorners(pLayer, -xvu - 3, -yvu - 17, -xvu + 3, -yvu + 17);
     pSelLayer = v4p_addNewSub(pLayer, V4P_RELATIVE, V4P_RED, 15);
-    v4p_rect(pSelLayer, -xvu - 2, -yvu - 1, -xvu + 2, -yvu + 1);
+    v4p_addCorners(pSelLayer, -xvu - 2, -yvu - 1, -xvu + 2, -yvu + 1);
     v4p_disable(pLayer);
 
     pGrid = v4p_addNew(V4P_RELATIVE, V4P_BLACK, 14);
-    v4p_rect(pGrid, -xvu - 9, -yvu - 9, -xvu + 9, -yvu + 9);
+    v4p_addCorners(pGrid, -xvu - 9, -yvu - 9, -xvu + 9, -yvu + 9);
     pSelGrid = v4p_addNewSub(pGrid, V4P_RELATIVE, V4P_RED, 15);
-    v4p_rect(pSelGrid, -xvu - 2, -yvu - 2, -xvu + 2, -yvu + 2);
+    v4p_addCorners(pSelGrid, -xvu - 2, -yvu - 2, -xvu + 2, -yvu + 2);
     v4p_disable(pGrid);
 
     // Set collision point callback
@@ -278,11 +278,11 @@ Boolean g4p_onTick(Int32 deltaTime) {
                         currentPoint = v4p_addPoint(currentPolygon, xs, ys);
                         if (spotNb < 64) {
                             spots[spotNb] = v4p_addNew(V4P_STANDARD, currentColor, 14);
-                            v4p_rect(spots[spotNb], xs - 1, ys - 1, xs + 1, ys + 1);
+                            v4p_addCorners(spots[spotNb], xs - 1, ys - 1, xs + 1, ys + 1);
                         }
                     }
                     brush = v4p_addNew(V4P_RELATIVE, V4P_BLACK, 15);
-                    v4p_rect(brush,
+                    v4p_addCorners(brush,
                              g4p_state.xpen - 1,
                              g4p_state.ypen - 1,
                              g4p_state.xpen + 1,

@@ -16,7 +16,7 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
     
     // Create a prototype square for the grid
     V4pPolygonP proto = v4p_new(V4P_ABSOLUTE, V4P_BLUE, 10);
-    v4p_rect(proto, -SQUARE_SIZE/2, -SQUARE_SIZE/2, SQUARE_SIZE/2, SQUARE_SIZE/2);
+    v4p_addCorners(proto, -SQUARE_SIZE/2, -SQUARE_SIZE/2, SQUARE_SIZE/2, SQUARE_SIZE/2);
     
     // Calculate grid positioning
     int start_x = (v4p_displayWidth - (GRID_SIZE * (SQUARE_SIZE + GAP_SIZE)) + GAP_SIZE) / 2;
@@ -41,7 +41,7 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
     mouse_square = v4p_addClone(proto);
     v4p_setColor(mouse_square, V4P_RED);
     v4p_setLayer(mouse_square, 11);
-    //v4p_rect(mouse_square, -SQUARE_SIZE/2, -SQUARE_SIZE/2, SQUARE_SIZE/2, SQUARE_SIZE/2);
+    //v4p_addCorners(mouse_square, -SQUARE_SIZE/2, -SQUARE_SIZE/2, SQUARE_SIZE/2, SQUARE_SIZE/2);
     
     return success;
 }

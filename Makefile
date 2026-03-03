@@ -226,7 +226,7 @@ DEBUG_SRCS = addons/debug/debug.c
 
 # Demos - build object files in demo directories
 demos/%.o: demos/%.c
-	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -Iaddons/game_engine -Iaddons/v4pserial -Iaddons/qfont -Iaddons/debug -c $< -o $@
+	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -Iaddons/game_engine -Iaddons/v4pserial -Iaddons/qfont -Iaddons/debug -Iaddons/nuklear -c $< -o $@
 
 # Link demos in their directories
 demos/%: demos/%.o libv4p.a libg4p.a libqfont.a libv4pserial.a libparticles.a libdebug.a
@@ -241,7 +241,7 @@ demos/%.html: demos/%.o $(TEMPLATE_FILE) libv4p.a libg4p.a libqfont.a libv4pseri
 
 # Tests - build object files in demo directories
 tests/%.o: tests/%.c # Note: It is recommanded to build tests with DEBUG=1 for better diagnostics
-	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -DDEBUG=1 -Iaddons/game_engine -Iaddons/v4pserial -Iaddons/qfont -c $< -o $@
+	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -DDEBUG=1 -Iaddons/game_engine -Iaddons/v4pserial -Iaddons/qfont -Iaddons/nuklear -c $< -o $@
 
 # Link tests in their directories
 tests/%: tests/%.o libv4p.a libg4p.a libqfont.a libv4pserial.a libparticles.a

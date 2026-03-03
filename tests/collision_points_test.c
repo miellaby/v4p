@@ -33,9 +33,9 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
     v4p_setCollisionMask(poly3, 4);
     
     // Make them overlap to trigger collisions
-    v4p_rect(poly1, 100, 100, 200, 200);  // Red square
-    v4p_rect(poly2, 150, 150, 250, 250);  // Blue square (overlaps with red)
-    v4p_rect(poly3, 125, 125, 225, 225);  // Yellow square (overlaps with both)
+    v4p_addCorners(poly1, 100, 100, 200, 200);  // Red square
+    v4p_addCorners(poly2, 150, 150, 250, 250);  // Blue square (overlaps with red)
+    v4p_addCorners(poly3, 125, 125, 225, 225);  // Yellow square (overlaps with both)
     
     printf("Created overlapping polygons: red=%p, blue=%p, yellow=%p\n", 
            (void*)poly1, (void*)poly2, (void*)poly3);

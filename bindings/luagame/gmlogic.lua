@@ -13,7 +13,7 @@ function g4p_onInit(quality, fullscreen)
   v4p.v4p_setBgColor(v4p.blue)
  
   pSprite=v4p.v4p_new(v4p.absolute, v4p.red, 10)
-  v4p.v4p_rect(pSprite, -v4p.v4p_displayWidth / 3 + v4p.v4p_displayWidth, -v4p.v4p_displayHeight / 3, v4p.v4p_displayWidth / 3, v4p.v4p_displayHeight / 3)
+  v4p.v4p_addCorners(pSprite, -v4p.v4p_displayWidth / 3 + v4p.v4p_displayWidth, -v4p.v4p_displayHeight / 3, v4p.v4p_displayWidth / 3, v4p.v4p_displayHeight / 3)
 
   for j= 0,STRESS_AMOUNT-1 do
     for k = 0,STRESS_AMOUNT-1 do

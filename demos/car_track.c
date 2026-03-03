@@ -91,18 +91,18 @@ V4pPolygonP create_car_proto() {
 
     // Car front left wheel
     car_left_front_wheel_proto = v4p_new(V4P_ABSOLUTE, V4P_BLACK, 0);
-    v4p_rect(car_left_front_wheel_proto, 250 / 2, 216 / 2, 282 / 2, 269 / 2);
+    v4p_addCorners(car_left_front_wheel_proto, 250 / 2, 216 / 2, 282 / 2, 269 / 2);
 
     // Car front right wheel
     car_right_front_wheel_proto = v4p_new(V4P_ABSOLUTE, V4P_BLACK, 0);
-    v4p_rect(car_right_front_wheel_proto, 359 / 2, 216 / 2, 391 / 2, 269 / 2);
+    v4p_addCorners(car_right_front_wheel_proto, 359 / 2, 216 / 2, 391 / 2, 269 / 2);
 
     // Car rear wheels
     car_rear_wheels_proto = v4p_new(V4P_ABSOLUTE, V4P_BLACK, 0);
     // Rear left wheel
-    v4p_rect(car_rear_wheels_proto, 250 / 2, 319 / 2, 282 / 2, 371 / 2);
+    v4p_addCorners(car_rear_wheels_proto, 250 / 2, 319 / 2, 282 / 2, 371 / 2);
     // Rear right wheel 
-    v4p_rect(car_rear_wheels_proto, 359 / 2, 319 / 2, 391 / 2, 371 / 2);
+    v4p_addCorners(car_rear_wheels_proto, 359 / 2, 319 / 2, 391 / 2, 371 / 2);
 
     // Create car lights (gray parts)
     car_lights_proto = v4p_new(V4P_ABSOLUTE, V4P_GRAY, 2);
@@ -162,13 +162,13 @@ void create_checkpoints() {
     // Create checkpoint polygons for control
     for (int i = 0; i < 7; i++) {
         checkpoint_polygons[i] = v4p_addNewSub(level, V4P_ABSOLUTE, V4P_CYAN, 27);
-        v4p_rect(checkpoint_polygons[i], checkpoints[i].x - 15, checkpoints[i].y - 15, checkpoints[i].x + 15, checkpoints[i].y + 15);
+        v4p_addCorners(checkpoint_polygons[i], checkpoints[i].x - 15, checkpoints[i].y - 15, checkpoints[i].x + 15, checkpoints[i].y + 15);
 
         // direction visualization (smaller rectangle)
         V4pCoord vec_x = checkpoints[i].x + (V4pCoord) (checkpoints[i].ref_dx);
         V4pCoord vec_y = checkpoints[i].y + (V4pCoord) (checkpoints[i].ref_dy);
         V4pPolygonP direction_poly = v4p_addNewSub(checkpoint_polygons[i], V4P_ABSOLUTE, V4P_YELLOW, 28);
-        v4p_rect(direction_poly, vec_x - 5, vec_y - 5, vec_x + 5, vec_y + 5);
+        v4p_addCorners(direction_poly, vec_x - 5, vec_y - 5, vec_x + 5, vec_y + 5);
 
         // v4pi_debug("Checkpoint %d marker at: (%d, %d) %s turn\n", i, checkpoints[i].x, checkpoints[i].y,
         //           checkpoints[i].requires_clockwise ? "clockwise" : "counter-clockwise");

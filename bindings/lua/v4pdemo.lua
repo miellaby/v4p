@@ -8,7 +8,7 @@ v4p.v4p_setBGColor(v4p.blue);
  
 pSprite = v4p.v4p_new(v4p.absolute, v4p.red, 10);
 
-v4p.v4p_rect(pSprite, -v4p.v4p_displayWidth / 3 + v4p.v4p_displayWidth, -v4p.v4p_displayHeight / 3, v4p.v4p_displayWidth / 3, v4p.v4p_displayHeight / 3);
+v4p.v4p_addCorners(pSprite, -v4p.v4p_displayWidth / 3 + v4p.v4p_displayWidth, -v4p.v4p_displayHeight / 3, v4p.v4p_displayWidth / 3, v4p.v4p_displayHeight / 3);
 
 pClone = v4p.v4p_addClone(pSprite);
 

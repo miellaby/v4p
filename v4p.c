@@ -133,12 +133,12 @@ V4pSceneP v4p_getScene() {
 
 
 // Create a v4p context
-V4pContextP v4p_newContext() {
+V4pContextP v4p_newContext(V4pSceneP scene) {
     V4pContextP v4p = (V4pContextP) malloc(sizeof(V4pContext));
     int lineWidth = v4p_displayWidth, lineNb = v4p_displayHeight;
 
     v4p->display = v4pi_context;
-    v4p->scene = v4p_defaultScene;
+    v4p->scene = scene;
     v4p->pointHeap = QuickHeapNewFor(V4pPoint);
     v4p->polygonHeap = QuickHeapNewFor(Polygon);
     v4p->activeEdgeHeap = QuickHeapNewFor(ActiveEdge);
@@ -180,9 +180,9 @@ void v4p_destroyContext(V4pContextP p) {
 }
 
 // Create a new scene
-V4pSceneP v4p_newScene() {
+V4pSceneP v4p_newScene(const char* label) {
     V4pSceneP s = (V4pSceneP) malloc(sizeof(V4pScene));
-    s->label = "";
+    s->label = label ? label : "";
     s->polygons = NULL;
     return s;
 }
@@ -198,10 +198,10 @@ Boolean v4p_init2(int quality, Boolean fullscreen) {
     }
 
     if (! v4p_defaultScene) {
-        v4p_defaultScene = v4p_newScene();
+        v4p_defaultScene = v4p_newScene("default");
     }
     if (! v4p_defaultContext) {
-        v4p_defaultContext = v4p_newContext();
+        v4p_defaultContext = v4p_newContext(v4p_defaultScene);
     }
     v4p_setContext(v4p_defaultContext);
     v4p_setView(0, 0, v4p_displayWidth, v4p_displayHeight);
@@ -709,10 +709,26 @@ V4pPolygonP v4p_recPolygonTransformClone(Boolean estSub, V4pPolygonP p, V4pPolyg
 
     sp = p->point1;
     sc = c->point1;
+    V4pPointP prev_sc = NULL;  // To track previous point for adding new points
 
     computeCosSin(angle);
 
     while (sp) {
+        // Create sc point if it doesn't exist (clone has fewer points than parent)
+        if (!sc) {
+            V4pPointP new_point = QuickHeapAlloc(v4p->pointHeap);
+            new_point->x = V4P_NIL;
+            new_point->y = V4P_NIL;
+            new_point->next = NULL;
+            
+            if (prev_sc) {
+                prev_sc->next = new_point;
+            } else {
+                c->point1 = new_point;
+            }
+            sc = new_point;
+        }
+
         x = sp->x;
         y = sp->y;
         if (x != V4P_NIL && y != V4P_NIL) {
@@ -736,8 +752,21 @@ V4pPolygonP v4p_recPolygonTransformClone(Boolean estSub, V4pPolygonP p, V4pPolyg
             sc->x = V4P_NIL;
             sc->y = V4P_NIL;
         }
+        
+        prev_sc = sc;
         sp = sp->next;
         sc = sc->next;
+    }
+    
+    // Remove any extra points in clone that don't exist in parent
+    // (e.g., if clone was modified to have more points)
+    while (sc) {
+        V4pPointP to_free = sc;
+        sc = sc->next;
+        if (prev_sc) {
+            prev_sc->next = sc;
+        }
+        QuickHeapFree(v4p->pointHeap, to_free);
     }
     v4p_changed(c);
     if (estSub && p->next) {
@@ -789,6 +818,199 @@ V4pPolygonP v4p_centerPolygon(V4pPolygonP p) {
     // Transform the polygon to center it at (0,0)
     // Use no rotation, no zoom, just translation
     return v4p_transform(p, -centerX, -centerY, 0, 0, 256, 256);
+}
+
+// Helper functions for Sutherland-Hodgman clipping
+// Simplified clipEdge for axis-aligned clipping
+static V4pPointP clipEdge(V4pPointP subject, Boolean isVertical, V4pCoord clipCoord, Boolean isMinEdge) {
+    V4pPointP result = NULL;
+    V4pPointP prev = NULL;
+    V4pPointP current = subject;
+    V4pPointP prevPoint = NULL;
+    Boolean prevInside = false;
+    
+    // Find the last point for polygon closure
+    V4pPointP lastPoint = subject;
+    while (lastPoint != NULL && lastPoint->next != NULL) {
+        lastPoint = lastPoint->next;
+    }
+    
+    // Initialize prevPoint with last point for closure
+    if (lastPoint != NULL) {
+        prevPoint = lastPoint;
+        V4pCoord lastX = lastPoint->x;
+        V4pCoord lastY = lastPoint->y;
+        
+        // Determine if last point is inside
+        if (isVertical) {
+            if (isMinEdge) {
+                prevInside = lastX >= clipCoord;
+            } else {
+                prevInside = lastX <= clipCoord;
+            }
+        } else {
+            if (isMinEdge) {
+                prevInside = lastY >= clipCoord;
+            } else {
+                prevInside = lastY <= clipCoord;
+            }
+        }
+    }
+    
+    while (current != NULL) {
+        V4pCoord x = current->x;
+        V4pCoord y = current->y;
+        Boolean currentInside;
+        
+        if (isVertical) {
+            // Vertical edge: clip against x = clipCoord
+            if (isMinEdge) {
+                currentInside = x >= clipCoord;  // Left edge (min x)
+            } else {
+                currentInside = x <= clipCoord;  // Right edge (max x)
+            }
+        } else {
+            // Horizontal edge: clip against y = clipCoord
+            if (isMinEdge) {
+                currentInside = y >= clipCoord;  // Top edge (min y)
+            } else {
+                currentInside = y <= clipCoord;  // Bottom edge (max y)
+            }
+        }
+        
+        if (prevPoint != NULL) {
+            // Check if we need to compute intersection (XOR condition)
+            if (prevInside != currentInside) {
+                V4pCoord prevX = prevPoint->x;
+                V4pCoord prevY = prevPoint->y;
+
+                // Compute intersection with the clip edge
+                if (isVertical) {
+                    // Vertical edge: x = clipCoord
+                    // Linear interpolation: y = prevY + (y - prevY) * (clipCoord - prevX) / (x - prevX)
+                    if (x != prevX) {
+                        V4pCoord t = (clipCoord - prevX) * 256 / (x - prevX);  // Fixed point division
+                        V4pCoord intersectionY = prevY + (t * (y - prevY)) / 256;
+                        
+                        V4pPointP intersection = QuickHeapAlloc(v4p->pointHeap);
+                        intersection->x = clipCoord;
+                        intersection->y = intersectionY;
+                        intersection->next = NULL;
+                        
+                        if (result == NULL) {
+                            result = intersection;
+                        } else {
+                            prev->next = intersection;
+                        }
+                        prev = intersection;
+                    }
+                } else {
+                    // Horizontal edge: y = clipCoord
+                    // Linear interpolation: x = prevX + (x - prevX) * (clipCoord - prevY) / (y - prevY)
+                    if (y != prevY) {
+                        V4pCoord t = (clipCoord - prevY) * 256 / (y - prevY);  // Fixed point division
+                        V4pCoord intersectionX = prevX + (t * (x - prevX)) / 256;
+                        
+                        V4pPointP intersection = QuickHeapAlloc(v4p->pointHeap);
+                        intersection->x = intersectionX;
+                        intersection->y = clipCoord;
+                        intersection->next = NULL;
+                        
+                        if (result == NULL) {
+                            result = intersection;
+                        } else {
+                            prev->next = intersection;
+                        }
+                        prev = intersection;
+                    }
+                }
+            }
+        }
+        
+        // Add current point if it's inside
+        if (currentInside) {
+            V4pPointP newPoint = QuickHeapAlloc(v4p->pointHeap);
+            newPoint->x = x;
+            newPoint->y = y;
+            newPoint->next = NULL;
+            
+            if (result == NULL) {
+                result = newPoint;
+            } else {
+                prev->next = newPoint;
+            }
+            prev = newPoint;
+        }
+        
+        prevPoint = current;
+        prevInside = currentInside;
+        current = current->next;
+    }
+    
+    return result;
+}
+
+// Clip a polygon against a rectangle using Sutherland-Hodgman algorithm
+V4pPolygonP v4p_recPolygonClipClone(Boolean estSub, V4pPolygonP p, V4pPolygonP c, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1) {
+    V4pPointP sp, sc;
+    V4pPointP clippedPoints = NULL;
+    
+    // Copy points from p to a temporary list
+    sp = p->point1;
+    V4pPointP* tail = &clippedPoints;  // Pointer to the end of the list
+    while (sp) {
+        V4pPointP newPoint = QuickHeapAlloc(v4p->pointHeap);
+        newPoint->x = sp->x;
+        newPoint->y = sp->y;
+        newPoint->next = NULL;
+        *tail = newPoint;
+        tail = &newPoint->next;
+        sp = sp->next;
+    }
+    
+    // Clip against each edge of the rectangle
+    // Order: top, right, bottom, left (clockwise)
+    clippedPoints = clipEdge(clippedPoints, false, y0, true);    // Top edge (horizontal, min y)
+    clippedPoints = clipEdge(clippedPoints, true, x1, false);   // Right edge (vertical, max x)
+    clippedPoints = clipEdge(clippedPoints, false, y1, false);   // Bottom edge (horizontal, max y)
+    clippedPoints = clipEdge(clippedPoints, true, x0, true);    // Left edge (vertical, min x)
+    
+    // Replace the points in c with the clipped points
+    sc = c->point1;
+    while (sc) {
+        V4pPointP next = sc->next;
+        QuickHeapFree(v4p->pointHeap, sc);
+        sc = next;
+    }
+    c->point1 = clippedPoints;
+    
+    c->miny = V4P_NIL;  // Invalidate computed boundaries
+    v4p_changed(c);
+    
+    if (estSub && p->next) {
+        v4p_recPolygonClipClone(true, p->next, c->next, x0, y0, x1, y1);
+    }
+    if (p->sub1) {
+        v4p_recPolygonClipClone(true, p->sub1, c->sub1, x0, y0, x1, y1);
+    }
+    
+    return c;
+}
+
+// Clip a clone c of a polygon p against a rectangle
+V4pPolygonP v4p_clipClone(V4pPolygonP p, V4pPolygonP c, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1) {
+    return v4p_recPolygonClipClone(false, p, c, x0, y0, x1, y1);
+}
+
+// Clip a polygon against a rectangle
+V4pPolygonP v4p_clip(V4pPolygonP p, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1) {
+    if (p->parent) {  // If this polygon has a parent
+        // Clip relatively to parent
+        return v4p_clipClone(p->parent, p, x0, y0, x1, y1);
+    } else {
+        // Otherwise, clip in place
+        return v4p_clipClone(p, p, x0, y0, x1, y1);
+    }
 }
 
 // called by v4p_polygonClone
@@ -1365,7 +1587,7 @@ Boolean v4p_render() {
     return success;
 }
 // Add 4 points as a rectangle
-V4pPolygonP v4p_rect(V4pPolygonP p, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1) {
+V4pPolygonP v4p_addCorners(V4pPolygonP p, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1) {
     v4p_addPoint(p, x0, y0);
     v4p_addPoint(p, x0, y1);
     v4p_addPoint(p, x1, y1);

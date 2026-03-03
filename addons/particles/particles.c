@@ -111,7 +111,7 @@ V4pPolygonP particles_create_default_prototype() {
     if (!proto) return NULL;
     
     // Create a small square
-    v4p_rect(proto, -2, -2, 4, 4);
+    v4p_addCorners(proto, -2, -2, 4, 4);
     v4p_setAnchorToCenter(proto);
     
     return proto;

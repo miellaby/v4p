@@ -156,7 +156,7 @@ V4pPolygonP createBulletPrototype() {
     if (bulletProto == NULL) {
         bulletProto = v4p_new(V4P_ABSOLUTE, V4P_YELLOW, 0);
         // Create a simple square for the bullet
-        v4p_rect(bulletProto, -BULLET_SIZE/2, -BULLET_SIZE, BULLET_SIZE/2, BULLET_SIZE);
+        v4p_addCorners(bulletProto, -BULLET_SIZE/2, -BULLET_SIZE, BULLET_SIZE/2, BULLET_SIZE);
         v4p_setAnchorToCenter(bulletProto);
     }
     return bulletProto;

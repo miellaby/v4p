@@ -16,7 +16,7 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
 
     // Create a base box
     V4pPolygonP original_box = v4p_new(V4P_ABSOLUTE, V4P_RED, 5);
-    v4p_rect(original_box, 0, 0, BOX_SIZE, BOX_SIZE);
+    v4p_addCorners(original_box, 0, 0, BOX_SIZE, BOX_SIZE);
     v4p_setAnchorToCenter(original_box);
 
     // Create a grid of clones

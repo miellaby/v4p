@@ -21,7 +21,7 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
     for (int i = 0; i < numTests; i++) {
         V4pLayer depth = testDepths[i];
         V4pPolygonP p = v4p_addNew(V4P_ABSOLUTE, V4P_WHITE, depth);
-        v4p_rect(p, 10 + i*20, 10, 30 + i*20, 30);
+        v4p_addCorners(p, 10 + i*20, 10, 30 + i*20, 30);
         
         V4pLayer retrievedDepth = v4p_getLayer(p);
         printf("Depth %u -> %u (%s)\n", depth, retrievedDepth, 

@@ -41,7 +41,7 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
     
     for (int i = 0; i < numPolygons; i++) {
         V4pPolygonP p = v4p_addNew(V4P_ABSOLUTE, 0xFF0000 + (i * 32), depths[i]);
-        v4p_rect(p, 50, 50, 150, 150);  // All overlap
+        v4p_addCorners(p, 50, 50, 150, 150);  // All overlap
         v4p_setCollisionMask(p, 1 << (i % 8));  // Set collision mask
         printf("Created polygon %d at depth %u\n", i, depths[i]);
     }
