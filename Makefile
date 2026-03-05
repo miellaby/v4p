@@ -170,7 +170,7 @@ endif
 # Trace system configuration
 ifdef TRACE
   # 1. Define the master list of available tags
-  TRACE_TAGS := CIRCLE POLYGON SCAN EDGE SHIFT OPEN COLLISION RENDER TRANSFORM G4P
+  TRACE_TAGS := CIRCLE POLYGON SCAN EDGE SHIFT OPEN COLLISION RENDER TRANSFORM G4P NUKLEAR
 
   ifeq ($(TRACE),all)
     override TRACE = $(TRACE_TAGS)
@@ -181,7 +181,7 @@ ifdef TRACE
     $(if $(findstring $(tag),$(TRACE)),-DTRACE_$(tag)=1,-DTRACE_$(tag)=0))
     
   CPPFLAGS += -DTRACE
-  $(info Enabling trace tags: $(filter $(TRACE_TAGS),$(TRACE)))
+  $(info Trace tags: $(filter $(TRACE_TAGS),$(TRACE)))
 endif
 
 
@@ -227,6 +227,8 @@ DEBUG_SRCS = addons/debug/debug.c
 # Demos - build object files in demo directories
 demos/%.o: demos/%.c
 	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -Iaddons/game_engine -Iaddons/v4pserial -Iaddons/qfont -Iaddons/debug -Iaddons/nuklear -c $< -o $@
+
+demos/demo_nuklear.o: addons/nuklear/nuklear_v4p.h
 
 # Link demos in their directories
 demos/%: demos/%.o libv4p.a libg4p.a libqfont.a libv4pserial.a libparticles.a libdebug.a

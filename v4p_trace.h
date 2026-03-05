@@ -46,6 +46,9 @@ void v4pi_trace(const char* tag, const char* format, ...);
 #ifndef TRACE_G4P
     #define TRACE_G4P 0
 #endif
+#ifndef TRACE_NUKLEAR
+    #define TRACE_NUKLEAR 0
+#endif
 #define TRACE_ENABLED_1(TAG, FMT, ...) v4pi_trace(#TAG, FMT, ##__VA_ARGS__)
 #define TRACE_ENABLED_0(TAG, FMT, ...) ((void) 0)
 

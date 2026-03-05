@@ -32,20 +32,15 @@
 
 #include "v4p.h"
 #include "addons/qfont/qfont.h"
+#include "v4p_trace.h"
 
 struct nk_context;
 
-struct v4p_pl {
-    unsigned char bytesPerPixel;
-    unsigned char rshift, gshift, bshift, ashift;
-    unsigned char rloss, gloss, bloss, aloss;
-};
-
-/* All functions are thread-safe */
-NK_API struct nk_context *nk_v4p_init(V4pSceneP scene, V4pCoord width, V4pCoord height, const struct v4p_pl pl);
+NK_API struct nk_context *nk_v4p_init(V4pSceneP scene, V4pCoord width, V4pCoord height);
 NK_API void                  nk_v4p_render(struct nk_context *ctx);
 NK_API void                  nk_v4p_shutdown(struct nk_context *ctx);
-NK_API void                  nk_v4p_resize(struct nk_context *ctx, V4pCoord width, V4pCoord height, const struct v4p_pl pl);
+NK_API void                  nk_v4p_resize(struct nk_context *ctx, V4pCoord width, V4pCoord height);
+
 
 #endif
 /*
@@ -60,19 +55,11 @@ NK_API void                  nk_v4p_resize(struct nk_context *ctx, V4pCoord widt
 #include <assert.h>
 #include <math.h>
 
-struct v4p_image {
-    V4pPolygonP polygon;
-    int w, h;
-    struct v4p_pl pl;
-};
-
 struct nk_v4p_context {
     struct nk_context ctx; // must be first for proper casting to nk_context*
     V4pSceneP scene;  // Reference to a v4p scene
-    struct nk_rect scissors;
-    struct v4p_image fb;
-    struct v4p_image font_tex;
-    struct nk_font_atlas atlas;
+    struct nk_recti scissors;
+    struct nk_user_font font;  // Custom font instead of atlas
     V4pLayer current_layer;  // Track current layer for z-ordering
 };
 
@@ -85,30 +72,33 @@ typedef V4pColor v4p_color;
 #define MAX(a,b) ((a) < (b) ? (b) : (a))
 #endif
 
-static v4p_color
-nk_v4p_color2int(const struct nk_color c, const struct v4p_pl *pl)
-{
-    // Convert Nuklear color (0-255 RGBA) to v4p palette index
-    // v4p uses a 256-color palette, so we need to find the closest match
-    // Ignore alpha channel as v4p doesn't support transparency in palette
-    return v4p_rgb_to_palette_index(c.r, c.g, c.b);
+// Macro to check if scissor region is not nk_null_rect
+// nk_null_rect is defined as {-8192, -8192, 16384, 16384}
+#define NK_SCISSOR_NULL(s) ((s).w == 16384 && (s).h == 16384 && (s).x == -8192 && (s).y == -8192)
+
+// Convert Nuklear color (0-255 RGBA) to v4p palette index
+// v4p uses a 256-color palette, so we need to find the closest match
+// Use alpha channel to dim the RGB channels
+static v4p_color nk_v4p_color2int(const struct nk_color c) {
+    // Apply alpha to dim RGB channels (alpha=0 is transparent, alpha=255 is opaque)
+    unsigned char r = (c.r * c.a) / 255;
+    unsigned char g = (c.g * c.a) / 255;
+    unsigned char b = (c.b * c.a) / 255;
+    return v4p_rgb_to_palette_index(r, g, b);
 }
-
-
-
-
 
 static void
 nk_v4p_scissor(struct nk_v4p_context *v4p,
-                 const float x,
-                 const float y,
-                 const float w,
-                 const float h)
+                 const short x,
+                 const short y,
+                 const unsigned short w,
+                 const unsigned short h)
 {
-    v4p->scissors.x = (V4pCoord)x;
-    v4p->scissors.y = (V4pCoord)y;
-    v4p->scissors.w = (V4pCoord)w;
-    v4p->scissors.h = (V4pCoord)h;
+    v4p_trace(NUKLEAR, "Setting scissor region: (%d,%d) %d×%d\n", x, y, w, h);
+    v4p->scissors.x = x;
+    v4p->scissors.y = y;
+    v4p->scissors.w = w;
+    v4p->scissors.h = h;
 }
 
 static void
@@ -120,13 +110,20 @@ nk_v4p_stroke_line(const struct nk_v4p_context *v4p_ctx,
     // For simplicity, we'll create a rectangle that approximates the line
     // This is a simplified approach using axis-aligned rectangles
     
+    v4p_trace(NUKLEAR, "Drawing line from (%d,%d) to (%d,%d), thickness=%u, color=%d\n", x0, y0, x1, y1, line_thickness, col);
+    
     V4pCoord thickness = line_thickness > 0 ? line_thickness : 1;
     
     // Create a rectangle polygon representing the line
     V4pPolygonP line = v4p_sceneAddNewPoly(v4p_ctx->scene, V4P_ABSOLUTE, col, v4p_ctx->current_layer);
+    v4p_trace(NUKLEAR, "Created line polygon %p at layer %d\n", (void*)line, v4p_ctx->current_layer);
     
     // Apply scissor clipping
-    if (v4p_ctx->scissors.w > 0 && v4p_ctx->scissors.h > 0) {
+    if (!NK_SCISSOR_NULL(v4p_ctx->scissors)) {
+        v4p_trace(NUKLEAR, "Applying scissor clipping to line: (%d,%d)-(%d,%d)\n",
+                 v4p_ctx->scissors.x, v4p_ctx->scissors.y,
+                 v4p_ctx->scissors.x + v4p_ctx->scissors.w,
+                 v4p_ctx->scissors.y + v4p_ctx->scissors.h);
         v4p_clip(line, v4p_ctx->scissors.x, v4p_ctx->scissors.y,
                  v4p_ctx->scissors.x + v4p_ctx->scissors.w,
                  v4p_ctx->scissors.y + v4p_ctx->scissors.h);
@@ -183,17 +180,25 @@ nk_v4p_fill_rect(const struct nk_v4p_context *v4p_ctx,
     const V4pCoord x, const V4pCoord y, const V4pCoord w, const V4pCoord h,
     const short r, v4p_color col)
 {
+    v4p_trace(NUKLEAR, "Filling rectangle: (%d,%d) %d×%d, rounding=%d, color=%d\n", x, y, w, h, r, col);
+    
     // Use v4p's rectangle drawing
     // Create a rectangle polygon (4 points) and add to scene
     // Use the current layer for proper z-ordering
     V4pPolygonP rect = v4p_sceneAddNewPoly(v4p_ctx->scene, V4P_ABSOLUTE, col, v4p_ctx->current_layer);
+    v4p_trace(NUKLEAR, "Created rectangle polygon %p at layer %d\n", (void*)rect, v4p_ctx->current_layer);
+    
     v4p_addPoint(rect, x, y);
     v4p_addPoint(rect, x + w, y);
     v4p_addPoint(rect, x + w, y + h);
     v4p_addPoint(rect, x, y + h);
     
     // Apply scissor clipping
-    if (v4p_ctx->scissors.w > 0 && v4p_ctx->scissors.h > 0) {
+    if (!NK_SCISSOR_NULL(v4p_ctx->scissors)) {
+        v4p_trace(NUKLEAR, "Applying scissor clipping to rectangle: (%d,%d)-(%d,%d)\n",
+                 v4p_ctx->scissors.x, v4p_ctx->scissors.y,
+                 v4p_ctx->scissors.x + v4p_ctx->scissors.w,
+                 v4p_ctx->scissors.y + v4p_ctx->scissors.h);
         v4p_clip(rect, v4p_ctx->scissors.x, v4p_ctx->scissors.y,
                  v4p_ctx->scissors.x + v4p_ctx->scissors.w,
                  v4p_ctx->scissors.y + v4p_ctx->scissors.h);
@@ -205,15 +210,23 @@ nk_v4p_fill_triangle(const struct nk_v4p_context *v4p_ctx,
     const V4pCoord x0, const V4pCoord y0, const V4pCoord x1, const V4pCoord y1,
     const V4pCoord x2, const V4pCoord y2, v4p_color col)
 {
+    v4p_trace(NUKLEAR, "Filling triangle: (%d,%d), (%d,%d), (%d,%d), color=%d\n", x0, y0, x1, y1, x2, y2, col);
+    
     // Use v4p's triangle drawing
     // Use the current layer for proper z-ordering
     V4pPolygonP tri = v4p_sceneAddNewPoly(v4p_ctx->scene, V4P_ABSOLUTE, col, v4p_ctx->current_layer);
+    v4p_trace(NUKLEAR, "Created triangle polygon %p at layer %d\n", (void*)tri, v4p_ctx->current_layer);
+    
     v4p_addPoint(tri, x0, y0);
     v4p_addPoint(tri, x1, y1);
     v4p_addPoint(tri, x2, y2);
     
     // Apply scissor clipping
-    if (v4p_ctx->scissors.w > 0 && v4p_ctx->scissors.h > 0) {
+    if (!NK_SCISSOR_NULL(v4p_ctx->scissors)) {
+        v4p_trace(NUKLEAR, "Applying scissor clipping to triangle: (%d,%d)-(%d,%d)\n",
+                 v4p_ctx->scissors.x, v4p_ctx->scissors.y,
+                 v4p_ctx->scissors.x + v4p_ctx->scissors.w,
+                 v4p_ctx->scissors.y + v4p_ctx->scissors.h);
         v4p_clip(tri, v4p_ctx->scissors.x, v4p_ctx->scissors.y,
                  v4p_ctx->scissors.x + v4p_ctx->scissors.w,
                  v4p_ctx->scissors.y + v4p_ctx->scissors.h);
@@ -224,11 +237,18 @@ static void
 nk_v4p_fill_circle(const struct nk_v4p_context *v4p_ctx,
     V4pCoord x0, V4pCoord y0, V4pCoord w, V4pCoord h, v4p_color col)
 {
+    v4p_trace(NUKLEAR, "Filling circle: (%d,%d) %d×%d color=%d\n", x0, y0, w, h, col);
+    
     // Use v4p's circle drawing
     V4pPolygonP circle = v4p_sceneAddNewDisk(v4p_ctx->scene, V4P_ABSOLUTE, col, v4p_ctx->current_layer, x0, y0, w/2);
+    v4p_trace(NUKLEAR, "Created circle polygon %p at layer %d with radius %d\n", (void*)circle, v4p_ctx->current_layer, w/2);
     
     // Apply scissor clipping
-    if (v4p_ctx->scissors.w > 0 && v4p_ctx->scissors.h > 0) {
+    if (!NK_SCISSOR_NULL(v4p_ctx->scissors)) {
+        v4p_trace(NUKLEAR, "Applying scissor clipping to circle: (%d,%d)-(%d,%d)\n",
+                 v4p_ctx->scissors.x, v4p_ctx->scissors.y,
+                 v4p_ctx->scissors.x + v4p_ctx->scissors.w,
+                 v4p_ctx->scissors.y + v4p_ctx->scissors.h);
         v4p_clip(circle, v4p_ctx->scissors.x, v4p_ctx->scissors.y,
                  v4p_ctx->scissors.x + v4p_ctx->scissors.w,
                  v4p_ctx->scissors.y + v4p_ctx->scissors.h);
@@ -237,174 +257,227 @@ nk_v4p_fill_circle(const struct nk_v4p_context *v4p_ctx,
 
 static void
 nk_v4p_draw_text(const struct nk_v4p_context *v4p_ctx,
-    const struct nk_user_font *font, const struct nk_rect rect,
+    const struct nk_user_font *font, short x, short y, short w, short h,
     const char *text, const int len, const float font_height,
-    const struct nk_color fg)
+    v4p_color color)
 {
+    v4p_trace(NUKLEAR, "Drawing text: '%.*s', font_height=%f, rect=(%d,%d) %d×%d\n", len, text, font_height, x, y, w, h);
+    
     // Use v4p's qfont system for text rendering
-    // Convert Nuklear color to v4p palette index
-    v4p_color color = nk_v4p_color2int(fg, &v4p_ctx->fb.pl);
+    v4p_trace(NUKLEAR, "Text color converted to palette index %d\n", color);
     
     // Create a polygon for the text
     V4pPolygonP text_poly = v4p_sceneAddNewPoly(v4p_ctx->scene, V4P_ABSOLUTE, color, v4p_ctx->current_layer);
+    v4p_trace(NUKLEAR, "Created text polygon %p at layer %d\n", (void*)text_poly, v4p_ctx->current_layer);
 
     // Use qfont to define the text polygon
-    // Scale font size appropriately
-    V4pCoord char_width = (V4pCoord)(font_height * 0.6f);  // Approximate character width
+    // Scale font size appropriately based on the custom font height
+    V4pCoord char_width = (V4pCoord)(font_height * 0.8f);  // Approximate character width (matches our width calculation)
     V4pCoord char_height = (V4pCoord)font_height;
-    V4pCoord interleave = (V4pCoord)(font_height * 0.2f); // Spacing between characters
+    V4pCoord interleave = (V4pCoord)(font_height * 0.2f); // Spacing between characters (matches our width calculation)
+    v4p_trace(NUKLEAR, "Font metrics: %d×%d interleave=%d\n", char_width, char_height, interleave);
     
     // Create a temporary string with the text (ensure null-terminated)
     char temp_text[256];
     int text_len = len > 255 ? 255 : len;
     strncpy(temp_text, text, text_len);
     temp_text[text_len] = '\0';
+    v4p_trace(NUKLEAR, "Text to render: '%s'\n", temp_text);
     
     // Use qfont to define the polygon from the string
     qfontDefinePolygonFromString(temp_text,
                                text_poly,
-                               (V4pCoord)rect.x,
-                               (V4pCoord)rect.y,
+                               (V4pCoord)x,
+                               (V4pCoord)y,
                                char_width,
                                char_height,
                                interleave);
     
     // Apply scissor clipping
-    if (v4p_ctx->scissors.w > 0 && v4p_ctx->scissors.h > 0) {
+    if (!NK_SCISSOR_NULL(v4p_ctx->scissors)) {
+        v4p_trace(NUKLEAR, "Applying scissor clipping to text: (%d,%d)-(%d,%d)\n",
+                 v4p_ctx->scissors.x, v4p_ctx->scissors.y,
+                 v4p_ctx->scissors.x + v4p_ctx->scissors.w,
+                 v4p_ctx->scissors.y + v4p_ctx->scissors.h);
         v4p_clip(text_poly, v4p_ctx->scissors.x, v4p_ctx->scissors.y,
                  v4p_ctx->scissors.x + v4p_ctx->scissors.w,
                  v4p_ctx->scissors.y + v4p_ctx->scissors.h);
     }
 }
 
-NK_API struct nk_context*
-nk_v4p_init(V4pSceneP scene, V4pCoord width, V4pCoord height, const struct v4p_pl pl)
+// Custom font width calculation function using qfont
+static float
+nk_v4p_font_width(nk_handle handle, float height, const char *text, int len)
 {
+    (void)handle; // Unused parameter
+    v4p_trace(NUKLEAR, "Calculating text width for '%.*s' (len=%d, height=%.1f)\n", len, text, len, height);
+    
+    // Use qfont metrics to calculate approximate width
+    // qfont characters are 4x5 pixels, so we scale accordingly
+    V4pCoord char_width = (V4pCoord)(height * 0.8f);  // Approximate character width
+    V4pCoord interleave = (V4pCoord)(height * 0.2f); // Spacing between characters
+    
+    float total_width = 0.0f;
+    for (int i = 0; i < len; i++) {
+        total_width += char_width;
+        if (i < len - 1) {
+            total_width += interleave;
+        }
+    }
+    
+    v4p_trace(NUKLEAR, "Calculated text width: %.1f\n", total_width);
+    return total_width;
+}
+
+NK_API struct nk_context*
+nk_v4p_init(V4pSceneP scene, V4pCoord width, V4pCoord height)
+{
+    v4p_trace(NUKLEAR, "Initializing Nuklear v4p backend %dx%d\n", width, height);
+    
     struct nk_v4p_context* v4p_ctx;
-    const void *tex;
 
     v4p_ctx = (struct nk_v4p_context *)malloc(sizeof(struct nk_v4p_context));
-    if (!v4p_ctx)
+    if (!v4p_ctx) {
+        v4p_trace(NUKLEAR, "Failed to allocate Nuklear context\n");
         return NULL;
+    }
 
     memset(v4p_ctx, 0, sizeof(struct nk_v4p_context));
 
     // v4p_setResolution doesn't exist, we'll use default resolution
+    v4p_trace(NUKLEAR, "Setting up Nuklear v4p context\n");
 
-    // Set up font texture
     v4p_ctx->scene = scene;
-    v4p_ctx->font_tex.polygon = NULL;
-    v4p_ctx->font_tex.pl = pl;
-    v4p_ctx->font_tex.w = v4p_ctx->font_tex.h = 0;
-
-    v4p_ctx->fb.w = width;
-    v4p_ctx->fb.h = height;
-    v4p_ctx->fb.pl = pl;
     v4p_ctx->current_layer = 200;  // Start UI layers at 200 to ensure they render above most content
+    v4p_trace(NUKLEAR, "Framebuffer: %dx%d\n", width, height);
 
-    if (0 == nk_init_default(&v4p_ctx->ctx, 0)) {
+    // Set up custom font using qfont system
+    v4p_trace(NUKLEAR, "Setting up custom qfont-based font\n");
+    v4p_ctx->font.userdata.ptr = NULL;  // No custom font data needed for qfont
+    v4p_ctx->font.height = 16.0f;       // Default font height
+    v4p_ctx->font.width = nk_v4p_font_width;
+    
+    if (0 == nk_init_default(&v4p_ctx->ctx, &v4p_ctx->font)) {
+        v4p_trace(NUKLEAR, "Failed to initialize Nuklear default context\n");
         free(v4p_ctx);
         return NULL;
     }
 
-    nk_font_atlas_init_default(&v4p_ctx->atlas);
-    nk_font_atlas_begin(&v4p_ctx->atlas);
-    tex = nk_font_atlas_bake(&v4p_ctx->atlas, &v4p_ctx->font_tex.w, &v4p_ctx->font_tex.h, NK_FONT_ATLAS_ALPHA8);
-    if (!tex) {
-        free(v4p_ctx);
-        return NULL;
-    }
+    v4p_trace(NUKLEAR, "Setting custom font as default\n");
+    nk_style_set_font(&v4p_ctx->ctx, &v4p_ctx->font);
 
-    // v4p->font_tex.pitch = v4p->font_tex.w * 1;
-    // Note: In a full implementation, we would create a texture from this data
-    nk_font_atlas_end(&v4p_ctx->atlas, nk_handle_ptr(NULL), NULL);
-    if (v4p_ctx->atlas.default_font)
-        nk_style_set_font(&v4p_ctx->ctx, &v4p_ctx->atlas.default_font->handle);
-    nk_style_load_all_cursors(&v4p_ctx->ctx, v4p_ctx->atlas.cursors);
-    nk_v4p_scissor(v4p_ctx, 0, 0, v4p_ctx->fb.w, v4p_ctx->fb.h);
-
+    v4p_trace(NUKLEAR, "Nuklear v4p backend initialized successfully with custom font\n");
     return &v4p_ctx->ctx;
 }
 
 NK_API void
 nk_v4p_render(struct nk_context *ctx)
 {
-    struct nk_v4p_context *v4p = (struct nk_v4p_context *)ctx;
-    const struct v4p_pl *pl = &v4p->fb.pl;
-    const struct nk_command *cmd;
+    v4p_trace(NUKLEAR, "Starting Nuklear render pass\n");
+
+    // Cast the generic nk_context to our custom context to access v4p-specific data
+    struct nk_v4p_context* v4p = (struct nk_v4p_context*) ctx;
 
     // Reset layer for each frame
     v4p->current_layer = 200;
 
+    // Reset scissor to null
+    nk_v4p_scissor(v4p, nk_null_rect.x, nk_null_rect.y, nk_null_rect.w, nk_null_rect.h);
+
+    const struct nk_command* cmd;
     nk_foreach(cmd, ctx) {
+        // v4p_trace(NUKLEAR, "Processing command type %d\n", cmd->type);
         switch (cmd->type) {
-        case NK_COMMAND_NOP: break;
+        case NK_COMMAND_NOP: 
+            v4p_trace(NUKLEAR, "Command: NOP\n");
+            break;
         case NK_COMMAND_SCISSOR: {
             const struct nk_command_scissor *s =(const struct nk_command_scissor*)cmd;
+            v4p_trace(NUKLEAR, "Command: SCISSOR (%d,%d) %d×%d\n", s->x, s->y, s->w, s->h);
             nk_v4p_scissor(v4p, s->x, s->y, s->w, s->h);
         } break;
         case NK_COMMAND_LINE: {
             const struct nk_command_line *l = (const struct nk_command_line *)cmd;
+            v4p_trace(NUKLEAR, "Command: LINE from (%d,%d) to (%d,%d), thickness=%d\n", 
+                     l->begin.x, l->begin.y, l->end.x, l->end.y, l->line_thickness);
             nk_v4p_stroke_line(v4p, l->begin.x, l->begin.y, l->end.x,
-                l->end.y, l->line_thickness, nk_v4p_color2int(l->color, pl));
+                l->end.y, l->line_thickness, nk_v4p_color2int(l->color));
             v4p->current_layer++;
         } break;
         case NK_COMMAND_RECT: {
             const struct nk_command_rect *r = (const struct nk_command_rect *)cmd;
-            // For now, just draw filled rect (simplified)
-            nk_v4p_fill_rect(v4p, r->x, r->y, r->w, r->h,
-                0, nk_v4p_color2int(r->color, pl));
+            v4p_trace(NUKLEAR, "Command: RECT (%d,%d) %d×%d, thickness=%d\n", r->x, r->y, r->w, r->h, r->line_thickness);
+            // Draw hollow rectangle using 4 lines
+            v4p_color col = nk_v4p_color2int(r->color);
+            nk_v4p_stroke_line(v4p, r->x, r->y, r->x + r->w, r->y, r->line_thickness, col);
             v4p->current_layer++;
-        } break;
+            nk_v4p_stroke_line(v4p, r->x + r->w, r->y, r->x + r->w, r->y + r->h, r->line_thickness, col);
+            v4p->current_layer++;
+            nk_v4p_stroke_line(v4p, r->x + r->w, r->y + r->h, r->x, r->y + r->h, r->line_thickness, col);
+            v4p->current_layer++;
+            nk_v4p_stroke_line(v4p, r->x, r->y + r->h, r->x, r->y, r->line_thickness, col);
+            v4p->current_layer++;
+        }
+            break;
         case NK_COMMAND_RECT_FILLED: {
             const struct nk_command_rect_filled *r = (const struct nk_command_rect_filled *)cmd;
+            v4p_trace(NUKLEAR, "Command: RECT_FILLED (%d,%d) %d×%d, rounding=%d\n", 
+                     r->x, r->y, r->w, r->h, r->rounding);
             nk_v4p_fill_rect(v4p, r->x, r->y, r->w, r->h,
-                (short)r->rounding, nk_v4p_color2int(r->color, pl));
+                (short)r->rounding, nk_v4p_color2int(r->color));
             v4p->current_layer++;
         } break;
         case NK_COMMAND_CIRCLE_FILLED: {
             const struct nk_command_circle_filled *c = (const struct nk_command_circle_filled *)cmd;
+            v4p_trace(NUKLEAR, "Command: CIRCLE_FILLED (%d,%d) %d×%d\n", 
+                     c->x, c->y, c->w, c->h);
             nk_v4p_fill_circle(v4p, c->x, c->y, c->w, c->h,
-                                 nk_v4p_color2int(c->color, pl));
+                                 nk_v4p_color2int(c->color));
             v4p->current_layer++;
         } break;
         case NK_COMMAND_TRIANGLE_FILLED: {
             const struct nk_command_triangle_filled *t = (const struct nk_command_triangle_filled *)cmd;
+            v4p_trace(NUKLEAR, "Command: TRIANGLE_FILLED (%d,%d), (%d,%d), (%d,%d)\n",
+                     t->a.x, t->a.y, t->b.x, t->b.y, t->c.x, t->c.y);
             nk_v4p_fill_triangle(v4p, t->a.x, t->a.y, t->b.x, t->b.y,
-                t->c.x, t->c.y, nk_v4p_color2int(t->color, pl));
+                t->c.x, t->c.y, nk_v4p_color2int(t->color));
             v4p->current_layer++;
         } break;
         case NK_COMMAND_TEXT: {
             const struct nk_command_text *t = (const struct nk_command_text*)cmd;
-            nk_v4p_draw_text(v4p, t->font, nk_rect(t->x, t->y, t->w, t->h),
-                t->string, t->length, t->height, t->foreground);
+            v4p_trace(NUKLEAR, "Command: TEXT '%.*s' at (%d,%d) %d×%d, height=%.1f\n",
+                     t->length, t->string, t->x, t->y, t->w, t->h, t->height);
+            
+            // Check if text has background color with alpha > 0
+            if (t->background.a > 0) {
+                v4p_trace(NUKLEAR, "Drawing text background rect: (%d,%d) %d×%d\n", t->x, t->y, t->w, t->h);
+                nk_v4p_fill_rect(v4p, t->x, t->y, t->w, t->h, 0, nk_v4p_color2int(t->background));
+                v4p->current_layer++;
+            }
+            
+            nk_v4p_draw_text(v4p, t->font, t->x, t->y, t->w, t->h, t->string, t->length, t->height,
+                             nk_v4p_color2int(t->foreground));
             v4p->current_layer++;
         } break;
-        default: break;
+        default: 
+            v4p_trace(NUKLEAR, "Command: UNKNOWN type %d\n", cmd->type);
+            break;
         }
-    } 
-    
+    }
+
+    v4p_trace(NUKLEAR, "Nuklear render pass completed, clearing context\n");
     nk_clear(ctx);
 }
 
 NK_API void
 nk_v4p_shutdown(struct nk_context *ctx)
 {
+    v4p_trace(NUKLEAR, "Shutting down Nuklear v4p backend\n");
     if (ctx) {
         struct nk_v4p_context *v4p = (struct nk_v4p_context *)ctx;
         nk_free(ctx);
         free(v4p);
     }
-}
-
-NK_API void
-nk_v4p_resize(struct nk_context *ctx, V4pCoord width, V4pCoord height, const struct v4p_pl pl)
-{
-    struct nk_v4p_context *v4p = (struct nk_v4p_context *)ctx;
-    v4p->fb.w = width;
-    v4p->fb.h = height;
-    v4p->fb.pl = pl;
-    // v4p_setResolution doesn't exist, resolution is handled by the backend
 }
 
 #endif
