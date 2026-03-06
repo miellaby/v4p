@@ -61,7 +61,7 @@ Concepts
 static int polygonDepthComparator(void* a, void* b) {
     V4pPolygonP polyA = (V4pPolygonP)a;
     V4pPolygonP polyB = (V4pPolygonP)b;
-    
+
     if (polyA->z < polyB->z) return -1;
     if (polyA->z > polyB->z) return 1;
     return 0;
@@ -691,7 +691,7 @@ V4pPolygonP v4p_recPolygonTransformClone(Boolean estSub, V4pPolygonP p, V4pPolyg
                                          V4pCoord zoom_y) {
     V4pPointP sp, sc;
     V4pCoord x, y, x2, y2, tx, ty;
-    
+
     // Pre-compute integer scaling factors for zoom using quotient-remainder technique
     // This avoids 16-bit overflow on MCUs by breaking scaling into safe components
     // See integer_scaling.md for detailed explanation
@@ -720,7 +720,7 @@ V4pPolygonP v4p_recPolygonTransformClone(Boolean estSub, V4pPolygonP p, V4pPolyg
             new_point->x = V4P_NIL;
             new_point->y = V4P_NIL;
             new_point->next = NULL;
-            
+
             if (prev_sc) {
                 prev_sc->next = new_point;
             } else {
@@ -752,12 +752,12 @@ V4pPolygonP v4p_recPolygonTransformClone(Boolean estSub, V4pPolygonP p, V4pPolyg
             sc->x = V4P_NIL;
             sc->y = V4P_NIL;
         }
-        
+
         prev_sc = sc;
         sp = sp->next;
         sc = sc->next;
     }
-    
+
     // Remove any extra points in clone that don't exist in parent
     // (e.g., if clone was modified to have more points)
     while (sc) {
@@ -807,14 +807,14 @@ V4pPolygonP v4p_transform(V4pPolygonP p, V4pCoord dx, V4pCoord dy, int angle, V4
 // Center a polygon by computing its bounds and transforming it to (0,0)
 V4pPolygonP v4p_centerPolygon(V4pPolygonP p) {
     V4pCoord minx, maxx, miny, maxy;
-    
+
     // Get the current bounds of the polygon
     v4p_getLimits(p, &minx, &maxx, &miny, &maxy);
-    
+
     // Calculate the center of the polygon
     V4pCoord centerX = (minx + maxx) / 2;
     V4pCoord centerY = (miny + maxy) / 2;
-    
+
     // Transform the polygon to center it at (0,0)
     // Use no rotation, no zoom, just translation
     return v4p_transform(p, -centerX, -centerY, 0, 0, 256, 256);
@@ -826,77 +826,82 @@ static V4pPointP clipEdge(V4pPointP subject, Boolean isVertical, V4pCoord clipCo
     V4pPointP result = NULL;
     V4pPointP prev = NULL;
     V4pPointP current = subject;
-    V4pPointP prevPoint = NULL;
-    Boolean prevInside = false;
-    
-    // Find the last point for polygon closure
-    V4pPointP lastPoint = subject;
-    while (lastPoint != NULL && lastPoint->next != NULL) {
-        lastPoint = lastPoint->next;
-    }
-    
-    // Initialize prevPoint with last point for closure
-    if (lastPoint != NULL) {
-        prevPoint = lastPoint;
-        V4pCoord lastX = lastPoint->x;
-        V4pCoord lastY = lastPoint->y;
-        
-        // Determine if last point is inside
-        if (isVertical) {
-            if (isMinEdge) {
-                prevInside = lastX >= clipCoord;
-            } else {
-                prevInside = lastX <= clipCoord;
-            }
-        } else {
-            if (isMinEdge) {
-                prevInside = lastY >= clipCoord;
-            } else {
-                prevInside = lastY <= clipCoord;
-            }
+    V4pPointP subStart = subject;
+
+    // We clip sub-path by sub-path because of JUMP points that separates multiple sub-paths.
+    // Nested loop closes every sub-path.
+
+    // For each sub-path we need: its last real point and its inside state.
+    // We do two things:
+    //   1. Scan ahead to find sub-path tail for closure init.
+    //   2. Process points normally, resetting on JUMP.
+
+    while (subStart != NULL) {
+        // Find the last real point of this sub-path (before next JUMP or end)
+        V4pPointP lastPoint = NULL;
+        V4pPointP scan = subStart;
+        while (scan != NULL) {
+            if (scan->x == V4P_NIL && scan->y == V4P_NIL) break;  // JUMP
+            lastPoint = scan;
+            scan = scan->next;
         }
-    }
-    
-    while (current != NULL) {
-        V4pCoord x = current->x;
-        V4pCoord y = current->y;
-        Boolean currentInside;
-        
-        if (isVertical) {
-            // Vertical edge: clip against x = clipCoord
-            if (isMinEdge) {
-                currentInside = x >= clipCoord;  // Left edge (min x)
-            } else {
-                currentInside = x <= clipCoord;  // Right edge (max x)
-            }
-        } else {
-            // Horizontal edge: clip against y = clipCoord
-            if (isMinEdge) {
-                currentInside = y >= clipCoord;  // Top edge (min y)
-            } else {
-                currentInside = y <= clipCoord;  // Bottom edge (max y)
-            }
-        }
-        
+
+        // Compute prevPoint/prevInside from this sub-path's last point
+        V4pPointP prevPoint = lastPoint;
+        Boolean prevInside = false;
         if (prevPoint != NULL) {
-            // Check if we need to compute intersection (XOR condition)
-            if (prevInside != currentInside) {
+            V4pCoord lx = prevPoint->x;
+            V4pCoord ly = prevPoint->y;
+            if (isVertical) {
+                prevInside = isMinEdge ? (lx >= clipCoord) : (lx <= clipCoord);
+            } else {
+                prevInside = isMinEdge ? (ly >= clipCoord) : (ly <= clipCoord);
+            }
+        }
+
+        // Process this sub-path's points
+        current = subStart;
+        while (current != NULL) {
+            // --- JUMP point: emit it and break to next sub-path ---
+            if (current->x == V4P_NIL && current->y == V4P_NIL) {
+                // Only emit JUMP if output is non-empty (avoids leading JUMPs)
+                if (result != NULL) {
+                    V4pPointP jump = QuickHeapAlloc(v4p->pointHeap);
+                    jump->x = V4P_NIL;
+                    jump->y = V4P_NIL;
+                    jump->next = NULL;
+                    prev->next = jump;
+                    prev = jump;
+                }
+                subStart = current->next;  // Advance outer loop past JUMP
+                break;
+            }
+
+            V4pCoord x = current->x;
+            V4pCoord y = current->y;
+            Boolean currentInside;
+
+            if (isVertical) {
+                currentInside = isMinEdge ? (x >= clipCoord) : (x <= clipCoord);
+            } else {
+                currentInside = isMinEdge ? (y >= clipCoord) : (y <= clipCoord);
+            }
+
+            // Intersection on inside/outside transition
+            if (prevPoint != NULL && (prevInside != currentInside)) {
                 V4pCoord prevX = prevPoint->x;
                 V4pCoord prevY = prevPoint->y;
 
                 // Compute intersection with the clip edge
+                V4pPointP intersection = QuickHeapAlloc(v4p->pointHeap);
+                intersection->next = NULL;
+
                 if (isVertical) {
-                    // Vertical edge: x = clipCoord
-                    // Linear interpolation: y = prevY + (y - prevY) * (clipCoord - prevX) / (x - prevX)
                     if (x != prevX) {
-                        V4pCoord t = (clipCoord - prevX) * 256 / (x - prevX);  // Fixed point division
-                        V4pCoord intersectionY = prevY + (t * (y - prevY)) / 256;
-                        
-                        V4pPointP intersection = QuickHeapAlloc(v4p->pointHeap);
+                        V4pCoord t = (clipCoord - prevX) * 256 / (x - prevX);
                         intersection->x = clipCoord;
-                        intersection->y = intersectionY;
-                        intersection->next = NULL;
-                        
+                        intersection->y = prevY + (t * (y - prevY)) / 256;
+
                         if (result == NULL) {
                             result = intersection;
                         } else {
@@ -905,17 +910,11 @@ static V4pPointP clipEdge(V4pPointP subject, Boolean isVertical, V4pCoord clipCo
                         prev = intersection;
                     }
                 } else {
-                    // Horizontal edge: y = clipCoord
-                    // Linear interpolation: x = prevX + (x - prevX) * (clipCoord - prevY) / (y - prevY)
                     if (y != prevY) {
-                        V4pCoord t = (clipCoord - prevY) * 256 / (y - prevY);  // Fixed point division
-                        V4pCoord intersectionX = prevX + (t * (x - prevX)) / 256;
-                        
-                        V4pPointP intersection = QuickHeapAlloc(v4p->pointHeap);
-                        intersection->x = intersectionX;
+                        V4pCoord t = (clipCoord - prevY) * 256 / (y - prevY);
+                        intersection->x = prevX + (t * (x - prevX)) / 256;
                         intersection->y = clipCoord;
-                        intersection->next = NULL;
-                        
+
                         if (result == NULL) {
                             result = intersection;
                         } else {
@@ -925,28 +924,31 @@ static V4pPointP clipEdge(V4pPointP subject, Boolean isVertical, V4pCoord clipCo
                     }
                 }
             }
-        }
-        
-        // Add current point if it's inside
-        if (currentInside) {
-            V4pPointP newPoint = QuickHeapAlloc(v4p->pointHeap);
-            newPoint->x = x;
-            newPoint->y = y;
-            newPoint->next = NULL;
-            
-            if (result == NULL) {
-                result = newPoint;
-            } else {
-                prev->next = newPoint;
+
+            // Emit current point if inside
+            if (currentInside) {
+                V4pPointP newPoint = QuickHeapAlloc(v4p->pointHeap);
+                newPoint->x = x;
+                newPoint->y = y;
+                newPoint->next = NULL;
+
+                if (result == NULL) {
+                    result = newPoint;
+                } else {
+                    prev->next = newPoint;
+                }
+                prev = newPoint;
             }
-            prev = newPoint;
+
+            prevPoint = current;
+            prevInside = currentInside;
+            current = current->next;
         }
-        
-        prevPoint = current;
-        prevInside = currentInside;
-        current = current->next;
+
+        // If we reached end of list (no JUMP broke us out), exit outer loop
+        if (current == NULL) break;
     }
-    
+
     return result;
 }
 
@@ -954,46 +956,59 @@ static V4pPointP clipEdge(V4pPointP subject, Boolean isVertical, V4pCoord clipCo
 V4pPolygonP v4p_recPolygonClipClone(Boolean estSub, V4pPolygonP p, V4pPolygonP c, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1) {
     V4pPointP sp, sc;
     V4pPointP clippedPoints = NULL;
-    
-    // Copy points from p to a temporary list
-    sp = p->point1;
-    V4pPointP* tail = &clippedPoints;  // Pointer to the end of the list
-    while (sp) {
-        V4pPointP newPoint = QuickHeapAlloc(v4p->pointHeap);
-        newPoint->x = sp->x;
-        newPoint->y = sp->y;
-        newPoint->next = NULL;
-        *tail = newPoint;
-        tail = &newPoint->next;
-        sp = sp->next;
+
+    if (p->miny == V4P_NIL) {
+        v4p_computeLimits(p);
     }
-    
-    // Clip against each edge of the rectangle
-    // Order: top, right, bottom, left (clockwise)
-    clippedPoints = clipEdge(clippedPoints, false, y0, true);    // Top edge (horizontal, min y)
-    clippedPoints = clipEdge(clippedPoints, true, x1, false);   // Right edge (vertical, max x)
-    clippedPoints = clipEdge(clippedPoints, false, y1, false);   // Bottom edge (horizontal, max y)
-    clippedPoints = clipEdge(clippedPoints, true, x0, true);    // Left edge (vertical, min x)
-    
-    // Replace the points in c with the clipped points
-    sc = c->point1;
-    while (sc) {
-        V4pPointP next = sc->next;
-        QuickHeapFree(v4p->pointHeap, sc);
-        sc = next;
+
+    // If p is not entirely into the clip region
+    if (p->minx < x0 || p->maxx > x1 || p->miny < y0 || p->maxy > y1) {
+
+        // If p is entirely outside the clip region, clear c points and return
+        if (p->maxx < x0 || p->minx > x1 || p->maxy < y0 || p->miny > y1) {
+            clippedPoints = NULL; // all points clipped
+
+        } else {
+            // Copy points from p to a temporary list
+            sp = p->point1;
+            V4pPointP* tail = &clippedPoints;  // Pointer to the end of the list
+            while (sp) {
+                V4pPointP newPoint = QuickHeapAlloc(v4p->pointHeap);
+                newPoint->x = sp->x;
+                newPoint->y = sp->y;
+                newPoint->next = NULL;
+                *tail = newPoint;
+                tail = &newPoint->next;
+                sp = sp->next;
+            }
+
+            // Clip against each edge of the rectangle
+            // Order: top, right, bottom, left (clockwise)
+            clippedPoints = clipEdge(clippedPoints, false, y0, true);    // Top edge (horizontal, min y)
+            clippedPoints = clipEdge(clippedPoints, true, x1, false);   // Right edge (vertical, max x)
+            clippedPoints = clipEdge(clippedPoints, false, y1, false);   // Bottom edge (horizontal, max y)
+            clippedPoints = clipEdge(clippedPoints, true, x0, true);    // Left edge (vertical, min x)
+        }
+
+        // Replace the points in c with the clipped points
+        sc = c->point1;
+        while (sc) {
+            V4pPointP next = sc->next;
+            QuickHeapFree(v4p->pointHeap, sc);
+            sc = next;
+        }
+        c->point1 = clippedPoints;
+        c->miny = V4P_NIL;  // Invalidate computed boundaries
+        v4p_changed(c);
     }
-    c->point1 = clippedPoints;
-    
-    c->miny = V4P_NIL;  // Invalidate computed boundaries
-    v4p_changed(c);
-    
+
     if (estSub && p->next) {
         v4p_recPolygonClipClone(true, p->next, c->next, x0, y0, x1, y1);
     }
     if (p->sub1) {
         v4p_recPolygonClipClone(true, p->sub1, c->sub1, x0, y0, x1, y1);
     }
-    
+
     return c;
 }
 
