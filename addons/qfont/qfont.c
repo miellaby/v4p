@@ -626,7 +626,7 @@ static Boolean pixel_set(const UInt8* qfont, int px, int py) {
 // visited array: one bit per boundary edge, sized generously
 // We track edges as (x,y,dir) — here flattened into a small array
 #define MAX_EDGES ((CHAR_WIDTH + 1) * (CHAR_HEIGHT + 1) * 4)
-static UInt8 visited[MAX_EDGES];
+static UInt32 visited[MAX_EDGES] = {0};
 static UInt32 generation = 0; //< We use a generation counter to avoid clearing the visited array on every call.
 
 static int edge_index(int x, int y, int dir) {
@@ -706,7 +706,6 @@ V4pPolygonP qfontDefinePolygonFromChar(char c,
                 v4p_addPoint(poly,
                     x + SCALE(sx, whole_x, rem_x, CHAR_WIDTH),
                     y + SCALE(sy, whole_y, rem_y, CHAR_HEIGHT));
-                v4p_addJump(poly);
             }
         }
     }
