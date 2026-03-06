@@ -1,11 +1,11 @@
 /**
- * Experimental inline version of a Divide & Conquer type sort algorithm
- * Support: Garden Sylvain sylvain.garden@gmail.com
+ * inline version of a merge sort algorithm with stride detections for lists.
  *
  * Description:
  * This code aims a O(n) complexity when the to-be-ordered list is the
- * concatenation of y (y << n) median-sized sub-lists.
- * There are a lot of applicative case.
+ * concatenation of a few medium-sized sub-lists.
+ * In V4p, Active Edge Lists are mostly sorted after updating scan-line intersections,
+ * and this is the reason why this algorithm is used.
  */
 #include <stdlib.h>
 #include "sortable.h"
@@ -129,5 +129,3 @@ List ListSort(List list) {
     }
     return done;
 }
-
-

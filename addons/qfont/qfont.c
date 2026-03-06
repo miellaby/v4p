@@ -6,6 +6,7 @@
 #include "v4p.h"
 #include "v4pi.h"
 #include "qfont.h"
+#include "string.h"
 
 // ASCII character map - 4x5 pixel representation for each character
 // 5 bytes each byte represents a row of 4 pixels (4 bits used)
@@ -590,7 +591,7 @@ const UInt8 char_map[96][5] = {
 
 // Function to get character data
 const UInt8* qfont_get_char(char c) {
-    
+
     if (c >= 32 && c < 127) {
         return char_map[c - 32];
     }
@@ -600,38 +601,113 @@ const UInt8* qfont_get_char(char c) {
 #define CHAR_WIDTH 4
 #define CHAR_HEIGHT 5
 
+// One uses a contour tracer to turn a small array of pixels into a polygon.
+// The tracing algorithm is a standard "follow the right-hand wall" approach:
+//  - Start on an unvisited boundary edge (where a pixel is set on one side and not on the other)
+//  - Move forward along the edge, turning right when as much as possible
+// It produces closed pathes of points, which we add to the polygon with jump points in between.
+// This part was coded by Claude.
+
+// Direction vectors: R, D, L, U  (clockwise)
+static const int DX[4] = { 1, 0, -1, 0 };
+static const int DY[4] = { 0, 1, 0, -1 };
+
+// Turn right / left in the direction table
+#define TURN_RIGHT(d) (((d) + 1) & 3)
+#define TURN_LEFT(d) (((d) + 3) & 3)
+
+// Is pixel (px,py) a filled glyph pixel? (bounds-safe)
+static Boolean pixel_set(const UInt8* qfont, int px, int py) {
+    if (px < 0 || px >= CHAR_WIDTH || py < 0 || py >= CHAR_HEIGHT) return 0;
+    return (qfont[py] >> (CHAR_WIDTH - 1 - px)) & 1;
+}
+
+// We track visited edges to avoid retracing the same contour multiple times.
+// visited array: one bit per boundary edge, sized generously
+// We track edges as (x,y,dir) — here flattened into a small array
+#define MAX_EDGES ((CHAR_WIDTH + 1) * (CHAR_HEIGHT + 1) * 4)
+static UInt8 visited[MAX_EDGES];
+static UInt32 generation = 0; //< We use a generation counter to avoid clearing the visited array on every call.
+
+static int edge_index(int x, int y, int dir) {
+    return (y * (CHAR_WIDTH + 1) + x) * 4 + dir;
+}
+
+// quotient-remainder scaling macro: scale c by whole + rem/original, with rounding
+#define SCALE(c, whole, rem, original) \
+    ((c) * (whole) + ((c) * (rem) + (original) / 2) / (original))
+
 V4pPolygonP qfontDefinePolygonFromChar(char c,
                                     V4pPolygonP poly,
                                     V4pCoord x,
                                     V4pCoord y,
                                     V4pCoord width,
                                     V4pCoord height) {
-    int i, j, down = 0;
-    if (c == 32) {
-        return poly;  // V4P_WHITE char, no edge
-    }
-    const UInt8* qfont = qfont_get_char(c);
+    if (c == 32) return poly;
 
-    v4p_addJump(poly);
-    for (i = 0; i <= CHAR_WIDTH; i++) {
-        Boolean down = 0;
-        // v4p_addJump (poly);
-        for (j = 0; j < CHAR_HEIGHT; j++) {
-            UInt8 row = (qfont[j] << 1) >> (CHAR_WIDTH - i);  // Shift left to simplify edge detection
-            Boolean edge = (row & 1) ^ ((row & 2) >> 1);
-            if (! down && edge) {
-                v4p_addPoint(poly, x + i * width / CHAR_WIDTH, y + j * height / CHAR_HEIGHT);
-                down = 1;
-            } else if (down && ! edge) {
-                // dubed point to left the pen up
-                v4p_addPoint(poly, x + i * width / CHAR_WIDTH, y + j * height / CHAR_HEIGHT);
+    const unsigned char* qfont = qfont_get_char(c);
+
+    // pre-compute quotient-remainder scaling factors
+    V4pCoord whole_x = width  / CHAR_WIDTH,  rem_x = width  % CHAR_WIDTH;
+    V4pCoord whole_y = height / CHAR_HEIGHT, rem_y = height % CHAR_HEIGHT;
+
+    // advance generation; on wraparound, reset to avoid false hits
+    if (++generation == 0) {
+        memset(visited, 0, sizeof(visited));
+        generation = 1;
+    }
+
+    for (int j = 0; j <= CHAR_HEIGHT; j++) {
+        for (int i = 0; i <= CHAR_WIDTH; i++) {
+            if (!pixel_set(qfont, i, j-1) &&
+                 pixel_set(qfont, i, j  ) &&
+                visited[edge_index(i, j, 0)] != generation) {
+
+                int sx = i, sy = j, sd = 0;
+                int cx = sx, cy = sy, d = sd;
+
                 v4p_addJump(poly);
-                down = 0;
+                do {
+                    visited[edge_index(cx, cy, d)] = generation;
+                    v4p_addPoint(poly,
+                        x + SCALE(cx, whole_x, rem_x, CHAR_WIDTH),
+                        y + SCALE(cy, whole_y, rem_y, CHAR_HEIGHT));
+
+                    int nx, ny, nd;
+                    switch (d) {
+                        case 0: // R: step to (cx+1, cy)
+                            nx = cx+1; ny = cy;
+                            if      (pixel_set(qfont, nx,   ny-1)) { nd=3; } // NE -> turn U
+                            else if (pixel_set(qfont, nx,   ny  )) { nd=0; } // SE -> stay R
+                            else                                    { nd=1; } //    -> turn D
+                            break;
+                        case 1: // D: step to (cx, cy+1)
+                            nx = cx; ny = cy+1;
+                            if      (pixel_set(qfont, nx,   ny  )) { nd=0; } // SE -> turn R
+                            else if (pixel_set(qfont, nx-1, ny  )) { nd=1; } // SW -> stay D
+                            else                                    { nd=2; } //    -> turn L
+                            break;
+                        case 2: // L: step to (cx-1, cy)
+                            nx = cx-1; ny = cy;
+                            if      (pixel_set(qfont, nx-1, ny  )) { nd=1; } // SW -> turn D
+                            else if (pixel_set(qfont, nx-1, ny-1)) { nd=2; } // NW -> stay L
+                            else                                    { nd=3; } //    -> turn U
+                            break;
+                        case 3: // U: step to (cx, cy-1)
+                            nx = cx; ny = cy-1;
+                            if      (pixel_set(qfont, nx-1, ny-1)) { nd=2; } // NW -> turn L
+                            else if (pixel_set(qfont, nx,   ny-1)) { nd=3; } // NE -> stay U
+                            else                                    { nd=0; } //    -> turn R
+                            break;
+                    }
+                    cx = nx; cy = ny; d = nd;
+                } while (cx != sx || cy != sy || d != sd);
+
+                v4p_addPoint(poly,
+                    x + SCALE(sx, whole_x, rem_x, CHAR_WIDTH),
+                    y + SCALE(sy, whole_y, rem_y, CHAR_HEIGHT));
+                v4p_addJump(poly);
             }
-        }
-        if (down) {
-            v4p_addPoint(poly, x + i * width / CHAR_WIDTH, y + j * height / CHAR_HEIGHT);
-            v4p_addJump(poly);
         }
     }
     return poly;
@@ -646,25 +722,25 @@ static char digitToChar(int digit) {
 static void extractDigits(int value, char* buffer, int bufferSize) {
     int i = 0;
     int isNegative = 0;
-    
+
     // Handle negative numbers
     if (value < 0) {
         isNegative = 1;
         value = -value;
     }
-    
+
     // Extract digits in reverse order
     do {
         int digit = value % 10;
         buffer[i++] = digitToChar(digit);
         value = value / 10;
     } while (value > 0 && i < bufferSize - 1);
-    
+
     // Add minus sign if needed
     if (isNegative && i < bufferSize - 1) {
         buffer[i++] = '-';
     }
-    
+
     // Null-terminate
     buffer[i] = '\0';
 }
@@ -675,7 +751,7 @@ static void reverseString(char* str) {
     while (str[length] != '\0') {
         length++;
     }
-    
+
     for (int i = 0; i < length / 2; i++) {
         char temp = str[i];
         str[i] = str[length - 1 - i];
@@ -708,15 +784,15 @@ V4pPolygonP qfontDefinePolygonFromInt(int value,
                                      V4pCoord height,
                                      V4pCoord interleave) {
     char buffer[12];  // Enough for 32-bit int: -2147483648
-    
+
     // Extract digits (in reverse order)
     extractDigits(value, buffer, sizeof(buffer));
-    
+
     // Reverse to get correct order
     reverseString(buffer);
-    
+
     // Draw each character
     qfontDefinePolygonFromString(buffer, poly, x, y, width, height, interleave);
-    
+
     return poly;
 }

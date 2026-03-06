@@ -5,7 +5,7 @@
 #include "qfont.h"
 #include "quick/math.h"
 
-#define STRESS_AMOUNT 10
+#define STRESS_AMOUNT 9
 V4pPolygonP proto;
 V4pPolygonP textMatrix[STRESS_AMOUNT * 2][STRESS_AMOUNT];
 
@@ -50,6 +50,7 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
                                  v4p_displayWidth / 16,
                                  v4p_displayHeight / 16,
                                  12);
+    v4p_setAnchorToCenter(proto);
     for (j = 0; j < STRESS_AMOUNT * 2; j++) {
         for (k = 0; k < STRESS_AMOUNT; k++) {
             textMatrix[j][k] = v4p_addClone(proto);
@@ -75,6 +76,21 @@ Boolean g4p_onTick(Int32 deltaTime) {
                 -v4p_displayHeight * scale / 256,
                 v4p_displayWidth + v4p_displayWidth * scale / 256,
                 v4p_displayHeight + v4p_displayHeight * scale / 256);
+
+    for (int j = 0; j < STRESS_AMOUNT * 2; j++) {
+        for (int k = 0; k < STRESS_AMOUNT; k++) {
+            v4p_transform(textMatrix[j][k],
+                        v4p_displayWidth * (2.2 + 2 * k - STRESS_AMOUNT) * 2
+                        + iabs((elapsedTime / 16) % 256 - 128) * 32,
+                        v4p_displayHeight * (1 + j - STRESS_AMOUNT / 2) / 2,
+                        // sci-saw angle move
+                        (iabs(elapsedTime % 256 - 128) - 128) / 128.0 * 4,
+                        10,
+                        256,
+                        256);
+        }
+    }
+
     return success;
 }
 
