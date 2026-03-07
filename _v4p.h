@@ -73,7 +73,7 @@ typedef struct v4p_context_s {
     // View coordinate system (absolute coordinates)
     V4pCoord viewMinX, viewMinY;  // Top-left corner of view (minimum coordinates)
     V4pCoord viewMaxX, viewMaxY;  // Bottom-right corner of view (maximum coordinates)
-    Polygon dummyBgPoly;  // Just for color
+    V4pColor background;  // background color
     int debug1;
     QuickHeap pointHeap, polygonHeap, activeEdgeHeap;
     List openedAEList;  // ActiveEdge lists

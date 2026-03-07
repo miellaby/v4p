@@ -54,5 +54,5 @@ extern int g4p_onInit(int quality, Boolean fullscreen);
 extern int g4p_onTick(Int32 deltaTime);
 extern int g4p_onFrame();
 extern void g4p_onQuit();
-
+extern void g4p_delay(Int32 sleepTime);
 #endif

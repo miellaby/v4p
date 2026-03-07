@@ -78,7 +78,7 @@ void v4p_setContext(V4pContextP p) {
 
 // Set the BG color
 V4pColor v4p_setBGColor(V4pColor bg) {
-    return v4p_setColor(&(v4p->dummyBgPoly), bg);
+    return (v4p->background = bg);
 }
 
 // Set the view
@@ -143,7 +143,7 @@ V4pContextP v4p_newContext(V4pSceneP scene) {
     v4p->polygonHeap = QuickHeapNewFor(Polygon);
     v4p->activeEdgeHeap = QuickHeapNewFor(ActiveEdge);
     v4p->openableAETable = QuickTableNew(YHASH_SIZE);  // Vertical sort
-    v4p->dummyBgPoly.color = 0;
+    v4p->background = 0;
     v4p->viewMinX = 0;
     v4p->viewMinY = 0;
     v4p->viewMaxX = lineWidth;
@@ -1239,7 +1239,7 @@ V4pPolygonP v4p_buildActiveEdgeList(V4pPolygonP p) {
             } else if (p->stroke) {  // if stroke enabled, add a 2 1-pixel edges to allow a horizontal segment to be visible
                 if (sa->x != sb->x) {
                     v4p_trace(POLYGON, "Adding 2 thin edges for horizontal segment from (%d, %d) to (%d, %d)\n", sa->x, sa->y, sb->x, sb->y);
-                    V4pPoint thin;
+                    V4pPoint thin; // to build small vertical edges for horizontal segments
                     thin = *sa;
                     thin.y++;  // Shift down by 1 pixel to create a thin vertical edge
                     v4p_addNewActiveEdge(p, sa, &thin);
@@ -1356,7 +1356,7 @@ List v4p_openActiveEdge(V4pCoord yl, V4pCoord yu) {
             continue;
         if (yr1 <= yl) continue;
 
-        b->h = yr1 - yl - 1;
+        b->h = yr1 - yl - (b->isStroke ? 0 : 1);
         b->x = xr0;
         dx = xr1 - xr0;
         dy = yr1 - yr0;
@@ -1386,10 +1386,10 @@ List v4p_openActiveEdge(V4pCoord yl, V4pCoord yu) {
 // Render a scene
 int v4p_render() {
     List l, pl;
-    V4pPolygonP p;
-    V4pLayer z;  // p->z
     ActiveEdgeP b;
-    V4pCoord y;  // scanline.y
+    V4pPolygonP p; // b->p
+    V4pLayer z;  // p->z
+    V4pCoord x, y;  // b->x, scanline.y
     V4pCoord px, px_collide;
 
     V4pCoord yu;
@@ -1447,7 +1447,6 @@ int v4p_render() {
                     v4p->openedAEList = l = ListFree(l);
                 }
             } else {  // Shift ActiveEdge
-                int x;
                 b->h--;
                 if (b->circle) {
                     V4pCoord xr0 = b->x0v;
@@ -1467,9 +1466,6 @@ int v4p_render() {
                                (void*) b, xr0, yr0, xr1, yr1, x, y);
 
                 } else {
-                    v4p_trace(SHIFT, "Shift edge %p (%d,%d)x(%d,%d) to "
-                               "x=%d, y=%d\n",
-                               (void*) b, b->x0v, b->y0v, b->x1v, b->y1v, x, y);
                     if (b->o2) {
                         if (b->s > 0) {
                             x = b->x += b->o2;
@@ -1481,6 +1477,8 @@ int v4p_render() {
                     } else {
                         x = b->x;
                     }
+                    v4p_trace(SHIFT, "Shift edge %p (%d,%d)x(%d,%d) to x=%d, y=%d\n",
+                              (void*) b, b->x0v, b->y0v, b->x1v, b->y1v, x, y);
                 }
 
                 sortNeeded |= (x < px);
@@ -1512,7 +1510,7 @@ int v4p_render() {
         concreteBitmask = 0;
 
         // Reset visible polygon
-        visiblePolygon = &(v4p->dummyBgPoly);  // background
+        visiblePolygon = NULL;
 
         // Loop among active edges
         px = px_collide = 0;
@@ -1520,31 +1518,26 @@ int v4p_render() {
         V4pLayer stroke_depth = V4P_NIL;  // WIP
         for (l = v4p->openedAEList; l; l = ListNext(l)) {
             b = (ActiveEdgeP) ListData(l);
+            x = b->x;
             p = b->p;
             V4pLayer depth = p->z;  // Full UInt32 depth support
 
-            // Get current visible polygon (max depth in tree)
-            V4pPolygonP currentVisible = (V4pPolygonP) TreeFindMax(v4p->openedPolygons);
-            if (!currentVisible) {
-                currentVisible = &(v4p->dummyBgPoly);
-            }
-
-            if (b->x > 0) {  // slice before current edge
+            if (x > 0 && px < x) {  // slice before current edge
                 // Plot one pixel (stroke slice) if there is a pending stroke and it is above the current polygon
-                if (stroke_depth != V4P_NIL && stroke_depth >= currentVisible->z && px < b->x) {
+                if (stroke_depth != V4P_NIL && (!visiblePolygon || stroke_depth >= visiblePolygon->z)) {
                     v4pi_slice(y, px, IMIN(px + 1, v4p_displayWidth), stroke_color);
                     px++;
                     stroke_depth = V4P_NIL;  // reset the stroke state after plotting
                 }
-                v4pi_slice(y, px, IMIN(b->x, v4p_displayWidth), currentVisible->color);
-                px = b->x;
+                v4pi_slice(y, px, IMIN(x, v4p_displayWidth), visiblePolygon ? visiblePolygon->color : v4p->background);
+                px = x;
                 stroke_depth = V4P_NIL;  // reset the stroke state when we move to a new pixel
             }
 
             // Check collisions between concrete polygons
             // only collisions between pairs in layer order are reported
             UInt32 bitmask = concreteBitmask;
-            if (bitmask > 0 && b->x > 0) {
+            if (bitmask > 0 && x > 0) {
                 V4pCollisionLayer topLayer = floorLog2(bitmask);
                 UInt32 bitmaskMinusTop = bitmask & (~((UInt32) 1 << topLayer));
                 while (bitmaskMinusTop > 0) {  // Collision with concrete layers
@@ -1552,7 +1545,7 @@ int v4p_render() {
                     V4pPolygonP topConcrete = concretePolygons[topLayer];
                     V4pPolygonP secondConcrete = concretePolygons[secondLayer];
                     // Note collisionCallback != NULL since bitmask != 0
-                    collisionCallback(topLayer, secondLayer, y, px_collide, b->x, topConcrete, secondConcrete);
+                    collisionCallback(topLayer, secondLayer, y, px_collide, x, topConcrete, secondConcrete);
                     bitmask = bitmaskMinusTop;
                     topLayer = secondLayer;
                     bitmaskMinusTop = bitmask & (~((UInt32) 1 << topLayer));
@@ -1561,7 +1554,7 @@ int v4p_render() {
 
             // STROKE EDGE: we'll plot 1px if visible, skipping fill-toggle logic
             if (b->isStroke) { // WIP
-                if (b->x >= 0 && b->x < v4p_displayWidth) {
+                if (x >= 0 && x < v4p_displayWidth) {
                     if (stroke_depth == V4P_NIL || p->z > stroke_depth) {
                         // Store that there is a stroke with its color and depth
                         stroke_color = p->color;
@@ -1582,13 +1575,10 @@ int v4p_render() {
 
             // Update visible polygon
             visiblePolygon = (V4pPolygonP) TreeFindMax(v4p->openedPolygons);
-            if (!visiblePolygon) {
-                visiblePolygon = &(v4p->dummyBgPoly);
-            }
 
             // Handle collision detection (original array-based approach)
             if (collisionCallback != NULL) {
-                px_collide = b->x;
+                px_collide = x;
                 if (p->collisionMask != 0) {
                     V4pCollisionMask mask = p->collisionMask;
                     if (!(concreteBitmask & mask)) {
@@ -1624,7 +1614,14 @@ int v4p_render() {
 
         // Last slice
         if (px < v4p_displayWidth) {
-            v4pi_slice(y, IMAX(0, px), v4p_displayWidth, visiblePolygon->color);
+            // Plot one pixel (stroke slice) if there is a pending stroke and it is above the current polygon
+            if (stroke_depth != V4P_NIL && (!visiblePolygon || stroke_depth >= visiblePolygon->z)) {
+                v4pi_slice(y, px, IMIN(px + 1, v4p_displayWidth), stroke_color);
+                px++;
+            }
+            if (px < v4p_displayWidth) {
+                v4pi_slice(y, IMAX(0, px), v4p_displayWidth, visiblePolygon ? visiblePolygon->color : v4p->background);
+            }
         }
 
     }  // Y loop ;

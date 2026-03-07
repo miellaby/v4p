@@ -46,6 +46,10 @@ void g4p_onCollide(V4pCollisionLayer i1,
     g4p_addCollisionPoint(p1, p2, collision_x, collision_y);
 }
 
+void g4p_delay(Int32 sleepTime) {
+    g4pi_delay(sleepTime);
+}
+
 // Game 4 Pocket main function
 int g4p_main(int argc, char* argv[]) {
         Boolean rc = 0;

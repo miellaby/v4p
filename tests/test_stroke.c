@@ -16,25 +16,16 @@ int g4p_onInit(int quality, Boolean fullscreen) {
     
     // Create a stroke polygon with diagonals - diamond shape
     V4pPolygonP stroke_diamond = v4p_addNew(V4P_ABSOLUTE, V4P_GREEN, 3);
+    v4p_setStroke(stroke_diamond, 1);  // Set to 1px stroke mode
     v4p_addPoint(stroke_diamond, 250, 100);
     v4p_addPoint(stroke_diamond, 300, 150);
     v4p_addPoint(stroke_diamond, 250, 200);
     v4p_addPoint(stroke_diamond, 200, 150);
-    v4p_setStroke(stroke_diamond, 1);  // Set to 1px stroke mode
     
-    // Create a stroke polygon with more complex diagonals - star
-    V4pPolygonP stroke_star = v4p_addNew(V4P_ABSOLUTE, V4P_YELLOW, 4);
-    v4p_addPoint(stroke_star, 400, 100);
-    v4p_addPoint(stroke_star, 420, 140);
-    v4p_addPoint(stroke_star, 440, 100);
-    v4p_addPoint(stroke_star, 430, 130);
-    v4p_addPoint(stroke_star, 460, 130);
-    v4p_addPoint(stroke_star, 420, 150);
-    v4p_setStroke(stroke_star, 1);  // Set to 1px stroke mode
-    
+
     // Create another filled polygon on top to test depth ordering
     V4pPolygonP top_filled = v4p_addNew(V4P_ABSOLUTE, V4P_BLUE, 5);
-    v4p_addCorners(top_filled, 150, 150, 200, 200);
+    v4p_addCorners(top_filled, 150, 160, 400, 200);
     
     return success;
 }
@@ -45,7 +36,11 @@ int g4p_onTick(Int32 deltaTime) {
 }
 
 int g4p_onFrame() {
-    return v4p_render();
+    static Boolean firstFrame = true;
+    if (firstFrame) { // render once
+        v4p_render();
+    }
+    return false;
 }
 
 void g4p_onQuit() {

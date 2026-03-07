@@ -19,7 +19,7 @@ int main() {
     printf("Scale  | Expected Size | Actual Size | Error%%\n");
     printf("-------|---------------|-------------|--------\n");
     
-    for (i = 0; i < (int) sizeof(test_scales)/sizeof(test_scales[0]); i++) {
+    for (i = 0; i < (int) (sizeof(test_scales) / sizeof(test_scales[0])); i++) {
         float scale = test_scales[i];
         V4pPolygonP p = v4p_new(V4P_ABSOLUTE, V4P_WHITE, 0);
         
@@ -69,7 +69,7 @@ int main() {
     printf("Scale   | Expected Size | Actual Size | Error%%\n");
     printf("--------|---------------|-------------|--------\n");
 
-    for (i = 0; i < (int) sizeof(star_scales) / sizeof(star_scales[0]); i++) {
+    for (i = 0; i < (int) (sizeof(star_scales) / sizeof(star_scales[0])); i++) {
         float scale = star_scales[i];
         V4pPolygonP p = v4p_new(V4P_ABSOLUTE, V4P_WHITE, 0);
         
@@ -115,7 +115,7 @@ int main() {
     printf("Scale  | Expected | Actual | Error%%\n");
     printf("-------|----------|--------|--------\n");
 
-    for (i = 0; i < (int) sizeof(fractional_scales) / sizeof(fractional_scales[0]); i++) {
+    for (i = 0; i < (int) (sizeof(fractional_scales) / sizeof(fractional_scales[0])); i++) {
         float scale = fractional_scales[i];
         V4pPolygonP p = v4p_new(V4P_ABSOLUTE, V4P_WHITE, 0);
         
