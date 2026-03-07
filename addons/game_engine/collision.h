@@ -39,7 +39,7 @@ void g4p_destroyCollisions();
 void g4p_setCollisionCallback(G4pCollisionCallback callback);
 
 // Get average collision point for a polygon pair
-Boolean g4p_getCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord* avg_x, V4pCoord* avg_y);
+int g4p_getCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord* avg_x, V4pCoord* avg_y);
 
 // Add collision point data for a polygon pair
 void g4p_addCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord x, V4pCoord y);

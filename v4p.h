@@ -63,17 +63,17 @@ extern V4pCoord v4p_displayHeight;  // current display height
  */
 
 // v4p library fundamentals
-Boolean v4p_init();
-Boolean v4p_init2(int quality, Boolean fullscreen);
+int v4p_init();
+int v4p_init2(int quality, Boolean fullscreen);
 void v4p_setContext(V4pContextP);  // change the (default) context
-Boolean v4p_render();
+int v4p_render();
 void v4p_quit();
 
 // v4p context
 V4pContextP v4p_newContext(V4pSceneP scene);
 void v4p_destroyContext(V4pContextP);
 V4pColor v4p_setBGColor(V4pColor bg);
-Boolean v4p_setView(V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1);
+int v4p_setView(V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1);
 void v4p_setScene(V4pSceneP s);
 V4pSceneP v4p_getScene();
 
@@ -94,10 +94,10 @@ V4pPolygonP v4p_newDisk(V4pProps t, V4pColor col, V4pLayer z, V4pCoord center_x,
 V4pPolygonP v4p_clone(V4pPolygonP p);
 V4pPolygonP v4p_setCollisionMask(V4pPolygonP p, V4pCollisionMask collisionMask);
 V4pPolygonP v4p_intoList(V4pPolygonP p, V4pPolygonP* list);
-Boolean v4p_outOfList(V4pPolygonP p, V4pPolygonP* list);
+int v4p_outOfList(V4pPolygonP p, V4pPolygonP* list);
 V4pPolygonP v4p_addSub(V4pPolygonP parent, V4pPolygonP p);
 V4pPolygonP v4p_addNewSub(V4pPolygonP parent, V4pProps t, V4pColor col, V4pLayer z);
-Boolean v4p_destroyFromParent(V4pPolygonP parent, V4pPolygonP p);
+int v4p_destroyFromParent(V4pPolygonP parent, V4pPolygonP p);
 V4pPolygonP v4p_destroyPointFrom(V4pPolygonP p, V4pPointP s);
 V4pProps v4p_putProp(V4pPolygonP p, V4pProps i);
 V4pProps v4p_removeProp(V4pPolygonP p, V4pProps i);
@@ -108,7 +108,8 @@ V4pPointP v4p_movePoint(V4pPolygonP p, V4pPointP s, V4pCoord x, V4pCoord y);
 V4pColor v4p_setColor(V4pPolygonP p, V4pColor c);
 V4pLayer v4p_setLayer(V4pPolygonP p, V4pLayer z);
 V4pCoord v4p_setRadius(V4pPolygonP p, V4pCoord radius);
-Boolean  v4p_setVisibility(V4pPolygonP p, Boolean visible);
+int  v4p_setVisibility(V4pPolygonP p, Boolean visible);
+UInt32   v4p_setStroke(V4pPolygonP p, UInt32 stroke);
 V4pPointP v4p_getPoints(V4pPolygonP p);
 V4pLayer v4p_getLayer(V4pPolygonP p);
 V4pCollisionMask v4p_getCollisionMask(V4pPolygonP p);
@@ -150,8 +151,8 @@ V4pPolygonP v4p_sceneAddNewDisk(V4pSceneP, V4pProps t, V4pColor col, V4pLayer z,
 V4pPolygonP v4p_sceneAddClone(V4pSceneP, V4pPolygonP p);
 V4pPolygonP v4p_addNew(V4pProps t, V4pColor col, V4pLayer z);
 V4pPolygonP v4p_addClone(V4pPolygonP p);
-Boolean v4p_destroy(V4pPolygonP p);
-Boolean v4p_destroyFromScene(V4pPolygonP p);
+int v4p_destroy(V4pPolygonP p);
+int v4p_destroyFromScene(V4pPolygonP p);
 
 // Collision detection when rendering
 typedef void (*V4pCollisionCallback)(V4pCollisionLayer i1, V4pCollisionLayer i2, V4pCoord py, V4pCoord x1, V4pCoord x2,

@@ -71,18 +71,18 @@ int g4pi_pollEvents() {
 #ifdef TESTU_G4P_LINUX_SVGA
     #include <stdio.h>
     #include "g4p.h"
-Boolean g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, Boolean fullscreen) {
     return success;
 }
 
 void g4p_onQuit() {
 }
 
-Boolean g4pOnIterate() {
+int g4pOnIterate() {
     return ! success;
 }
 
-Boolean g4p_onFrame() {
+int g4p_onFrame() {
     return success;
 }
 

@@ -63,7 +63,7 @@ static uint16_t v4p_color_to_caca_argb16(V4pColor c) {
 }
 
 // prepare things before V4P engine scanline loop
-Boolean v4pi_start() {
+int v4pi_start() {
     // Clear the framebuffer if it exists
     if (v4pi_context->framebuffer) {
         memset(v4pi_context->framebuffer, 0, v4pi_context->height * v4pi_context->pitch * sizeof(uint8_t));
@@ -75,7 +75,7 @@ Boolean v4pi_start() {
 
 
 // finalize things after V4P engine scanline loop
-Boolean v4pi_end() {
+int v4pi_end() {
     // Dither the framebuffer to the canvas
     if (v4pi_context->framebuffer && v4pi_context->dither && v4pi_context->canvas) {
         caca_dither_bitmap(v4pi_context->canvas, 0, 0,
@@ -93,7 +93,7 @@ Boolean v4pi_end() {
 
 // Draw an horizontal video slice with color 'c'
 // For libcaca, we write to framebuffer for later dithering
-Boolean v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
+int v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
     if (!v4pi_context->framebuffer || y >= (V4pCoord)v4pi_context->height || x0 >= (V4pCoord)v4pi_context->width) {
         return success;
     }
@@ -112,7 +112,7 @@ Boolean v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
 }
 
 // Prepare things before the very first graphic rendering
-Boolean v4pi_init(int quality, Boolean fullscreen) {
+int v4pi_init(int quality, Boolean fullscreen) {
     // Initialize libcaca
     // Create a canvas with reasonable character dimensions
     // libcaca works in characters, not pixels

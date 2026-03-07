@@ -15,7 +15,7 @@ int floorLog2(UInt32 v);
 int floorLog232(UInt32 v);
 
 // compute cos/sin and upate lwmCosa, lwmSina (1 / 255 unit)
-Boolean computeCosSin(UInt16 angle);
+int computeCosSin(UInt16 angle);
 
 // Sign function for proper rounding: returns -1, 0, or 1
 #define SIGN(x) (((x) > 0) - ((x) < 0))

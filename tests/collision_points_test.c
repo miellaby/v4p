@@ -16,7 +16,7 @@ V4pPolygonP poly2 = NULL;
 V4pPolygonP poly3 = NULL;
 
 // Game initialization
-Boolean g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, Boolean fullscreen) {
     printf("=== COLLISION POINTS TEST ===\n");
     
     // Set collision point callback
@@ -49,13 +49,13 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
 }
 
 // Game tick (physics/update logic)
-Boolean g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(Int32 deltaTime) {
     // No physics needed for this test
     return success;
 }
 
 // Game frame rendering
-Boolean g4p_onFrame() {
+int g4p_onFrame() {
     // Render the frame (this triggers collision detection)
     v4p_render();
     

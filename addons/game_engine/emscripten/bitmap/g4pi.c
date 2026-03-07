@@ -14,7 +14,7 @@
 extern G4pState g4p_state;
 
 // Input state
-static Boolean g4p_initialized = false;
+static int g4p_initialized = false;
 static Boolean gamepad_connected = false;
 
 // Keyboard event handlers

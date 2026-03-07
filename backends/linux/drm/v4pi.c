@@ -390,7 +390,7 @@ static void cleanup_drm() {
 
 // V4P Interface Functions
 
-Boolean v4pi_init(int quality, Boolean fullscreen) {
+int v4pi_init(int quality, Boolean fullscreen) {
     (void) quality;
     (void) fullscreen;  // Unused for now
     
@@ -436,11 +436,11 @@ void v4pi_destroyContext(V4piContextP ctx) {
     }
 }
 
-Boolean v4pi_start() {
+int v4pi_start() {
     return success;
 }
 
-Boolean v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
+int v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
     if (!v4pi_context || !v4pi_context->fb_memory) {
         return failure;
     }
@@ -457,7 +457,7 @@ Boolean v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
     return success;
 }
 
-Boolean v4pi_end() {
+int v4pi_end() {
     // For dumb buffers, changes are immediately visible
     return success;
 }

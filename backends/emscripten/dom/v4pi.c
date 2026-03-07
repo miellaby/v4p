@@ -33,7 +33,7 @@ V4piContextP v4pi_defaultContext = &v4pi_defaultContextSingleton;
 V4piContextP v4pi_context = &v4pi_defaultContextSingleton;
 
 // Initialize the DOM backend
-Boolean v4pi_init(int quality, Boolean fullscreen) {
+int v4pi_init(int quality, Boolean fullscreen) {
     // Set display dimensions
     v4p_displayWidth = 640;
     v4p_displayHeight = 480;
@@ -92,7 +92,7 @@ Boolean v4pi_init(int quality, Boolean fullscreen) {
 }
 
 // Start rendering - clear all pixels
-Boolean v4pi_start() {
+int v4pi_start() {
     EM_ASM({
         var container = document.getElementById('v4p-container');
         if (container) {
@@ -108,7 +108,7 @@ Boolean v4pi_start() {
 }
 
 // Draw a slice (horizontal line segment)
-Boolean v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
+int v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
     if (x1 <= x0) {
         return success;  // No slice to draw
     }
@@ -129,7 +129,7 @@ Boolean v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
 }
 
 // Finalize rendering
-Boolean v4pi_end() {
+int v4pi_end() {
     // Nothing to do for DOM backend
     return success;
 }

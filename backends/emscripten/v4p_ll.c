@@ -37,7 +37,7 @@ void v4pi_error(const char* format, ...) {
 }
 
 // Error function that returns Boolean (compatibility with other backends)
-Boolean v4p_error(char* s, ...) {
+int v4p_error(char* s, ...) {
     va_list args;
     va_start(args, s);
     char buffer[256];

@@ -39,6 +39,7 @@ typedef struct v4p_polygon_s {
     V4pCoord minyv, maxyv;  // Vertical boundaries in view coordinates
     List ActiveEdge1;  // ActiveEdges list
     UInt32 id;  // Unique polygon ID
+    UInt32 stroke;  // Stroke width (1 = 1px stroke, 0 = filled)
 } Polygon;
 
 // ActiveEdge type
@@ -57,6 +58,7 @@ typedef struct activeEdge_s {
     V4pCoord r2;  // r1 - dy
     Boolean circle;  // Right or left edge of a circle (coordinates are its
                      // bounding box)
+    Boolean isStroke;  // If true: plot 1px per scanline, don't toggle fill
 } ActiveEdge;
 
 typedef struct activeEdge_s* ActiveEdgeP;

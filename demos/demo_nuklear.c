@@ -91,7 +91,7 @@ void setup_colorful_style(struct nk_context *ctx) {
     ctx->style.text.color = nk_rgba(240, 240, 240, 255);
 }
 
-Boolean g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, Boolean fullscreen) {
     // Initialize v4p
     v4p_init2(quality, fullscreen);
     
@@ -112,7 +112,7 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
     return success;
 }
 
-Boolean g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(Int32 deltaTime) {
     // Update progress value for demo
     progress_value += 0.0001f * deltaTime;
     if (progress_value > 1.0f) progress_value = 0.0f;
@@ -147,7 +147,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
     return success;
 }
 
-Boolean g4p_onFrame() {
+int g4p_onFrame() {
     
     // Render the v4p scene (which now includes Nuklear UI)
     return v4p_render();

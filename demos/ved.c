@@ -66,7 +66,7 @@ void g4p_onCollisionPoint(V4pPolygonP p1,
     polygonUnderPen = p2;    
 }
 
-Boolean g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, Boolean fullscreen) {
     v4p_init2(quality, fullscreen);
     v4p_setBGColor(V4P_GREEN);
     xvu = -v4p_displayWidth / 2;
@@ -126,7 +126,7 @@ V4pCoord align(V4pCoord x) {
         return ((x - stepGrid / 2) / stepGrid) * stepGrid;
 }
 
-Boolean g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(Int32 deltaTime) {
     V4pCoord stepGrid0, stepGridPrec, xs, ys;
     V4pLayer z0, precZ;
     int selPrec;
@@ -331,7 +331,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
     return success;
 }
 
-Boolean g4p_onFrame() {
+int g4p_onFrame() {
     polygonUnderPen = NULL;
     v4p_render();
     return success;

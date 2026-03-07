@@ -36,7 +36,7 @@ V4pCoord v4p_displayWidth = V4P_DEFAULT_SCREEN_WIDTH;
 V4pCoord v4p_displayHeight = V4P_DEFAULT_SCREEN_HEIGHT;
 
 // Initialize the bitmap backend
-Boolean v4pi_init(int quality, Boolean fullscreen) {
+int v4pi_init(int quality, Boolean fullscreen) {
     // Calculate display dimensions based on quality
     int screenWidth = V4P_DEFAULT_SCREEN_WIDTH * 2 / (3 - quality);
     int screenHeight = V4P_DEFAULT_SCREEN_HEIGHT * 2 / (3 - quality);
@@ -84,7 +84,7 @@ Boolean v4pi_init(int quality, Boolean fullscreen) {
 }
 
 // Start rendering - clear bitmap
-Boolean v4pi_start() {
+int v4pi_start() {
     // Clear bitmap to transparent black
     size_t bitmap_size = v4pi_context->width * v4pi_context->height * sizeof(UInt32);
     memset(v4pi_context->bitmap, 0, bitmap_size);
@@ -92,7 +92,7 @@ Boolean v4pi_start() {
 }
 
 // Draw a slice to the bitmap
-Boolean v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
+int v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
     if (x1 <= x0 || y < 0 || y >= v4pi_context->height) {
         return success;
     }
@@ -121,7 +121,7 @@ Boolean v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
 }
 
 // Finalize rendering and display bitmap
-Boolean v4pi_end() {
+int v4pi_end() {
     // Transfer bitmap to canvas
     EM_ASM_({
         var canvas = document.getElementById(UTF8ToString($0));

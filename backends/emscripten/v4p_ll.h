@@ -24,7 +24,7 @@ typedef int32_t V4pCoord;
 
 // Debug and trace functions
 void v4pi_debug(const char* format, ...);
-Boolean v4p_error(char* s, ...);
+int v4p_error(char* s, ...);
 void v4pi_trace(const char* tag, const char* format, ...);
 
 #endif // V4P_LL_H

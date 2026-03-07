@@ -13,7 +13,7 @@ int iu = 0;
 int diu = STRESS_AMOUNT;
 int liu = 3;
 
-Boolean g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, Boolean fullscreen) {
     int j, k;
 
     v4p_init2(quality, fullscreen);
@@ -69,7 +69,7 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
 
 int elapsedTime = 0;
 
-Boolean g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(Int32 deltaTime) {
     elapsedTime += deltaTime;
     int scale = (129 - iabs(elapsedTime % 256 - 128) + (3 * elapsedTime / 2) % 64000) / 64;
     v4p_setView(-v4p_displayWidth * scale / 256,
@@ -94,7 +94,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
     return success;
 }
 
-Boolean g4p_onFrame() {
+int g4p_onFrame() {
     v4p_render();
     return success;
 }

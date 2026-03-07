@@ -8,7 +8,7 @@
 V4pPolygonP grid_squares[GRID_SIZE][GRID_SIZE];
 V4pPolygonP mouse_square;
 
-Boolean g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, Boolean fullscreen) {
     int i, j;
     
     v4p_init2(quality, fullscreen);
@@ -46,7 +46,7 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
     return success;
 }
 
-Boolean g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(Int32 deltaTime) {
     (void)deltaTime;  // Unused parameter
     
     // Move the mouse square to follow the pen position
@@ -57,7 +57,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
     return success;  // Keep running indefinitely
 }
 
-Boolean g4p_onFrame() {
+int g4p_onFrame() {
     v4p_render();
     return success;
 }

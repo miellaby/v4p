@@ -13,7 +13,7 @@ int riu = 0;
 int diu = STRESS_AMOUNT / 1;
 int liu = 3;
 
-Boolean g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, Boolean fullscreen) {
     int j, k;
     v4p_init2(quality, fullscreen);
     v4p_setBGColor(V4P_BLACK);
@@ -44,7 +44,7 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
     return success;
 }
 
-Boolean g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(Int32 deltaTime) {
     int i = iu, j, k;
 
     // Use deltaTime for time-based animation
@@ -81,7 +81,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
     return (liu < 0);
 }
 
-Boolean g4p_onFrame() {
+int g4p_onFrame() {
     v4p_render();
     return success;
 }

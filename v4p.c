@@ -84,7 +84,7 @@ V4pColor v4p_setBGColor(V4pColor bg) {
 // Set the view
 // Uses integer scaling technique to avoid 16-bit overflow on MCUs
 // See integer_scaling.md for detailed explanation of quotient-remainder scaling
-Boolean v4p_setView(V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1) {
+int v4p_setView(V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1) {
     int displayWidth = v4p_displayWidth;
     int displayHeight = v4p_displayHeight;
     int viewWidth = x1 - x0;
@@ -192,7 +192,7 @@ void v4p_destroyScene(V4pSceneP s) {
 }
 
 // V4P initialization with parameters
-Boolean v4p_init2(int quality, Boolean fullscreen) {
+int v4p_init2(int quality, Boolean fullscreen) {
     if (v4pi_init(quality, fullscreen)) {
         return failure;
     }
@@ -209,7 +209,7 @@ Boolean v4p_init2(int quality, Boolean fullscreen) {
 }
 
 // V4P initialization (default parameters)
-Boolean v4p_init() {
+int v4p_init() {
     return v4p_init2(V4P_QUALITY_NORMAL, V4P_UX_NORMAL);
 }
 
@@ -237,6 +237,7 @@ V4pPolygonP v4p_new(V4pProps t, V4pColor col, V4pLayer z) {
     p->collisionMask = 0;
     p->color = col;
     p->radius = 0;
+    p->stroke = 0;  // 0: filled polygon
     p->point1 = NULL;
     p->sub1 = NULL;
     p->next = NULL;
@@ -307,7 +308,7 @@ V4pPolygonP v4p_intoList(V4pPolygonP p, V4pPolygonP* list) {
 }
 
 // Remove a polygon from a list linked by the next pointer
-Boolean v4p_outOfList(V4pPolygonP p, V4pPolygonP* list) {
+int v4p_outOfList(V4pPolygonP p, V4pPolygonP* list) {
     V4pPolygonP ppl, pl;
 
     if (*list == p) {
@@ -393,7 +394,7 @@ void v4p_clearScene() {
 }
 
 // combo remove+destroy from scence
-Boolean v4p_destroyFromScene(V4pPolygonP p) {
+int v4p_destroyFromScene(V4pPolygonP p) {
     return v4p_sceneRemove(v4p->scene, p) && v4p_destroy(p);
 }
 
@@ -403,7 +404,7 @@ V4pPolygonP v4p_addNewSub(V4pPolygonP parent, V4pProps t, V4pColor col, V4pLayer
 }
 
 // remove a poly from an other poly subs list, then delete it
-Boolean v4p_destroyFromParent(V4pPolygonP parent, V4pPolygonP p) {
+int v4p_destroyFromParent(V4pPolygonP parent, V4pPolygonP p) {
     return v4p_outOfList(p, &parent->sub1) || v4p_destroy(p);
 }
 
@@ -503,6 +504,13 @@ V4pCoord v4p_setRadius(V4pPolygonP p, V4pCoord radius) {
     return radius;
 }
 
+// Set polygon stroke width (0 = filled, 1 = 1px stroke)
+UInt32 v4p_setStroke(V4pPolygonP p, UInt32 stroke) {
+    p->stroke = stroke;
+    v4p_changed(p); // TODO it doesn't change the actives edges but it add horizontal edges, so we need to recompute them all
+    return stroke;
+}
+
 // set polygon color
 V4pColor v4p_setColor(V4pPolygonP p, V4pColor c) {
     // Not changed because not affecting geometry
@@ -516,7 +524,7 @@ V4pLayer v4p_setLayer(V4pPolygonP p, V4pLayer z) {
 }
 
 // set polygon visibility (via property V4P_HIDDEN)
-Boolean v4p_setVisibility(V4pPolygonP p, Boolean visible) {
+int v4p_setVisibility(V4pPolygonP p, Boolean visible) {
     if (visible) {
         return v4p_removeProp(p, V4P_HIDDEN);
     } else {
@@ -620,9 +628,10 @@ ActiveEdgeP v4p_addNewActiveEdge(V4pPolygonP p, V4pPointP a, V4pPointP b) {
     ActiveEdgeP ae = QuickHeapAlloc(v4p->activeEdgeHeap);
     ae->p = p;
     ae->circle = false;
+    ae->isStroke = (p->stroke == 1) ? true : false;
     ListPrepend(p->ActiveEdge1, ae);
     int sx0, sy0, sx1, sy1;
-    if (a->y < b->y) {
+    if (a->y <= b->y) {
         sx0 = a->x;
         sy0 = a->y;
         sx1 = b->x;
@@ -650,7 +659,7 @@ ActiveEdgeP v4p_addNewActiveEdge(V4pPolygonP p, V4pPointP a, V4pPointP b) {
 }
 
 // Create a circle edge for a polygon point
-Boolean v4p_addNewCircleEdges(V4pPolygonP p, V4pPointP c) {
+int v4p_addNewCircleEdges(V4pPolygonP p, V4pPointP c) {
     V4pCoord r = p->radius, x = c->x, y = c->y;
 
     v4p_trace(CIRCLE, "Creating circle edges for point (%d, %d), radius=%d\n", x, y, r);
@@ -1033,6 +1042,7 @@ V4pPolygonP v4p_recPolygonClone(Boolean estSub, V4pPolygonP p) {
     V4pPointP s;
     V4pPolygonP c = v4p_new(p->props, p->color, p->z);
     c->radius = p->radius;
+    c->stroke = p->stroke;  // Copy stroke property
     for (s = p->point1; s; s = s->next) v4p_addPoint(c, s->x, s->y);
 
     // Set parent reference for clones (but not for sub-polygons)
@@ -1226,6 +1236,17 @@ V4pPolygonP v4p_buildActiveEdgeList(V4pPolygonP p) {
 
             if (sa->y != sb->y) {  // add an active edge
                 v4p_addNewActiveEdge(p, sa, sb);
+            } else if (p->stroke) {  // if stroke enabled, add a 2 1-pixel edges to allow a horizontal segment to be visible
+                if (sa->x != sb->x) {
+                    v4p_trace(POLYGON, "Adding 2 thin edges for horizontal segment from (%d, %d) to (%d, %d)\n", sa->x, sa->y, sb->x, sb->y);
+                    V4pPoint thin;
+                    thin = *sa;
+                    thin.y++;  // Shift down by 1 pixel to create a thin vertical edge
+                    v4p_addNewActiveEdge(p, sa, &thin);
+                    thin = *sb;
+                    thin.y++;  // Shift down by 1 pixel to create a thin vertical edge
+                    v4p_addNewActiveEdge(p, sb, &thin);
+                }
             }
             if (sa != s1 && sb->x == s1->x && sb->y == s1->y) {  // the path is closed
                 break;
@@ -1363,7 +1384,7 @@ List v4p_openActiveEdge(V4pCoord yl, V4pCoord yu) {
 }
 
 // Render a scene
-Boolean v4p_render() {
+int v4p_render() {
     List l, pl;
     V4pPolygonP p;
     V4pLayer z;  // p->z
@@ -1495,6 +1516,8 @@ Boolean v4p_render() {
 
         // Loop among active edges
         px = px_collide = 0;
+        V4pColor stroke_color = 0;  // WIP
+        V4pLayer stroke_depth = V4P_NIL;  // WIP
         for (l = v4p->openedAEList; l; l = ListNext(l)) {
             b = (ActiveEdgeP) ListData(l);
             p = b->p;
@@ -1507,8 +1530,15 @@ Boolean v4p_render() {
             }
 
             if (b->x > 0) {  // slice before current edge
+                // Plot one pixel (stroke slice) if there is a pending stroke and it is above the current polygon
+                if (stroke_depth != V4P_NIL && stroke_depth >= currentVisible->z && px < b->x) {
+                    v4pi_slice(y, px, IMIN(px + 1, v4p_displayWidth), stroke_color);
+                    px++;
+                    stroke_depth = V4P_NIL;  // reset the stroke state after plotting
+                }
                 v4pi_slice(y, px, IMIN(b->x, v4p_displayWidth), currentVisible->color);
                 px = b->x;
+                stroke_depth = V4P_NIL;  // reset the stroke state when we move to a new pixel
             }
 
             // Check collisions between concrete polygons
@@ -1527,6 +1557,18 @@ Boolean v4p_render() {
                     topLayer = secondLayer;
                     bitmaskMinusTop = bitmask & (~((UInt32) 1 << topLayer));
                 }
+            }
+
+            // STROKE EDGE: we'll plot 1px if visible, skipping fill-toggle logic
+            if (b->isStroke) { // WIP
+                if (b->x >= 0 && b->x < v4p_displayWidth) {
+                    if (stroke_depth == V4P_NIL || p->z > stroke_depth) {
+                        // Store that there is a stroke with its color and depth
+                        stroke_color = p->color;
+                        stroke_depth = p->z;
+                    }
+                }
+                continue;  // Do NOT touch the depth tree or collision state
             }
 
             // Update depth tree for opened polygons (AVL tree for depth management)

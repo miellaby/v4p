@@ -27,7 +27,7 @@ TestCase test_cases[] = {
 
 const int num_test_cases = sizeof(test_cases) / sizeof(test_cases[0]);
 
-Boolean g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, Boolean fullscreen) {
     v4p_init2(quality, fullscreen);
     v4p_setBGColor(V4P_BLACK);
     
@@ -56,12 +56,12 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
     return success;
 }
 
-Boolean g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(Int32 deltaTime) {
     // No special logic needed for this test
     return success;
 }
 
-Boolean g4p_onFrame() {
+int g4p_onFrame() {
     // Only render one frame and return failure to exit
     v4p_render();
     return failure; // Exit after first frame

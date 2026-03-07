@@ -5,7 +5,7 @@
 #define GRID_SIZE 10
 V4pPolygonP circle_matrix[GRID_SIZE][GRID_SIZE];
 
-Boolean g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, Boolean fullscreen) {
     int i, j;
     v4p_init2(quality, fullscreen);  // Normal quality, windowed
     v4p_setBGColor(V4P_WHITE);  // Black background
@@ -31,7 +31,7 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
 
 int elapsedTime = 0;
 
-Boolean g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(Int32 deltaTime) {
     int i, j;
 
     elapsedTime += deltaTime;
@@ -62,7 +62,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
     return success;  // Keep running indefinitely
 }
 
-Boolean g4p_onFrame() {
+int g4p_onFrame() {
     v4p_render();
     return success;
 }

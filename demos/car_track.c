@@ -401,7 +401,7 @@ void update_lap_count_display() {
     qfontDefinePolygonFromString(lap_text, lap_text_poly, v4p_displayWidth - 200, v4p_displayHeight - 20, 8, 8, 2);
 }
 
-Boolean g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, Boolean fullscreen) {
     v4p_init2(quality, fullscreen);
     v4p_setView(-0.44 * v4p_displayWidth, -0.44 * v4p_displayHeight, v4p_displayWidth * 0.44, v4p_displayHeight * 0.44);
     v4p_setBGColor(V4P_TEAL);
@@ -497,7 +497,7 @@ void track_checkpoint_crossings() {
     }
 }
 
-Boolean g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(Int32 deltaTime) {
     
     // Calculate current speed magnitude for realistic car handling
     float current_speed = sqrtf(car_speed_x * car_speed_x + car_speed_y * car_speed_y);
@@ -593,7 +593,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
     return success;
 }
 
-Boolean g4p_onFrame() {
+int g4p_onFrame() {
     // Reset collision count for this frame
     collision_count = 0;
     v4p_render();

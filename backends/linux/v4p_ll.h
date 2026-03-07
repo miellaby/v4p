@@ -26,4 +26,4 @@ typedef struct stuffing_s* Stuffing;
 // Trace function
 void v4pi_trace(const char* tag, const char* format, ...);
 
-Boolean v4p_error(char* s, ...);
+int v4p_error(char* s, ...);

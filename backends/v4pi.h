@@ -16,7 +16,7 @@ extern V4piContextP v4pi_defaultContext;
 extern V4piContextP v4pi_context;
 
 /** Initialize the implementation and a default context */
-Boolean v4pi_init(int quality, Boolean fullscreen);
+int v4pi_init(int quality, Boolean fullscreen);
 
 /** To cleanup resources */
 void v4pi_destroy();
@@ -38,12 +38,12 @@ void v4pi_destroyContext(V4piContextP context);
 */
 
 // Prepare before first scanline rendering
-Boolean v4pi_start();
+int v4pi_start();
 
 // Render Span/Slice
-Boolean v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c);
+int v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c);
 
 // Finalize after last scanline rendered
-Boolean v4pi_end();
+int v4pi_end();
 
 #endif  // V4PI

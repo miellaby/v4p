@@ -23,7 +23,7 @@ static int iBuffer;
 static UInt32 t1;
 static UInt32 laps[4] = { 0, 0, 0, 0 }, tlaps = 0;
 
-Boolean v4pi_start() {
+int v4pi_start() {
     int i;
     t1 = TimGetTicks();
     iBuffer = marginY * screenWidth + marginX;
@@ -32,7 +32,7 @@ Boolean v4pi_start() {
     return success;
 }
 
-Boolean v4pi_end() {
+int v4pi_end() {
     int i;
     static int j = 0;
     UInt32 t2 = TimGetTicks();
@@ -80,7 +80,7 @@ static void myMemSet(UInt8* pdst, UInt32 numBytes, UInt8 value) {
     }
 }
 
-Boolean v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
+int v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
     int l;
     if (x1 <= x0)
         return success;
@@ -95,7 +95,7 @@ Boolean v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
     return success;
 }
 
-Boolean v4pi_init(int quality, V4pColor background) {
+int v4pi_init(int quality, V4pColor background) {
     bgColor = background;
     buffer = BmpGetBits(WinGetBitmap(WinGetDisplayWindow()));
 }

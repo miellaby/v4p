@@ -36,7 +36,7 @@ void v4pi_trace(const char* tag, const char* format, ...) {
 }
 
 // error logging helper
-Boolean v4p_error(char* formatString, ...) {
+int v4p_error(char* formatString, ...) {
     va_list args;
     va_start(args, formatString);
     initTraceFile();

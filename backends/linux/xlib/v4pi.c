@@ -78,7 +78,7 @@ static Int32 getTicks() {
 }
 
 // prepare things before V4P engine scanline loop
-Boolean v4pi_start() {
+int v4pi_start() {
     // remember start time
     t1 = getTicks();
 
@@ -88,7 +88,7 @@ Boolean v4pi_start() {
     return success;
 }
 
-Boolean v4pi_end() {
+int v4pi_end() {
     // Get end time and compute average rendering time
     static int j = 0;
     Int32 t2 = getTicks();
@@ -116,7 +116,7 @@ Boolean v4pi_end() {
 }
 
 // Draw an horizontal video slice with color 'c'
-Boolean v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
+int v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
     int l = x1 - x0;
     if (l <= 0)
         return success;
@@ -234,7 +234,7 @@ static Boolean createWindow(V4piContextP vd, int width, int height) {
 }
 
 // Prepare things before the very first graphic rendering
-Boolean v4pi_init(int quality, Boolean fullscreen) {
+int v4pi_init(int quality, Boolean fullscreen) {
     int rc = success;
 
     /* connect to X server */

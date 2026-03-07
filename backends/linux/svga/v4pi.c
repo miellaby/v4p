@@ -29,18 +29,18 @@ V4pCoord v4p_displayWidth;
 V4pCoord v4p_displayHeight;
 
 // prepare things before V4P engine scanline loop
-Boolean v4pi_start() {
+int v4pi_start() {
     // remember start time
     return success;
 }
 
 // finalize things after V4P engine scanline loop
-Boolean v4pi_end() {
+int v4pi_end() {
     return success;
 }
 
 // Draw an horizontal video slice with color 'c'
-Boolean v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
+int v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
     int l = x1 - x0;
     if (l <= 0)
         return success;
@@ -50,7 +50,7 @@ Boolean v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
 }
 
 // Prepare things before the very first graphic rendering
-Boolean v4pi_init(int quality, Boolean fullscreen) {
+int v4pi_init(int quality, Boolean fullscreen) {
     // Initialize Svgalib
     vga_init();
 

@@ -39,7 +39,7 @@ int floorLog232(UInt32 v) {
     return MultiplyDeBruijnBitPosition[(UInt32) (v * 0x07C4ACDDU) >> 27];
 }
 
-Boolean computeCosSin(UInt16 angle) {
+int computeCosSin(UInt16 angle) {
     int tb, tr;
     UInt16 b;
     angle = (angle & (UInt16) 0x1FF);

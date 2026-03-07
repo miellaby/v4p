@@ -9,7 +9,7 @@
 
 V4pPolygonP circles[STEPS];
 
-Boolean g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, Boolean fullscreen) {
     int i;
     v4p_init2(quality, fullscreen);
     v4p_setBGColor(V4P_BLACK);
@@ -30,7 +30,7 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
 
 int elapsedTime = 0;
 
-Boolean g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(Int32 deltaTime) {
     elapsedTime += deltaTime;
     int scale = 256;
 
@@ -51,7 +51,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
     return success;
 }
 
-Boolean g4p_onFrame() {
+int g4p_onFrame() {
     v4p_render();
     return success;
 }

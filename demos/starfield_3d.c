@@ -63,7 +63,7 @@ V4pPolygonP createStarPolygon() {
     return v4p_addClone(poly);
 }
 
-Boolean g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, Boolean fullscreen) {
     int i;
 
     // Seed random number generator
@@ -82,7 +82,7 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
     return success;
 }
 
-Boolean g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(Int32 deltaTime) {
     int i;
     float screenX, screenY, screenSize;
 
@@ -137,7 +137,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
     return success;  // Run indefinitely
 }
 
-Boolean g4p_onFrame() {
+int g4p_onFrame() {
     v4p_render();
     return success;
 }

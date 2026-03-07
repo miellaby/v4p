@@ -28,7 +28,7 @@ make demos/some_demo
 - `TARGET=linux|palmos|esp32|emscripten`: Select platform (default: linux)
 - `BACKEND=sdl|xlib|fbdev|drm`: Select Linux backend (default: sdl)
 - `BACKEND=bitmap|canvas|dom`: Select Emscripten backend
-- `V=1`: Verbose output showing all commands
+- `V=1`: Verbose output showing all commands (RECOMMENDED WHEN CHANGING V4P CODE)
 - `PREFIX=/path`: Custom installation prefix (default: /usr/local)
 
 ## Targets
@@ -56,17 +56,15 @@ To unit-test your modifications, put your test **in the ./tests/ folder** like `
 
 ## Coding a demo/app with v4p AND g4p
 
-- create plain polygons and circles and ensure they are added to the scene.
-- v4p_transform() to move/rotate/zoom these objects.
-- v4p_render() to render the scene
-- use the companion "g4p" engine (addons/g4p/libg4p.a) to code an interactive animation/game. g4p runs a input>logic>draw infinite loop (esc to exit). You only have to code the app logic in onTick() callback.
+Use the companion "g4p" engine to code an interactive application. Its runs a input>logic>draw loop (esc to exit).
 
+Initialize the app logic in g4p_onInit() and make it goes in g4p_onTick() callbacks.
 
 # Pattern to create animated objects
 
-Warning: Transformations are cumulative by default (because "in place").
+Warning: Transformations are cumulative because applied "in place".
 
-By creating an existing polygon out of scene and cloning it, you get polygons whose transformations aren't cumulative (transformations computed against their parents).
+By creating an existing polygon out of the scene, then cloning it, you'll get polygons whose transformations aren't cumulative. They are computed against their parents. It greatly simplifies duplication and transformation logic.
 
 // Create a star-shaped polygon
 V4pPolygonP createStar() {
@@ -84,28 +82,30 @@ V4pPolygonP createStar() {
     return v4p_addClone(poly);
 }
 
-# game/app loop boilerplate
+# App boilerplate
 ..
 #include "v4p.h"
 #include "g4p.h"
 ..
 
-Boolean g4p_onInit() {
-    v4p_init();
+int g4p_onInit(int quality, Boolean fullscreen) {
+    v4p_init2(quality, fullscreen);
     v4p_setBGColor(V4P_BLACK);
-    // add polys to the scene (use the cloning pattern to make transform easier)
-    // - a new poly has no points and some func may add batch of points at once (rect, qfont, ...)
+    // add new polys to the scene (use the cloning pattern for transformed duplicates)
+    // - a new poly has no points. Call addPoint or funcs to add many points at once (addCorners, qfont, ...)
     // - remember to add polys to the scene unless they are out-of-shelf prototypes (use v4p_addNew for simple case)
     // - temporarly hide/show polygon with v4p_disable/enable
+}
+
+int g4p_onTick(Int32 deltaTime) {
+    // - read user inputs
+    // - make the app logic goes
+    // - v4p_transform() to move/rotate/zoom existing objects
     return success;
 }
 
-Boolean g4p_onTick(Int32 deltaTime) {
-    // read inputs
-    // transform stuff
-}
-
-Boolean g4p_onFrame() {
+int g4p_onFrame() {
+    // render the scene
     return v4p_render();
 }
 
@@ -119,13 +119,5 @@ int main(int argc, char** argv) {
 
 ## User Inputs
 
-They're in
-
-typedef struct g4pState_s {
-    Boolean buttons[8];
-    V4pCoord xpen, ypen;
-    UInt16 key;
-} G4pState;
-
-... where key is the currently pressed key code (SDL_Key enum).
+They're in: G4pState g4p_state;
 

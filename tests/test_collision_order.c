@@ -28,7 +28,7 @@ void test_collision_callback(V4pCollisionLayer i1, V4pCollisionLayer i2,
     }
 }
 
-Boolean g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, Boolean fullscreen) {
     v4p_init2(quality, fullscreen);
     v4p_setBGColor(V4P_BLACK);
     v4p_setCollisionCallback(test_collision_callback);
@@ -49,7 +49,7 @@ Boolean g4p_onInit(int quality, Boolean fullscreen) {
     return success;
 }
 
-Boolean g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(Int32 deltaTime) {
     static int frameCount = 0;
     frameCount++;
     
@@ -74,7 +74,7 @@ Boolean g4p_onTick(Int32 deltaTime) {
     return success;
 }
 
-Boolean g4p_onFrame() {
+int g4p_onFrame() {
     return v4p_render();
 }
 
