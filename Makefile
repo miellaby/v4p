@@ -294,6 +294,7 @@ clean:
 	$(Q)$(RM) addons/*/*.a
 	$(Q)$(RM) demos/*.o
 	$(Q)$(RM) $(patsubst demos/%.c,demos/%,$(wildcard demos/*.c))
+	$(Q)$(RM) tests/*.o
 	$(Q)$(RM) $(patsubst tests/%.c,tests/%,$(wildcard tests/*.c))
 	$(Q)$(RM) -rf demos/web
 	$(Q)$(RM) demos/*.html demos/*.js demos/*.wasm
