@@ -23,8 +23,8 @@ void v4p_debugPolygon(V4pPolygonP poly, const char* name) {
     if (poly->miny == V4P_NIL) {
         v4pi_debug("WARNING: Bounds not computed (miny == NIL)\n");
     }
-    v4pi_debug("Anchor: ax=%d, ay=%d, radius=%d\n", 
-              poly->anchor_x, poly->anchor_y, poly->radius);
+    v4pi_debug("Anchor: ax=%d, ay=%d, round=%d\n", 
+              poly->anchor_x, poly->anchor_y, poly->round);
 
     // Display point coordinates
     V4pPointP pt = poly->point1;

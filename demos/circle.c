@@ -2,7 +2,7 @@
 #include "v4p.h"
 #include "quick/math.h"  // For iabs() function
 #define DEPTH 6
-#define GRID_SIZE 10
+#define GRID_SIZE 7
 V4pPolygonP circle_matrix[GRID_SIZE][GRID_SIZE];
 
 int g4p_onInit(int quality, Boolean fullscreen) {
@@ -15,7 +15,16 @@ int g4p_onInit(int quality, Boolean fullscreen) {
     int radius = min_dimension / GRID_SIZE / 3; // Scale radius with screen size
     int grid_width = (GRID_SIZE - 1) * spacing;
     int grid_height = (GRID_SIZE - 1) * spacing;
-    v4p_setView(-grid_width / 2, -grid_height / 2, grid_width / 2, grid_height / 2);  // Center the grid on screen
+    
+    int view_width = grid_width;
+    int view_height = grid_height;
+    if (v4p_displayWidth > v4p_displayHeight) {
+        view_width = grid_width * v4p_displayWidth / v4p_displayHeight;
+    } else {
+        view_height = grid_height * v4p_displayHeight / v4p_displayWidth;
+    }
+    v4p_setView(-view_width / 2, -view_height / 2, view_width / 2, view_height / 2);
+
     // Create a prototype with dynamic radius
     V4pPolygonP original = v4p_newDisk(V4P_ABSOLUTE, V4P_RED, DEPTH, 0, 0, radius);
 
@@ -45,7 +54,7 @@ int g4p_onTick(Int32 deltaTime) {
     for (j = 0; j < GRID_SIZE; j++) {
         for (i = 0; i < GRID_SIZE; i++) {
             // Calculate zoom factor using triangle wave
-            int phase = (i * 3145 + j * 4791 + elapsedTime) % 256;  // 0 to 255
+            int phase = (i * 3145 + j * 4791 + elapsedTime / 2) % 256;  // 0 to 255
             int scale = 128 + (255 - iabs(phase - 128));
 
             // v4pi_debug("scale %d\n", scale);

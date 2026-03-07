@@ -28,7 +28,7 @@ typedef struct v4p_polygon_s {
     V4pProps props;  // Property flags
     V4pPointP point1;  // List of points (only 1 for disk)
     V4pColor color;  // V4pColor (any data needed by the drawing function)
-    V4pCoord radius;  // Point radius (disk = 1 point with positive radius)
+    Boolean round;  // Boolean is round (disk = round diamond)
     V4pLayer z;  // Depth
     V4pCollisionLayer collisionMask;  // Collision mask
     V4pPolygonP sub1;  // Subs list
@@ -48,16 +48,24 @@ typedef struct activeEdge_s {
     V4pCoord x0, y0, x1, y1;  // Vector coordinates; absolute or relative depending
                               // on the belonging list
     V4pCoord x0v, y0v, x1v, y1v;  // Vector coordinates in view
-    // Bresenham algorithm variables
-    V4pCoord x;  // Current x
-    V4pCoord o1;  // Offset when accumulator under limit
-    V4pCoord o2;  // Offset when accumulator cross the limit
-    V4pCoord s;  // Accumulator
-    V4pCoord h;  // Height of the edge (scanline count)
-    V4pCoord r1;  // Remaining 1
-    V4pCoord r2;  // r1 - dy
-    Boolean circle;  // Right or left edge of a circle (coordinates are its
-                     // bounding box)
+    V4pCoord h;  // Remaining scanlines to process
+    V4pCoord x;  // Current x coordinate (in view) at y=scanline
+    Boolean isArc;  // circle arc edge
+    union {
+        struct { // Circle arc edge
+            V4pCoord cx, cy;  // center
+            V4pCoord cxv, cyv;  // center in view coordinates
+            V4pCoord rx;  // x1v-x0v
+            V4pCoord ry;  // y1v-y0v
+        } arc;
+        struct { // Bresenham algorithm variables for straight edge
+            V4pCoord o1;  // Offset when accumulator under limit
+            V4pCoord o2;  // Offset when accumulator cross the limit
+            V4pCoord s;  // Accumulator
+            V4pCoord r1;  // Remaining 1
+            V4pCoord r2;  // r1 - dy
+        } straight;
+    } as;
     Boolean isStroke;  // If true: plot 1px per scanline, don't toggle fill
 } ActiveEdge;
 

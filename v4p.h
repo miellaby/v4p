@@ -107,7 +107,7 @@ V4pPointP v4p_addJump(V4pPolygonP p);
 V4pPointP v4p_movePoint(V4pPolygonP p, V4pPointP s, V4pCoord x, V4pCoord y);
 V4pColor v4p_setColor(V4pPolygonP p, V4pColor c);
 V4pLayer v4p_setLayer(V4pPolygonP p, V4pLayer z);
-V4pCoord v4p_setRadius(V4pPolygonP p, V4pCoord radius);
+V4pCoord v4p_setRound(V4pPolygonP p, Boolean round);
 int  v4p_setVisibility(V4pPolygonP p, Boolean visible);
 UInt32   v4p_setStroke(V4pPolygonP p, UInt32 stroke);
 V4pPointP v4p_getPoints(V4pPolygonP p);
@@ -143,6 +143,7 @@ V4pPolygonP v4p_setAnchor(V4pPolygonP p, V4pCoord x, V4pCoord y);
 
 // helpers & combo
 V4pPolygonP v4p_addCorners(V4pPolygonP p, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1);
+V4pPolygonP v4p_addCutCorners(V4pPolygonP p, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1, V4pCoord radius);
 V4pPolygonP v4p_add(V4pPolygonP p);
 V4pPolygonP v4p_remove(V4pPolygonP);
 V4pPolygonP v4p_sceneAddNewPoly(V4pSceneP, V4pProps t, V4pColor col, V4pLayer z);
@@ -150,6 +151,7 @@ V4pPolygonP v4p_sceneAddNewDisk(V4pSceneP, V4pProps t, V4pColor col, V4pLayer z,
                                 V4pCoord radius);
 V4pPolygonP v4p_sceneAddClone(V4pSceneP, V4pPolygonP p);
 V4pPolygonP v4p_addNew(V4pProps t, V4pColor col, V4pLayer z);
+V4pPolygonP v4p_addNewDisk(V4pProps t, V4pColor col, V4pLayer z, V4pCoord center_x, V4pCoord center_y, V4pCoord radius); 
 V4pPolygonP v4p_addClone(V4pPolygonP p);
 int v4p_destroy(V4pPolygonP p);
 int v4p_destroyFromScene(V4pPolygonP p);
