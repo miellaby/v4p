@@ -26,7 +26,7 @@ int v4p_parseHexDigit(char c) {
 }
 
 // add points to a polygon with coordinates decoded from a c-string
-V4pPolygonP v4p_decodePoints(V4pPolygonP p, char* s, int scale) {
+V4pPolygonP v4p_decodePoints(V4pPolygonP p, const char* s, int scale) {
     int j;
     long xs, ys, xs1, ys1;
     Boolean sep, psep;
@@ -80,7 +80,7 @@ V4pPolygonP v4p_decodePoints(V4pPolygonP p, char* s, int scale) {
 }
 
 // create a polygon by adding all points encoded in a c-string
-V4pPolygonP v4p_quickPolygon(V4pProps t, V4pColor col, V4pLayer z, char* s, int scale) {
+V4pPolygonP v4p_quickPolygon(V4pProps t, V4pColor col, V4pLayer z, const char* s, int scale) {
     return v4p_decodePoints(v4p_new(t, col, z), s, scale);
 }
 
@@ -128,7 +128,7 @@ char* v4p_encodePoints(V4pPolygonP p, int scale) {
     return s;
 }
 
-V4pPolygonP v4p_decodePolygon(char* s, int scale) {
+V4pPolygonP v4p_decodePolygon(const char* s, int scale) {
     V4pLayer z;
     V4pProps t;
     V4pColor col;
@@ -180,7 +180,7 @@ char* v4p_encodePolygon(V4pPolygonP p, int scale) {
 }
 
 // Helper: parse one or two floats from s+j, advance *j, return count parsed
-static int parse_coords(char* s, int* j, float* p1, float* p2) {
+static int parse_coords(const char* s, int* j, float* p1, float* p2) {
     int offset = 0, count = 0;
     if (sscanf(&s[*j], "%f,%f%n", p1, p2, &offset) >= 2) {
         *j += offset;
@@ -202,7 +202,7 @@ static int parse_coords(char* s, int* j, float* p1, float* p2) {
     return count;
 }
 
-V4pPolygonP v4p_decodeSVGPath(V4pPolygonP p, char* s, float scale) {
+V4pPolygonP v4p_decodeSVGPath(V4pPolygonP p, const char* s, float scale) {
     int j;
     Boolean knowFirstPoint = false, nextIsRelative = false;
     char cmd = 0;
