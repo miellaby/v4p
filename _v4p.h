@@ -45,18 +45,17 @@ typedef struct v4p_polygon_s {
 // ActiveEdge type
 typedef struct activeEdge_s {
     V4pPolygonP p;  // Parent polygon
-    V4pCoord x0, y0, x1, y1;  // Vector coordinates; absolute or relative depending
-                              // on the belonging list
-    V4pCoord x0v, y0v, x1v, y1v;  // Vector coordinates in view
+    V4pCoord ax, ay, bx, by;  // (a->b) Vector coordinates in scene reference
+    V4pCoord avx, avy, bvx, bvy;  // Vector coordinates in view
     V4pCoord h;  // Remaining scanlines to process
     V4pCoord x;  // Current x coordinate (in view) at y=scanline
     Boolean isArc;  // circle arc edge
     union {
         struct { // Circle arc edge
             V4pCoord cx, cy;  // center
-            V4pCoord cxv, cyv;  // center in view coordinates
-            V4pCoord rx;  // x1v-x0v
-            V4pCoord ry;  // y1v-y0v
+            V4pCoord cvx, cvy;  // center in view coordinates
+            V4pCoord rx;  // bvx-avx
+            V4pCoord ry;  // bvy-avy
         } arc;
         struct { // Bresenham algorithm variables for straight edge
             V4pCoord o1;  // Offset when accumulator under limit

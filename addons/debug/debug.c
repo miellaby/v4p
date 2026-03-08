@@ -51,7 +51,7 @@ void v4p_debugPolygon(V4pPolygonP poly, const char* name) {
             ActiveEdgeP edge = (ActiveEdgeP)edge_list->data;
             v4pi_debug("Edge %d: y0=%d, y1=%d, x=%d, h=%d, next=%p\n",
                       edge_count++,
-                      edge->y0, edge->y1, edge->x, edge->h, (void*)edge_list->next);
+                      edge->ay, edge->by, edge->x, edge->h, (void*)edge_list->next);
             edge_list = edge_list->next;
         }
         v4pi_debug("Total edges: %d\n", edge_count);

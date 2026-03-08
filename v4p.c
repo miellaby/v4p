@@ -624,7 +624,7 @@ ActiveEdgeP v4p_addNewActiveEdge(V4pPolygonP p, V4pPointP a, V4pPointP b) {
     ae->p = p;
     ae->isStroke = (p->stroke == 1) ? true : false;
     ListPrepend(p->ActiveEdge1, ae);
-    int x0, y0, x1, y1;
+    int ax, ay, bx, by;
 
     if (p->round && a->x != b->x) {
         ae->isArc = true;
@@ -654,30 +654,30 @@ ActiveEdgeP v4p_addNewActiveEdge(V4pPolygonP p, V4pPointP a, V4pPointP b) {
     }
 
     if (a->y <= b->y) {
-        x0 = a->x;
-        y0 = a->y;
-        x1 = b->x;
-        y1 = b->y;
+        ax = a->x;
+        ay = a->y;
+        bx = b->x;
+        by = b->y;
     } else {
-        x0 = b->x;
-        y0 = b->y;
-        x1 = a->x;
-        y1 = a->y;
+        ax = b->x;
+        ay = b->y;
+        bx = a->x;
+        by = a->y;
     }
 
-    ae->x0 = x0;
-    ae->y0 = y0;
-    ae->x1 = x1;
-    ae->y1 = y1;
+    ae->ax = ax;
+    ae->ay = ay;
+    ae->bx = bx;
+    ae->by = by;
 
     if (p->props & V4P_RELATIVE) {  // Relative polygon
-        ae->x0v = x0;
-        ae->y0v = y0;
-        ae->x1v = x1;
-        ae->y1v = y1;
+        ae->avx = ax;
+        ae->avy = ay;
+        ae->bvx = bx;
+        ae->bvy = by;
         if (ae->isArc) {
-            ae->as.arc.cxv = ae->as.arc.cx;
-            ae->as.arc.cyv = ae->as.arc.cy;
+            ae->as.arc.cvx = ae->as.arc.cx;
+            ae->as.arc.cvy = ae->as.arc.cy;
         }
     }
 
@@ -1295,18 +1295,18 @@ void v4p_buildOpenableAELists(V4pPolygonP polygonChain) {
         while (l) {
             b = (ActiveEdgeP) ListData(l);
             if (isRelative) {
-                QuickTableAdd(v4p->openableAETable, (b->y0 > 0 ? b->y0 : 0) & YHASH_MASK, l);
+                QuickTableAdd(v4p->openableAETable, (b->ay > 0 ? b->ay : 0) & YHASH_MASK, l);
             } else {
-                v4p_absoluteToView(b->x0, b->y0, &(b->x0v), &(b->y0v));
-                v4p_absoluteToView(b->x1, b->y1, &(b->x1v), &(b->y1v));
+                v4p_absoluteToView(b->ax, b->ay, &(b->avx), &(b->avy));
+                v4p_absoluteToView(b->bx, b->by, &(b->bvx), &(b->bvy));
                 if (b->isArc) {
-                    v4p_absoluteToView(b->as.arc.cx, b->as.arc.cy, &(b->as.arc.cxv), &(b->as.arc.cyv));
+                    v4p_absoluteToView(b->as.arc.cx, b->as.arc.cy, &(b->as.arc.cvx), &(b->as.arc.cvy));
                 }
 
-                if (b->y0 < v4p->viewMinY) {
+                if (b->ay < v4p->viewMinY) {
                     QuickTableAdd(v4p->openableAETable, 0, l);
                 } else {
-                    QuickTableAdd(v4p->openableAETable, b->y0v & YHASH_MASK, l);
+                    QuickTableAdd(v4p->openableAETable, b->avy & YHASH_MASK, l);
                 }
             }
             l = ListNext(l);
@@ -1319,55 +1319,55 @@ void v4p_buildOpenableAELists(V4pPolygonP polygonChain) {
 }
 
 // open all new scan-line intersected ActiveEdge, returns them as a list
-List v4p_openActiveEdge(V4pCoord yl, V4pCoord yu) {
+List v4p_openActiveEdge(V4pCoord vy, V4pCoord yu) {
     List newlyOpenedAEList = NULL;
     List l;
-    ActiveEdgeP b;
+    ActiveEdgeP ae;
 
-    V4pCoord x0v, y0v, x1v, y1v, dx, dy, q, r;
+    V4pCoord avx, avy, bvx, bvy, dx, dy, q, r;
 
-    l = QuickTableGet(v4p->openableAETable, yl & YHASH_MASK);
+    l = QuickTableGet(v4p->openableAETable, vy & YHASH_MASK);
     for (; l; l = l->quick) {
-        b = (ActiveEdgeP) ListData(l);
-        x0v = b->x0v;
-        y0v = b->y0v;
-        x1v = b->x1v;
-        y1v = b->y1v;
+        ae = (ActiveEdgeP) ListData(l);
+        avx = ae->avx;
+        avy = ae->avy;
+        bvx = ae->bvx;
+        bvy = ae->bvy;
 
-        v4p_trace(EDGE, "Candidate %p: (%d,%d) to (%d,%d), isArc=%d\n", (void*) b, x0v, y0v, x1v, y1v, b->isArc);
+        v4p_trace(EDGE, "Candidate %p: (%d,%d) to (%d,%d), isArc=%d\n", (void*) ae, avx, avy, bvx, bvy, ae->isArc);
 
-        if (yl == 0) {
-            if (y0v > 0) continue;
-        } else if (y0v != yl)
+        if (vy == 0) {
+            if (avy > 0) continue;
+        } else if (avy != vy)
             continue;
-        if (y1v <= yl) continue;
+        if (bvy <= vy) continue;
 
-        b->h = y1v - yl - (b->isStroke ? 0 : 1);
-        b->x = x0v;
-        dx = x1v - x0v;
-        dy = y1v - y0v;
+        ae->h = bvy - vy - (ae->isStroke ? 0 : 1);
+        ae->x = avx;
+        dx = bvx - avx;
+        dy = bvy - avy;
 
-        v4p_trace(OPEN, "Opening edge %p, height=%d, dx=%d, dy=%d\n", (void*) b, b->h, dx, dy);
+        v4p_trace(OPEN, "Opening edge %p, height=%d, dx=%d, dy=%d\n", (void*) ae, ae->h, dx, dy);
 
-        if (!b->isArc) {
+        if (!ae->isArc) {
             q = dx / dy;
             r = IABS(dx) % dy;
-            b->as.straight.o1 = q;
-            b->as.straight.o2 = b->as.straight.o1 + SIGN(dx);
-            b->as.straight.r1 = r;
-            b->as.straight.r2 = r - dy;
-            b->as.straight.s = -dy / 2;
-            int dy2 = yl - y0v;
+            ae->as.straight.o1 = q;
+            ae->as.straight.o2 = ae->as.straight.o1 + SIGN(dx);
+            ae->as.straight.r1 = r;
+            ae->as.straight.r2 = r - dy;
+            ae->as.straight.s = -dy / 2;
+            int dy2 = vy - avy;
             if (dy2 > 0) {  // edge top truncation
-                b->x += dy2 * q + dy2 * SIGN(dx) * r / dy;
-                b->as.straight.s += (dy2 * r) % dy;
+                ae->x += dy2 * q + dy2 * SIGN(dx) * r / dy;
+                ae->as.straight.s += (dy2 * r) % dy;
             }
         } else {
-            b->as.arc.rx = dx;
-            b->as.arc.ry = dy;
-            v4p_trace(OPEN, "Opening arc edge %p, center=(%d,%d)\n", (void*) b, b->as.arc.cxv, b->as.arc.cyv);
+            ae->as.arc.rx = dx * (ae->ay == ae->as.arc.cy ? -1 : 1);
+            ae->as.arc.ry = dy;
+            v4p_trace(OPEN, "Opening arc edge %p, center=(%d,%d)\n", (void*) ae, ae->as.arc.cvx, ae->as.arc.cvy);
         }
-        ListPrepend(newlyOpenedAEList, b);
+        ListPrepend(newlyOpenedAEList, ae);
     }
     if (newlyOpenedAEList) newlyOpenedAEList = v4p_sortActiveEdge(newlyOpenedAEList);
     return newlyOpenedAEList;
@@ -1376,13 +1376,13 @@ List v4p_openActiveEdge(V4pCoord yl, V4pCoord yu) {
 // Render a scene
 int v4p_render() {
     List l, pl;
-    ActiveEdgeP b;
+    ActiveEdgeP ae;
     V4pPolygonP p; // b->p
     V4pLayer z;  // p->z
-    V4pCoord x, y;  // b->x, scanline.y
-    V4pCoord px, px_collide;
+    V4pCoord vx, vy;  // x, y in screen coordinates
+    V4pCoord pvx, px_collide;
 
-    V4pCoord yu;
+    V4pCoord y; // y in scene cordinates corresponding to vy (line y on screen)
     int su, ou1, ou2, ru1, ru2;
 
     V4pPolygonP visiblePolygon;  // Visible (opened at top) polygon
@@ -1404,67 +1404,67 @@ int v4p_render() {
     // yu (scanline y in absolute coordinates) progression during scanline loop
     ou1 = v4p->viewToScreen_wholeY;
     ou2 = v4p->viewToScreen_wholeY + 1;
-    yu = v4p->viewMinY - ou2;
+    y = v4p->viewMinY - ou2;
     ru1 = v4p->viewToScreen_remY;
     ru2 = v4p->viewToScreen_remY - v4p_displayHeight;
     su = v4p->viewToScreen_remY;
 
     // Scan-line loop
-    for (y = 0; y < v4p_displayHeight; y++) {
+    for (vy = 0; vy < v4p_displayHeight; vy++) {
         Boolean sortNeeded = false;
 
         if (su >= 0) {
             su += ru2;
-            yu += ou2;
+            y += ou2;
         } else {
             su += ru1;
-            yu += ou1;
+            y += ou1;
         }
 
-        v4p_trace(SCAN, "Render y=%d yu=%d\n", y, yu);
+        v4p_trace(SCAN, "Render yv=%d y=%d\n", vy, y);
 
         // Loop among opened ActiveEdge
         l = v4p->openedAEList;
         pl = NULL;
-        px = -(0x7FFF);  // Not sure its really the min, but we dont care
+        pvx = -(0x7FFF);  // Not sure its really the min, but we dont care
         while (l) {
-            b = (ActiveEdgeP) ListData(l);
-            if (b->h <= 0) {  // Close ActiveEdge
-                v4p_trace(OPEN, "Closing edge %p at y=%d\n", (void*) b, y);
+            ae = (ActiveEdgeP) ListData(l);
+            if (ae->h <= 0) {  // Close ActiveEdge
+                v4p_trace(OPEN, "Closing edge %p at y=%d\n", (void*) ae, vy);
                 if (pl) {
                     ListSetNext(pl, l = ListFree(l));
                 } else {
                     v4p->openedAEList = l = ListFree(l);
                 }
             } else {  // Shift ActiveEdge
-                b->h--;
-                if (b->isArc) {
-                    V4pCoord dyv = 2 * y + 1 - 2 * b->as.arc.cyv;
-                    V4pCoord rx = b->as.arc.rx;
-                    V4pCoord ry = b->as.arc.ry;
-                    V4pCoord dxv = rx * isqrt(ry * ry * 4 - dyv * dyv) / (2 * ry);
-                    x = b->x = b->as.arc.cxv + dxv;
+                ae->h--;
+                if (ae->isArc) {
+                    V4pCoord dyv = vy - ae->as.arc.cvy;
+                    V4pCoord rx = ae->as.arc.rx;
+                    V4pCoord ry = ae->as.arc.ry;
+                    V4pCoord dxv = rx * isqrt(ry * ry - dyv * dyv) / ry;
+                    vx = ae->x = ae->as.arc.cvx + dxv;
                     v4p_trace(SHIFT, "Shift circle arc edge %p (%d,%d)x(%d,%d) to x=%d, y=%d\n",
-                              (void*) b, b->x0v, b->y0v, b->x1v, b->y1v, x, y);
+                              (void*) ae, ae->avx, ae->avy, ae->bvx, ae->bvy, vx, vy);
 
                 } else {
-                    if (b->as.straight.o2) {
-                        if (b->as.straight.s > 0) {
-                            x = b->x += b->as.straight.o2;
-                            b->as.straight.s += b->as.straight.r2;
+                    if (ae->as.straight.o2) {
+                        if (ae->as.straight.s > 0) {
+                            vx = ae->x += ae->as.straight.o2;
+                            ae->as.straight.s += ae->as.straight.r2;
                         } else {
-                            x = b->x += b->as.straight.o1;
-                            b->as.straight.s += b->as.straight.r1;
+                            vx = ae->x += ae->as.straight.o1;
+                            ae->as.straight.s += ae->as.straight.r1;
                         }
                     } else {
-                        x = b->x;
+                        vx = ae->x;
                     }
                     v4p_trace(SHIFT, "Shift edge %p (%d,%d)x(%d,%d) to x=%d, y=%d\n",
-                              (void*) b, b->x0v, b->y0v, b->x1v, b->y1v, x, y);
+                              (void*) ae, ae->avx, ae->avy, ae->bvx, ae->bvy, vx, vy);
                 }
 
-                sortNeeded |= (x < px);
-                px = x;
+                sortNeeded |= (vx < pvx);
+                pvx = vx;
                 pl = l;
                 l = ListNext(l);
             }
@@ -1476,7 +1476,7 @@ int v4p_render() {
         }
 
         // Open newly intersected ActiveEdge
-        List newlyOpenedAEList = v4p_openActiveEdge(y, yu);
+        List newlyOpenedAEList = v4p_openActiveEdge(vy, y);
         if (newlyOpenedAEList) {
             ListSetCompareFunc(compareActiveEdgeX);
             v4p->openedAEList
@@ -1495,31 +1495,31 @@ int v4p_render() {
         visiblePolygon = NULL;
 
         // Loop among active edges
-        px = px_collide = 0;
+        pvx = px_collide = 0;
         V4pColor stroke_color = 0;  // WIP
         V4pLayer stroke_depth = V4P_NIL;  // WIP
         for (l = v4p->openedAEList; l; l = ListNext(l)) {
-            b = (ActiveEdgeP) ListData(l);
-            x = b->x;
-            p = b->p;
+            ae = (ActiveEdgeP) ListData(l);
+            vx = ae->x;
+            p = ae->p;
             V4pLayer depth = p->z;  // Full UInt32 depth support
 
-            if (x > 0 && px < x) {  // slice before current edge
+            if (vx > 0 && pvx < vx) {  // slice before current edge
                 // Plot one pixel (stroke slice) if there is a pending stroke and it is above the current polygon
                 if (stroke_depth != V4P_NIL && (!visiblePolygon || stroke_depth >= visiblePolygon->z)) {
-                    v4pi_slice(y, px, IMIN(px + 1, v4p_displayWidth), stroke_color);
-                    px++;
+                    v4pi_slice(vy, pvx, IMIN(pvx + 1, v4p_displayWidth), stroke_color);
+                    pvx++;
                     stroke_depth = V4P_NIL;  // reset the stroke state after plotting
                 }
-                v4pi_slice(y, px, IMIN(x, v4p_displayWidth), visiblePolygon ? visiblePolygon->color : v4p->background);
-                px = x;
+                v4pi_slice(vy, pvx, IMIN(vx, v4p_displayWidth), visiblePolygon ? visiblePolygon->color : v4p->background);
+                pvx = vx;
                 stroke_depth = V4P_NIL;  // reset the stroke state when we move to a new pixel
             }
 
             // Check collisions between concrete polygons
             // only collisions between pairs in layer order are reported
             UInt32 bitmask = concreteBitmask;
-            if (bitmask > 0 && x > 0) {
+            if (bitmask > 0 && vx > 0) {
                 V4pCollisionLayer topLayer = floorLog2(bitmask);
                 UInt32 bitmaskMinusTop = bitmask & (~((UInt32) 1 << topLayer));
                 while (bitmaskMinusTop > 0) {  // Collision with concrete layers
@@ -1527,7 +1527,7 @@ int v4p_render() {
                     V4pPolygonP topConcrete = concretePolygons[topLayer];
                     V4pPolygonP secondConcrete = concretePolygons[secondLayer];
                     // Note collisionCallback != NULL since bitmask != 0
-                    collisionCallback(topLayer, secondLayer, y, px_collide, x, topConcrete, secondConcrete);
+                    collisionCallback(topLayer, secondLayer, vy, px_collide, vx, topConcrete, secondConcrete);
                     bitmask = bitmaskMinusTop;
                     topLayer = secondLayer;
                     bitmaskMinusTop = bitmask & (~((UInt32) 1 << topLayer));
@@ -1535,8 +1535,8 @@ int v4p_render() {
             }
 
             // STROKE EDGE: we'll plot 1px if visible, skipping fill-toggle logic
-            if (b->isStroke) { // WIP
-                if (x >= 0 && x < v4p_displayWidth) {
+            if (ae->isStroke) { // WIP
+                if (vx >= 0 && vx < v4p_displayWidth) {
                     if (stroke_depth == V4P_NIL || p->z > stroke_depth) {
                         // Store that there is a stroke with its color and depth
                         stroke_color = p->color;
@@ -1560,7 +1560,7 @@ int v4p_render() {
 
             // Handle collision detection (original array-based approach)
             if (collisionCallback != NULL) {
-                px_collide = x;
+                px_collide = vx;
                 if (p->collisionMask != 0) {
                     V4pCollisionMask mask = p->collisionMask;
                     if (!(concreteBitmask & mask)) {
@@ -1595,14 +1595,14 @@ int v4p_render() {
         }  // X opened ActiveEdge loop
 
         // Last slice
-        if (px < v4p_displayWidth) {
+        if (pvx < v4p_displayWidth) {
             // Plot one pixel (stroke slice) if there is a pending stroke and it is above the current polygon
             if (stroke_depth != V4P_NIL && (!visiblePolygon || stroke_depth >= visiblePolygon->z)) {
-                v4pi_slice(y, px, IMIN(px + 1, v4p_displayWidth), stroke_color);
-                px++;
+                v4pi_slice(vy, pvx, IMIN(pvx + 1, v4p_displayWidth), stroke_color);
+                pvx++;
             }
-            if (px < v4p_displayWidth) {
-                v4pi_slice(y, IMAX(0, px), v4p_displayWidth, visiblePolygon ? visiblePolygon->color : v4p->background);
+            if (pvx < v4p_displayWidth) {
+                v4pi_slice(vy, IMAX(0, pvx), v4p_displayWidth, visiblePolygon ? visiblePolygon->color : v4p->background);
             }
         }
 
@@ -1614,8 +1614,8 @@ int v4p_render() {
     }
     v4p->openedAEList = NULL;
 
-    if (yu != v4p->viewMaxY - v4p->viewToScreen_wholeY) {
-        v4p_error("problem %d != %d", (int) yu, (int) v4p->viewMaxY - v4p->viewToScreen_wholeY);
+    if (y != v4p->viewMaxY - v4p->viewToScreen_wholeY) {
+        v4p_error("problem %d != %d", (int) y, (int) v4p->viewMaxY - v4p->viewToScreen_wholeY);
     }
 
     v4p->changes = 0;
