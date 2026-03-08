@@ -70,31 +70,7 @@ void setup_colorful_style(struct nk_context *ctx) {
     table[NK_COLOR_TAB_HEADER] = nk_rgba(180, 40, 40, 220);
 
     nk_style_from_table(ctx, table);
-    
-    // Additional custom styling for specific elements
-    ctx->style.window.fixed_background = nk_style_item_color(nk_rgba(45, 45, 55, 255));
-    ctx->style.window.header.normal = nk_style_item_color(nk_rgba(180, 40, 40, 255));
-    ctx->style.window.header.hover = nk_style_item_color(nk_rgba(190, 70, 70, 255));
-    ctx->style.window.header.active = nk_style_item_color(nk_rgba(200, 100, 100, 255));
-    
-    // Button styling
-    ctx->style.button.normal = nk_style_item_color(nk_rgba(180, 40, 40, 255));
-    ctx->style.button.hover = nk_style_item_color(nk_rgba(190, 70, 70, 255));
-    ctx->style.button.active = nk_style_item_color(nk_rgba(200, 100, 100, 255));
-    ctx->style.button.border_color = nk_rgba(100, 100, 100, 255);
-    ctx->style.button.rounding = 4.0f;
-    ctx->style.button.padding = nk_vec2(6, 4);
-    
-    // Slider styling
-    ctx->style.slider.cursor_normal = nk_style_item_color(nk_rgba(190, 70, 70, 255));
-    ctx->style.slider.cursor_hover = nk_style_item_color(nk_rgba(200, 100, 100, 255));
-    ctx->style.slider.cursor_active = nk_style_item_color(nk_rgba(210, 130, 130, 255));
-    ctx->style.slider.bar_normal = nk_rgba(180, 40, 40, 255);
-    ctx->style.slider.bar_hover = nk_rgba(190, 70, 70, 255);
-    ctx->style.slider.bar_active = nk_rgba(200, 100, 100, 255);
-    
-    // Text styling
-    ctx->style.text.color = nk_rgba(240, 240, 240, 255);
+
 }
 
 int g4p_onInit(int quality, bool fullscreen) {

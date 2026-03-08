@@ -435,7 +435,9 @@ nk_v4p_handle_event(struct nk_context *ctx, G4pEvent *evt)
         case G4P_EVENT_MOUSE_DOWN:
             {
                 int down = evt->type == G4P_EVENT_MOUSE_DOWN;
-                const int x = evt->data.mouse.x, y = evt->data.mouse.y;
+                V4pCoord x_abs, y_abs;
+                v4p_viewToAbsolute(evt->data.mouse.x, evt->data.mouse.y, &x_abs, &y_abs);
+                const int x = (int)x_abs, y = (int)y_abs;
                 switch(evt->data.mouse.button)
                 {
                     case G4P_MOUSE_LEFT:
@@ -449,11 +451,15 @@ nk_v4p_handle_event(struct nk_context *ctx, G4pEvent *evt)
             return 1;
 
         case G4P_EVENT_MOUSE_MOVE:
-            if (ctx->input.mouse.grabbed) {
-                int x = (int)ctx->input.mouse.prev.x, y = (int)ctx->input.mouse.prev.y;
-                nk_input_motion(ctx, x + evt->data.motion.x, y + evt->data.motion.y);
+            {
+                V4pCoord x_abs, y_abs;
+                v4p_viewToAbsolute(evt->data.motion.x, evt->data.motion.y, &x_abs, &y_abs);
+                if (ctx->input.mouse.grabbed) {
+                    int x = (int)ctx->input.mouse.prev.x, y = (int)ctx->input.mouse.prev.y;
+                    nk_input_motion(ctx, x + (int)x_abs, y + (int)y_abs);
+                }
+                else nk_input_motion(ctx, (int)x_abs, (int)y_abs);
             }
-            else nk_input_motion(ctx, evt->data.motion.x, evt->data.motion.y);
             return 1;
 
         case G4P_EVENT_TEXT_INPUT:
@@ -593,7 +599,7 @@ nk_v4p_render(struct nk_context *ctx)
             v4p->current_layer++;
         } break;
         default: 
-            v4p_trace(NUKLEAR, "Command: UNKNOWN type %d\n", cmd->type);
+            v4p_error("Nuklear Command: UNKNOWN type %d\n", cmd->type);
             break;
         }
     }
