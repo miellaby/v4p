@@ -5,6 +5,7 @@
 
 #include "v4p.h"
 #include "game_engine/g4p.h"
+#include <string.h>
 
 // Nuklear configuration
 #define NK_INCLUDE_FIXED_TYPES
@@ -25,9 +26,14 @@ static struct nk_context *nk_ctx = NULL;
 
 // UI state variables
 static int slider_value = 50;
-static float progress_value = 0.5f;
+static nk_size progress_value = 50;
 static char text_buffer[64] = "Hello Nuklear!";
 static int checkbox_value = 1;
+static int radio_value = 1;
+static int combo_selection = 0;
+static const char *combo_items[] = {"Item 1", "Item 2", "Item 3", "Item 4"};
+static int property_int[3] = {20, 40, 60};
+static float property_float[2] = {0.5f, 0.8f};
 
 // Custom styling function to make the UI more colorful
 void setup_colorful_style(struct nk_context *ctx) {
@@ -94,6 +100,7 @@ void setup_colorful_style(struct nk_context *ctx) {
 int g4p_onInit(int quality, bool fullscreen) {
     // Initialize v4p
     v4p_init2(quality, fullscreen);
+    v4p_setView(0, 0, 1.2 * v4p_displayWidth, 1.2 * v4p_displayHeight);
     
     v4p_setBGColor(V4P_BLACK);
     
@@ -117,26 +124,93 @@ int g4p_onTick(int32_t deltaTime) {
     progress_value += 0.0001f * deltaTime;
     if (progress_value > 1.0f) progress_value = 0.0f;
     
-    // Handle Nuklear input - this would be integrated with g4p input system
-    // For now, we'll just set up basic input handling
+    // Handle Nuklear input using G4P events
+    nk_input_begin(nk_ctx);
     
-    // Nuklear input handling would go here
-    // nk_input_begin(nk_ctx);
-    // ... process mouse/keyboard events ...
-    // nk_input_end(nk_ctx);
+    G4pEvent event;
+    while (g4p_pollEvent(&event)) {
+        if (event.type == G4P_EVENT_NONE) continue;
+        nk_v4p_handle_event(nk_ctx, &event);
+    }
+    
+    nk_input_end(nk_ctx);
 
-        // Clear screen
+    // Clear screen
     v4p_clearScene();
     
     // Set up Nuklear UI
-    if (nk_begin(nk_ctx, "Nuklear Demo", nk_rect(50, 50, 300, 400),
+    if (nk_begin(nk_ctx, "Nuklear Demo", nk_rect(50, 50, 400, 550),
                 NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|
                 NK_WINDOW_CLOSABLE|NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE))
     {
+        // Header
+        nk_layout_row_dynamic(nk_ctx, 20, 1);
+        nk_label(nk_ctx, "Nuklear IMGUI Demo", NK_TEXT_ALIGN_CENTERED);
+        nk_label(nk_ctx, "Various UI Elements", NK_TEXT_ALIGN_CENTERED);
+        
+        // Basic Widgets
         nk_layout_row_dynamic(nk_ctx, 30, 1);
+        nk_label(nk_ctx, "Basic Widgets:", NK_TEXT_LEFT);
+        
+        nk_layout_row_dynamic(nk_ctx, 30, 2);
         if (nk_button_label(nk_ctx, "Button")) {
-            // Button clicked
             v4p_trace(G4P, "Button clicked!");
+        }
+        
+        nk_checkbox_label(nk_ctx, "Checkbox", &checkbox_value);
+        
+        // Slider
+        nk_layout_row_dynamic(nk_ctx, 30, 1);
+        nk_label(nk_ctx, "Slider:", NK_TEXT_LEFT);
+        nk_layout_row_dynamic(nk_ctx, 30, 1);
+        nk_slider_int(nk_ctx, 0, &slider_value, 100, 5);
+        nk_label(nk_ctx, "Progress:", NK_TEXT_LEFT);
+        nk_progress(nk_ctx, &progress_value, 100, NK_MODIFIABLE);
+        
+        // Radio buttons
+        nk_layout_row_dynamic(nk_ctx, 30, 1);
+        nk_label(nk_ctx, "Radio Buttons:", NK_TEXT_LEFT);
+        nk_layout_row_dynamic(nk_ctx, 30, 1);
+        if (nk_option_label(nk_ctx, "Option 1", radio_value == 1)) radio_value = 1;
+        if (nk_option_label(nk_ctx, "Option 2", radio_value == 2)) radio_value = 2;
+        if (nk_option_label(nk_ctx, "Option 3", radio_value == 3)) radio_value = 3;
+        
+        // Combo box
+        nk_layout_row_dynamic(nk_ctx, 30, 1);
+        nk_label(nk_ctx, "Combo Box:", NK_TEXT_LEFT);
+        nk_layout_row_dynamic(nk_ctx, 30, 1);
+        combo_selection = nk_combo(nk_ctx, combo_items, NK_LEN(combo_items), combo_selection, 25, nk_vec2(200, 200));
+        
+        // Property editor
+        nk_layout_row_dynamic(nk_ctx, 30, 1);
+        nk_label(nk_ctx, "Property Editor:", NK_TEXT_LEFT);
+        nk_layout_row_dynamic(nk_ctx, 30, 1);
+        nk_property_int(nk_ctx, "Int Property 1:", 0, &property_int[0], 100, 1, 1);
+        nk_property_int(nk_ctx, "Int Property 2:", 0, &property_int[1], 100, 1, 1);
+        nk_property_float(nk_ctx, "Float Property 1:", 0, &property_float[0], 1.0f, 0.01f, 0.1f);
+        
+        // Text input
+        nk_layout_row_dynamic(nk_ctx, 30, 1);
+        nk_label(nk_ctx, "Text Input:", NK_TEXT_LEFT);
+        nk_layout_row_dynamic(nk_ctx, 30, 1);
+        {
+            int len = strlen(text_buffer);
+            nk_edit_string(nk_ctx, NK_EDIT_FIELD, text_buffer, &len, 64, nk_filter_default);
+        }
+        
+
+        
+        // Chart
+        nk_layout_row_dynamic(nk_ctx, 30, 1);
+        nk_label(nk_ctx, "Chart:", NK_TEXT_LEFT);
+        nk_layout_row_dynamic(nk_ctx, 100, 1);
+        {
+            float values[] = {26.0f, 13.0f, 30.0f, 15.0f, 25.0f, 10.0f, 20.0f, 40.0f, 12.0f, 8.0f, 22.0f, 28.0f};
+            nk_chart_begin(nk_ctx, NK_CHART_LINES, NK_LEN(values), 0, 50);
+            for (int i = 0; i < NK_LEN(values); ++i) {
+                nk_chart_push(nk_ctx, values[i]);
+            }
+            nk_chart_end(nk_ctx);
         }
     }
     nk_end(nk_ctx);

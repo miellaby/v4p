@@ -38,6 +38,7 @@ NK_API struct nk_context *nk_v4p_init(V4pSceneP scene, V4pCoord width, V4pCoord 
 NK_API void                  nk_v4p_render(struct nk_context *ctx);
 NK_API void                  nk_v4p_shutdown(struct nk_context *ctx);
 NK_API void                  nk_v4p_resize(struct nk_context *ctx, V4pCoord width, V4pCoord height);
+NK_API int                   nk_v4p_handle_event(struct nk_context *ctx, G4pEvent *evt);
 
 
 #endif
@@ -363,6 +364,111 @@ nk_v4p_font_width(nk_handle handle, float height, const char *text, int len)
     
     v4p_trace(NUKLEAR, "Calculated text width: %.1f\n", total_width);
     return total_width;
+}
+
+NK_API int
+nk_v4p_handle_event(struct nk_context *ctx, G4pEvent *evt)
+{
+    if (!ctx) return 0;
+    int ctrl_down = g4p_state.buttons[G4P_CTRL];
+    static int insert_toggle = 0;
+
+    switch(evt->type)
+    {
+        case G4P_EVENT_KEY_UP: /* KEYUP & KEYDOWN share same routine */
+        case G4P_EVENT_KEY_DOWN:
+            {
+                int down = evt->type == G4P_EVENT_KEY_DOWN;
+                switch(evt->data.key.key)
+                {
+                    case G4P_KEY_LSHIFT: /* RSHIFT & LSHIFT share same routine */
+                    case G4P_KEY_RSHIFT:    nk_input_key(ctx, NK_KEY_SHIFT, down); break;
+                    case G4P_KEY_DELETE:    nk_input_key(ctx, NK_KEY_DEL, down); break;
+
+                    case G4P_KEY_RETURN:    nk_input_key(ctx, NK_KEY_ENTER, down); break;
+
+                    case G4P_KEY_TAB:       nk_input_key(ctx, NK_KEY_TAB, down); break;
+                    case G4P_KEY_BACKSPACE: nk_input_key(ctx, NK_KEY_BACKSPACE, down); break;
+                    case G4P_KEY_HOME:      nk_input_key(ctx, NK_KEY_TEXT_START, down);
+                                         nk_input_key(ctx, NK_KEY_SCROLL_START, down); break;
+                    case G4P_KEY_END:       nk_input_key(ctx, NK_KEY_TEXT_END, down);
+                                         nk_input_key(ctx, NK_KEY_SCROLL_END, down); break;
+                    case G4P_KEY_PAGEDOWN:  nk_input_key(ctx, NK_KEY_SCROLL_DOWN, down); break;
+                    case G4P_KEY_PAGEUP:    nk_input_key(ctx, NK_KEY_SCROLL_UP, down); break;
+                    case 'z':         nk_input_key(ctx, NK_KEY_TEXT_UNDO, down && ctrl_down); break;
+                    case 'r':         nk_input_key(ctx, NK_KEY_TEXT_REDO, down && ctrl_down); break;
+                    case 'c':         nk_input_key(ctx, NK_KEY_COPY, down && ctrl_down); break;
+                    case 'v':         nk_input_key(ctx, NK_KEY_PASTE, down && ctrl_down); break;
+                    case 'x':         nk_input_key(ctx, NK_KEY_CUT, down && ctrl_down); break;
+                    case 'b':         nk_input_key(ctx, NK_KEY_TEXT_LINE_START, down && ctrl_down); break;
+                    case 'e':         nk_input_key(ctx, NK_KEY_TEXT_LINE_END, down && ctrl_down); break;
+                    case G4P_KEY_UP:        nk_input_key(ctx, NK_KEY_UP, down); break;
+                    case G4P_KEY_DOWN:      nk_input_key(ctx, NK_KEY_DOWN, down); break;
+                    case G4P_KEY_ESCAPE:    nk_input_key(ctx, NK_KEY_TEXT_RESET_MODE, down); break;
+                    case G4P_KEY_INSERT:
+                        if (down) insert_toggle = !insert_toggle;
+                        if (insert_toggle) {
+                            nk_input_key(ctx, NK_KEY_TEXT_INSERT_MODE, down);
+                        } else {
+                            nk_input_key(ctx, NK_KEY_TEXT_REPLACE_MODE, down);
+                        }
+                        break;
+                    case 'a':
+                        if (ctrl_down)
+                            nk_input_key(ctx,NK_KEY_TEXT_SELECT_ALL, down);
+                        break;
+                    case G4P_KEY_LEFT:
+                        if (ctrl_down)
+                            nk_input_key(ctx, NK_KEY_TEXT_WORD_LEFT, down);
+                        else nk_input_key(ctx, NK_KEY_LEFT, down);
+                        break;
+                    case G4P_KEY_RIGHT:
+                        if (ctrl_down)
+                            nk_input_key(ctx, NK_KEY_TEXT_WORD_RIGHT, down);
+                        else nk_input_key(ctx, NK_KEY_RIGHT, down);
+                        break;
+                }
+            }
+            return 1;
+
+        case G4P_EVENT_MOUSE_UP: /* MOUSEBUTTONUP & MOUSEBUTTONDOWN share same routine */
+        case G4P_EVENT_MOUSE_DOWN:
+            {
+                int down = evt->type == G4P_EVENT_MOUSE_DOWN;
+                const int x = evt->data.mouse.x, y = evt->data.mouse.y;
+                switch(evt->data.mouse.button)
+                {
+                    case G4P_MOUSE_LEFT:
+                        if (evt->data.mouse.clicks > 1)
+                            nk_input_button(ctx, NK_BUTTON_DOUBLE, x, y, down);
+                        nk_input_button(ctx, NK_BUTTON_LEFT, x, y, down); break;
+                    case G4P_MOUSE_MIDDLE: nk_input_button(ctx, NK_BUTTON_MIDDLE, x, y, down); break;
+                    case G4P_MOUSE_RIGHT:  nk_input_button(ctx, NK_BUTTON_RIGHT, x, y, down); break;
+                }
+            }
+            return 1;
+
+        case G4P_EVENT_MOUSE_MOVE:
+            if (ctx->input.mouse.grabbed) {
+                int x = (int)ctx->input.mouse.prev.x, y = (int)ctx->input.mouse.prev.y;
+                nk_input_motion(ctx, x + evt->data.motion.x, y + evt->data.motion.y);
+            }
+            else nk_input_motion(ctx, evt->data.motion.x, evt->data.motion.y);
+            return 1;
+
+        case G4P_EVENT_TEXT_INPUT:
+            {
+                nk_glyph glyph;
+                memcpy(glyph, evt->data.text.text, NK_UTF_SIZE);
+                nk_input_glyph(ctx, glyph);
+            }
+            return 1;
+
+        case G4P_EVENT_MOUSE_WHEEL:
+            nk_input_scroll(ctx,nk_vec2(evt->data.wheel.x, evt->data.wheel.y));
+            return 1;
+    }
+    return 0;
 }
 
 NK_API struct nk_context*

@@ -249,7 +249,7 @@ tests/%.o: tests/%.c # Note: It is recommanded to build tests with DEBUG=1 for b
 	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -DDEBUG=1 -Iaddons -c $< -o $@
 
 # Link tests in their directories
-tests/%: tests/%.o libv4p.a libg4p.a libqfont.a libv4pserial.a libparticles.a
+tests/%: tests/%.o libg4p.a libqfont.a libv4pserial.a libparticles.a libv4p.a
 	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS) -lm
 
 # ============================================
@@ -301,7 +301,7 @@ clean:
 	$(Q)$(RM) tests/*.o
 	$(Q)$(RM) $(patsubst tests/%.c,tests/%,$(wildcard tests/*.c))
 	$(Q)$(RM) -rf demos/web
-	$(Q)$(RM) demos/*.html demos/*.js demos/*.wasm
+	$(Q)$(RM) demos/*.html demos/*.js demos/*.wasm tests/*.wasm
 
 install: libv4p.a
 	$(Q)$(MKDIR) $(PREFIX)/lib
