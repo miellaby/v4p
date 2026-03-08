@@ -1,4 +1,4 @@
-#include "quick/math.h"
+#include "quick/imath.h"
 #include <stdio.h>
 #include <stdlib.h>
 

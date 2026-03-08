@@ -5,7 +5,7 @@
 #include <stdarg.h>
 
 #include "v4pi.h"
-#include "quick/math.h"
+#include "quick/imath.h"
 #include "v4p.h"
 
 

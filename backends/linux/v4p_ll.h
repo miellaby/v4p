@@ -18,12 +18,9 @@ typedef struct stuffing_s* Stuffing;
 
 // Debug and error functions
 #if defined(DEBUG) || defined(V4P_LL_C)
-    void v4pi_debug(char* formatString, ...);
+    void v4p_debug(char* formatString, ...);
 #else
-    #define v4pi_debug(...) ((void)0)
+    #define v4p_debug(...) ((void)0)
 #endif
-
-// Trace function
-void v4pi_trace(const char* tag, const char* format, ...);
 
 int v4p_error(char* s, ...);

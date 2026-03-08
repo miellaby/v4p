@@ -57,7 +57,7 @@ int v4pi_init(int quality, Boolean fullscreen) {
     // Set up a suitable video mode depending on wanted quality
     int screenWidth = V4P_DEFAULT_SCREEN_WIDTH * 2 / (3 - quality);
     int screenHeight = V4P_DEFAULT_SCREEN_HEIGHT * 2 / (3 - quality);
-    v4pi_debug("v4pi_init, wanted resolution is %dx%d\n", screenWidth, screenHeight);
+    v4p_debug("v4pi_init, wanted resolution is %dx%d\n", screenWidth, screenHeight);
     vga_setmode(screenWidth == 640 && screenHeight == 480
                     ? G640x480x256
                     : (screenWidth > 640 ? G800x600x256 : G320x200x256));
@@ -71,7 +71,7 @@ int v4pi_init(int quality, Boolean fullscreen) {
 
     v4pi_defaultContextSingleton.width = i->width;
     v4pi_defaultContextSingleton.height = i->height;
-    v4pi_debug("Default Context Width x height = %d x %d\n",
+    v4p_debug("Default Context Width x height = %d x %d\n",
                v4pi_defaultContextSingleton.width,
                v4pi_defaultContextSingleton.height);
     v4pi_setContext(v4pi_defaultContext);
@@ -113,5 +113,5 @@ V4piContextP v4pi_setContext(V4piContextP c) {
 // clean things before quitting
 void v4pi_destroy() {
     vga_setmode(TEXT);
-    v4pi_debug("w=%d h=%d\n", v4pi_defaultContextSingleton.width, v4pi_defaultContextSingleton.height);
+    v4p_debug("w=%d h=%d\n", v4pi_defaultContextSingleton.width, v4pi_defaultContextSingleton.height);
 }

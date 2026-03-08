@@ -595,7 +595,7 @@ const UInt8* qfont_get_char(char c) {
     if (c >= 32 && c < 127) {
         return char_map[c - 32];
     }
-    return char_map[127];  // Return the "unknown" character for non-printable characters
+    return char_map[127 - 32];  // Return the "unknown" character for non-printable characters
 }
 
 #define CHAR_WIDTH 4

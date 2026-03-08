@@ -2,12 +2,14 @@
 #define _V4P_H
 // V4P internal definitions (not to be included by users)
 // Exception: debug addon may include this for debugging purposes
-#ifndef _V4P_C
-    #ifndef V4P_DEBUG_ADDON
-        #warning "This file should only be included by v4p.c or debug addon"
+#ifndef DEBUG
+    #ifndef _V4P_C
+        #ifndef V4P_DEBUG_ADDON
+            #warning "This file should only be included by v4p.c or debug addon"
+        #endif
     #endif
 #endif
-#include "quick/math.h"
+#include "quick/imath.h"
 #include "quick/heap.h"
 #include "quick/sortable.h"
 #include "quick/sorted.h"

@@ -1,7 +1,7 @@
 
 #include <PalmOS.h>
 
-void v4pi_debug(char* formatString, ...) {
+void v4p_debug(char* formatString, ...) {
     va_list args;
     Char text[0x100];
     va_start(args, formatString);

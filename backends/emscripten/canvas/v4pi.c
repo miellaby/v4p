@@ -70,7 +70,7 @@ int v4pi_end() {
     tlaps += laps[j % 4] = t2 - t1;
     j++;
     if (!(j % 100))
-        v4pi_debug("v4p_displayEnd, average time = %dms\n", tlaps / 4);
+        v4p_debug("v4p_displayEnd, average time = %dms\n", tlaps / 4);
 
     return success;
 }

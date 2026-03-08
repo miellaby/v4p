@@ -1,6 +1,6 @@
 #include "v4p.h"
 #include "game_engine/g4p.h"
-#include "quick/math.h" 
+#include "quick/imath.h" 
 #include "v4pserial/v4pserial.h"
 #include <stdio.h>
 

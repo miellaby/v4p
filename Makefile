@@ -201,7 +201,7 @@ endif
 # Core library
 CORE_SRCS = \
     v4p.c v4p_color.c \
-    quick/heap.c quick/table.c quick/sortable.c quick/sorted.c quick/math.c \
+    quick/heap.c quick/table.c quick/sortable.c quick/sorted.c quick/imath.c \
     backends/$(TARGET)/v4p_ll.c
 
 BACKEND_SRCS = backends/$(TARGET)/$(BACKEND)/v4pi.c

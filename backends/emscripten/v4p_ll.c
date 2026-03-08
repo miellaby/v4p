@@ -9,7 +9,7 @@
 #include "v4p_ll.h"
 
 // Debug function
-void v4pi_debug(const char* format, ...) {
+void v4p_debug(const char* format, ...) {
     #ifdef DEBUG
     va_list args;
     va_start(args, format);
@@ -21,19 +21,6 @@ void v4pi_debug(const char* format, ...) {
         console.log('DEBUG: ' + UTF8ToString($0));
     }, buffer);
     #endif
-}
-
-// Error function
-void v4pi_error(const char* format, ...) {
-    va_list args;
-    va_start(args, format);
-    char buffer[256];
-    vsnprintf(buffer, sizeof(buffer), format, args);
-    va_end(args);
-    
-    EM_ASM({
-        console.error('ERROR: ' + UTF8ToString($0));
-    }, buffer);
 }
 
 // Error function that returns Boolean (compatibility with other backends)

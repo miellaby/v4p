@@ -96,7 +96,7 @@ int v4pi_end() {
     tlaps += laps[j % 4] = t2 - t1;
     j++;
     if (! (j % 100))
-        v4pi_debug("v4p_displayEnd, average time = %dms\n", tlaps / 4);
+        v4p_debug("v4p_displayEnd, average time = %dms\n", tlaps / 4);
 
     // Commit graphic changes we made
     XPutImage(currentDisplay,
@@ -208,7 +208,7 @@ static Boolean createWindow(V4piContextP vd, int width, int height) {
     XSetForeground(d, gc, BlackPixel(d, s));
 
     int depth = DefaultDepth(d, s);
-    v4pi_debug("depth is %d\n", depth);
+    v4p_debug("depth is %d\n", depth);
 
     // Pixmap p = XCreatePixmap(d, w, width, height, 8 /* not default depth */);
 
@@ -265,13 +265,13 @@ int v4pi_init(int quality, Boolean fullscreen) {
         c.red = (unsigned short) V4P_PALETTE_R(i) << 8;
         c.green = (unsigned short) V4P_PALETTE_G(i) << 8;
         c.blue = (unsigned short) V4P_PALETTE_B(i) << 8;
-        // v4pi_debug ("color allocation %02X %02X %02X %08lX\n", (int)c.V4P_RED,
+        // v4p_debug ("color allocation %02X %02X %02X %08lX\n", (int)c.V4P_RED,
         // (int)c.V4P_GREEN, (int)c.V4P_BLUE, (unsigned long)c.pixel);
         if (! (rcx = XAllocColor(d, cmap, &c))) {
             v4p_error("Can't allocate color\n");
             exit(EXIT_FAILURE);
         }
-        // v4pi_debug ("color allocation %02X %02X %02X %08lX\n", (int)c.V4P_RED,
+        // v4p_debug ("color allocation %02X %02X %02X %08lX\n", (int)c.V4P_RED,
         // (int)c.V4P_GREEN, (int)c.V4P_BLUE, (unsigned long)c.pixel);
         xColors[i] = c.pixel;
         // printf("%d %02X %02X %02X %08lX\n", rcx, (int)c.V4P_RED, (int)c.V4P_GREEN,

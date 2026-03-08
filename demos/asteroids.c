@@ -4,9 +4,9 @@
 #include "v4pserial/v4pserial.h"
 #include "qfont/qfont.h"  // For score display
 #include "particles/particles.h"  // For particle effects
-#include "quick/math.h"  // For computeCosSin()
+#include "quick/imath.h"  // For computeCosSin()
 #ifdef DEBUG
-    #include "backends/v4pi.h"  // For v4pi_debug
+    #include "backends/v4pi.h"  // For v4p_debug
     #include "debug/debug.h"  // For debug functions
 #endif
 #include <stdlib.h>
@@ -660,9 +660,9 @@ int g4p_onTick(Int32 deltaTime) {
 #ifdef DEBUG
         // Debug: Press SHIFT button to display ship information
         if (g4p_state.buttons[G4P_SHIFT]) {
-            v4pi_debug("=== SHIP DEBUG INFO ===\n");
-            v4pi_debug("Position: x=%.2f, y=%.2f, angle=%.2f\n", ship_x, ship_y, ship_angle);
-            v4pi_debug("Speed: sx=%.2f, sy=%.2f\n", ship_speed_x, ship_speed_y);
+            v4p_debug("=== SHIP DEBUG INFO ===\n");
+            v4p_debug("Position: x=%.2f, y=%.2f, angle=%.2f\n", ship_x, ship_y, ship_angle);
+            v4p_debug("Speed: sx=%.2f, sy=%.2f\n", ship_speed_x, ship_speed_y);
 
             // Use the debug addon to dump polygon information
             v4p_debugPolygon(ship, "ship");

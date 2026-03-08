@@ -3,8 +3,8 @@
 #include "game_engine/collision.h"
 #include "v4pserial/v4pserial.h"
 #include "qfont/qfont.h"  // For text rendering
-#include "backends/v4pi.h"  // For v4pi_debug
-#include "quick/math.h"  // For computeCosSin() and gaugeDist()
+#include "backends/v4pi.h"  // For v4p_debug
+#include "quick/imath.h"  // For computeCosSin() and gaugeDist()
 #include <stdio.h>
 #include <math.h>
 
@@ -170,11 +170,11 @@ void create_checkpoints() {
         V4pPolygonP direction_poly = v4p_addNewSub(checkpoint_polygons[i], V4P_ABSOLUTE, V4P_YELLOW, 28);
         v4p_addCorners(direction_poly, vec_x - 5, vec_y - 5, vec_x + 5, vec_y + 5);
 
-        // v4pi_debug("Checkpoint %d marker at: (%d, %d) %s turn\n", i, checkpoints[i].x, checkpoints[i].y,
+        // v4p_debug("Checkpoint %d marker at: (%d, %d) %s turn\n", i, checkpoints[i].x, checkpoints[i].y,
         //           checkpoints[i].requires_clockwise ? "clockwise" : "counter-clockwise");
     }
 
-    // v4pi_debug("Start line at: (%d, %d)\n", checkpoints[0].x, checkpoints[0].y);
+    // v4p_debug("Start line at: (%d, %d)\n", checkpoints[0].x, checkpoints[0].y);
 }
 
 // Create background layers from circuit.svg using original paths
@@ -444,7 +444,7 @@ void track_checkpoint_crossings() {
             // Calculate cross product between car-checkpoint vector and reference vector
             // This tells us which side of the reference vector the car is on
             V4pCoord cross = dx * checkpoints[i].ref_dy - dy * checkpoints[i].ref_dx;
-            // v4pi_debug("Near checkpoint %d: distance to : %d, cross product: %d\n", i, distance, cross);
+            // v4p_debug("Near checkpoint %d: distance to : %d, cross product: %d\n", i, distance, cross);
 
             // Detect crossing of the reference vector in the correct direction
             Boolean crossed_now = false;
@@ -469,7 +469,7 @@ void track_checkpoint_crossings() {
             if (crossed_now) {
                 // Mark this checkpoint as correctly passed
                 checkpoints_passed |= (1 << i);
-                // v4pi_debug("Checkpoint %d crossed correctly %s\n", i, checkpoints[i].requires_clockwise ? "clockwise" : "counter-clockwise");
+                // v4p_debug("Checkpoint %d crossed correctly %s\n", i, checkpoints[i].requires_clockwise ? "clockwise" : "counter-clockwise");
 
                 // Visual feedback: change colors
                 if (last_crossed_checkpoint != -1) {
@@ -483,12 +483,12 @@ void track_checkpoint_crossings() {
                 if (i == 0) {  // Start line - check for lap completion
                     // Check if all required checkpoints have been passed
                     UInt32 required_checkpoints = 0b01111111;  // Checkpoints 0-5 must be passed (bits 0-5 set to 1)
-                    v4pi_debug("Checking lap completion: checkpoints passed %08X, required %08X\n",
+                    v4p_debug("Checking lap completion: checkpoints passed %08X, required %08X\n",
                                checkpoints_passed, required_checkpoints);
                     if ((checkpoints_passed & required_checkpoints) == required_checkpoints) {
                         lap_count++;
                         update_lap_count_display();
-                        v4pi_debug("LAP COMPLETED! Total laps: %d\n", lap_count);
+                        v4p_debug("LAP COMPLETED! Total laps: %d\n", lap_count);
                     }
                     checkpoints_passed = 0;  // Reset for next lap (whatever it was complete or not)
                 }
@@ -550,7 +550,7 @@ int g4p_onTick(Int32 deltaTime) {
         friction_factor = powf(0.999f, deltaTime);
     }
 
-    // v4pi_debug("Collision count: %d - %s\n", collision_count, collision_count >= 50 ? "ON ROAD" : "OFF ROAD - SLOWING DOWN");
+    // v4p_debug("Collision count: %d - %s\n", collision_count, collision_count >= 50 ? "ON ROAD" : "OFF ROAD - SLOWING DOWN");
     // Check if car is on the road (collision count >= 50)
     if (collision_count < 50) { // FIXME the collision counts threshold depends on the zoom level squared.
         // Off road: much higher friction (almost stops)

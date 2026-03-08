@@ -15,7 +15,7 @@
 
 #include "v4pi.h"
 #include "v4p_color.h"
-#include "quick/math.h"
+#include "quick/imath.h"
 
 // A display context
 typedef struct v4pi_context_s {
@@ -109,7 +109,7 @@ int v4pi_end() {
     tlaps += laps[j % 4] = t2 - t1;
     j++;
     if (! (j % 100))
-        v4pi_debug("v4p_displayEnd, average time = %dms\n", tlaps / 4);
+        v4p_debug("v4p_displayEnd, average time = %dms\n", tlaps / 4);
 
     return success;
 }

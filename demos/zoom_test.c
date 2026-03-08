@@ -1,6 +1,6 @@
 #include "v4p.h"
 #include "game_engine/g4p.h"
-#include "quick/math.h"  // For IABS() function
+#include "quick/imath.h"  // For IABS() function
 
 #define BOX_SIZE 50
 #define SPACING 100

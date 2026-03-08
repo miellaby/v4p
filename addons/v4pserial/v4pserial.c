@@ -1,11 +1,12 @@
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <math.h>
+#include "v4pserial.h"
 #include "v4p.h"
 #include "v4pi.h"
-#include "v4pserial.h"
-#include "quick/math.h"
+#include "quick/imath.h"
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
+#include <stdio.h>
+// #include "quick/imath.h"
 
 // Transform hexa char ('0-9,A-F') to int
 int v4p_parseHexDigit(char c) {

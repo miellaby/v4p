@@ -1,6 +1,6 @@
 #include "v4p.h"
 #include "game_engine/g4p.h"
-#include "quick/math.h"
+#include "quick/imath.h"
 
 #define GRID_SIZE 12
 V4pPolygonP squares[GRID_SIZE][GRID_SIZE];

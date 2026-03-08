@@ -78,28 +78,28 @@ V4pCoord v4p_displayHeight = 0;
 
 // Helper function to find a connected connector
 static drmModeConnector* find_connected_connector(drmModeRes* resources) {
-    v4pi_debug("Searching for connected connectors (%d available)", resources->count_connectors);
+    v4p_debug("Searching for connected connectors (%d available)", resources->count_connectors);
     
     for (int i = 0; i < resources->count_connectors; i++) {
         drmModeConnector* connector = drmModeGetConnector(drm_context.fd, resources->connectors[i]);
         if (!connector) {
-            v4pi_debug("Failed to get connector %d", resources->connectors[i]);
+            v4p_debug("Failed to get connector %d", resources->connectors[i]);
             continue;
         }
         
-        v4pi_debug("Connector %d: type=%d, connection=%d, modes=%d",
+        v4p_debug("Connector %d: type=%d, connection=%d, modes=%d",
                    connector->connector_id, connector->connector_type,
                    connector->connection, connector->count_modes);
         
         if (connector->connection == DRM_MODE_CONNECTED && connector->count_modes > 0) {
-            v4pi_debug("Found suitable connector %d with %d modes",
+            v4p_debug("Found suitable connector %d with %d modes",
                        connector->connector_id, connector->count_modes);
             return connector;
         }
         
         // Also try disconnected connectors that have modes (for virtual displays)
         if (connector->count_modes > 0) {
-            v4pi_debug("Trying connector %d even though it's not marked as connected",
+            v4p_debug("Trying connector %d even though it's not marked as connected",
                        connector->connector_id);
             return connector;
         }
@@ -107,25 +107,25 @@ static drmModeConnector* find_connected_connector(drmModeRes* resources) {
         drmModeFreeConnector(connector);
     }
     
-    v4pi_debug("No suitable connector found");
+    v4p_debug("No suitable connector found");
     return NULL;
 }
 
 // Helper function to find an encoder for a connector
 static drmModeEncoder* find_encoder_for_connector(drmModeRes* resources,
                                                   drmModeConnector* connector) {
-    v4pi_debug("Looking for encoder for connector %d (encoder_id=%d)",
+    v4p_debug("Looking for encoder for connector %d (encoder_id=%d)",
                connector->connector_id, connector->encoder_id);
-    v4pi_debug("Available encoders: %d", resources->count_encoders);
+    v4p_debug("Available encoders: %d", resources->count_encoders);
     
     if (connector->encoder_id) {
-        v4pi_debug("Connector has preferred encoder_id: %d", connector->encoder_id);
+        v4p_debug("Connector has preferred encoder_id: %d", connector->encoder_id);
         for (int i = 0; i < resources->count_encoders; i++) {
-            v4pi_debug("Checking encoder %d (id=%d)", i, resources->encoders[i]);
+            v4p_debug("Checking encoder %d (id=%d)", i, resources->encoders[i]);
             if (resources->encoders[i] == connector->encoder_id) {
                 drmModeEncoder* encoder = drmModeGetEncoder(drm_context.fd, connector->encoder_id);
                 if (encoder) {
-                    v4pi_debug("Found matching encoder: %d", encoder->encoder_id);
+                    v4p_debug("Found matching encoder: %d", encoder->encoder_id);
                     return encoder;
                 }
             }
@@ -133,18 +133,18 @@ static drmModeEncoder* find_encoder_for_connector(drmModeRes* resources,
     }
     
     // Try to find any compatible encoder
-    v4pi_debug("No preferred encoder found, trying to find any compatible encoder");
+    v4p_debug("No preferred encoder found, trying to find any compatible encoder");
     for (int i = 0; i < resources->count_encoders; i++) {
         drmModeEncoder* encoder = drmModeGetEncoder(drm_context.fd, resources->encoders[i]);
         if (encoder) {
-            v4pi_debug("Found encoder %d, checking compatibility", encoder->encoder_id);
+            v4p_debug("Found encoder %d, checking compatibility", encoder->encoder_id);
             // In a real implementation, we would check encoder->possible_crtcs here
             // For now, return the first available encoder
             return encoder;
         }
     }
     
-    v4pi_debug("No compatible encoder found");
+    v4p_debug("No compatible encoder found");
     return NULL;
 }
 
@@ -253,7 +253,7 @@ static int set_drm_mode() {
         v4p_error("Failed to set CRTC mode: %s", strerror(errno));
         
         // Try without specifying connector (some DRM drivers prefer this)
-        v4pi_debug("Trying to set CRTC mode without connector specification");
+        v4p_debug("Trying to set CRTC mode without connector specification");
         if (drmModeSetCrtc(drm_context.fd,
                            drm_context.crtc_id,
                            fb_id,
@@ -284,7 +284,7 @@ static int find_drm_device() {
         snprintf(device_path, sizeof(device_path), "/dev/dri/card%d", i);
         fd = open(device_path, O_RDWR);
         if (fd >= 0) {
-            v4pi_debug("Using DRM device: %s", device_path);
+            v4p_debug("Using DRM device: %s", device_path);
             return fd;
         }
     }

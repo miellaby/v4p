@@ -13,7 +13,7 @@
 
 #include "v4p_ll.h"
 
-// Forward declaration
+// Actual trace function
 void v4pi_trace(const char* tag, const char* format, ...);
 
 #ifndef TRACE_SCAN

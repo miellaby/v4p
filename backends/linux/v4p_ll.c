@@ -18,7 +18,7 @@ static void initTraceFile() {
     traceFile = fopen(getenv("V4P_LOG_FILE"), "a");
 }
 
-void v4pi_debug(char* formatString, ...) {
+void v4p_debug(char* formatString, ...) {
     va_list args;
     va_start(args, formatString);
     initTraceFile();

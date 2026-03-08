@@ -5,7 +5,7 @@
 #include "sorted.h"
 #include <stdlib.h>
 #include "heap.h"
-#include "quick/math.h"
+#include "quick/imath.h"
 
 // AVL Tree node
 typedef struct sTreeNode {

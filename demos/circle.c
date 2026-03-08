@@ -1,6 +1,6 @@
 #include "v4p.h"
 #include "game_engine/g4p.h"
-#include "quick/math.h"  // For iabs() function
+#include "quick/imath.h"  // For iabs() function
 #define DEPTH 6
 #define GRID_SIZE 7
 V4pPolygonP circle_matrix[GRID_SIZE][GRID_SIZE];
@@ -57,7 +57,7 @@ int g4p_onTick(Int32 deltaTime) {
             int phase = (i * 3145 + j * 4791 + elapsedTime / 2) % 256;  // 0 to 255
             int scale = 128 + (255 - iabs(phase - 128));
 
-            // v4pi_debug("scale %d\n", scale);
+            // v4p_debug("scale %d\n", scale);
 
             // Transform clones with different zoom levels, centered on screen
             int grid_width = (GRID_SIZE - 1) * spacing;

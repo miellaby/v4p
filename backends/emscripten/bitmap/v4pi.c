@@ -45,7 +45,7 @@ int v4pi_init(int quality, Boolean fullscreen) {
     size_t bitmap_size = screenWidth * screenHeight * sizeof(UInt32);
     v4pi_defaultContext->bitmap = (UInt32*)malloc(bitmap_size);
     if (!v4pi_defaultContext->bitmap) {
-        v4pi_debug("Failed to allocate bitmap memory\n");
+        v4p_debug("Failed to allocate bitmap memory\n");
         return failure;
     }
 

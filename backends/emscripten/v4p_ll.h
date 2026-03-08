@@ -23,8 +23,7 @@ typedef int32_t V4pCoord;
 #define success false
 
 // Debug and trace functions
-void v4pi_debug(const char* format, ...);
+void v4p_debug(const char* format, ...);
 int v4p_error(char* s, ...);
-void v4pi_trace(const char* tag, const char* format, ...);
 
 #endif // V4P_LL_H

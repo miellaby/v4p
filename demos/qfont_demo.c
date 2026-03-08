@@ -1,7 +1,7 @@
 #include "v4p.h"
 #include "game_engine/g4p.h"
 #include "qfont/qfont.h"
-#include "quick/math.h"
+#include "quick/imath.h"
 #include <stdio.h>
 
 #define GRID_SIZE 9

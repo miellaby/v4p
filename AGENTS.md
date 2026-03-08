@@ -47,7 +47,7 @@ You prefer a crash-early design pattern (guards are useless), integer/binary ops
 
 ## Debug
 
-v4p_error and v4pi_debug may be used for tracing. Note v4pi_debug is enabled only in DEBUG=1 builds.
+v4p_error and v4p_debug may be used for tracing. Note v4p_debug is enabled only in DEBUG=1 builds.
 Build with V=1 to see compilation steps.
 
 ## Unit testing

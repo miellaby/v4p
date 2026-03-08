@@ -1,6 +1,6 @@
 #include "v4p.h"
 #include "game_engine/g4p.h"
-#include "quick/math.h"  // For IABS() and computeCosSin() functions
+#include "quick/imath.h"  // For IABS() and computeCosSin() functions
 
 #define NUM_STARS 6
 
