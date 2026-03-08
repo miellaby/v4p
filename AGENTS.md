@@ -85,7 +85,7 @@ V4pPolygonP createStar() {
 # App boilerplate
 ..
 #include "v4p.h"
-#include "g4p.h"
+#include "game_engine/g4p.h"
 ..
 
 int g4p_onInit(int quality, Boolean fullscreen) {

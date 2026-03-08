@@ -1,5 +1,5 @@
-#include "g4p.h"
 #include "v4p.h"
+#include "game_engine/g4p.h"
 
 #define GRID_SIZE 10
 #define GAP_SIZE 0

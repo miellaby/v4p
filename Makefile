@@ -144,7 +144,7 @@ endif
 # ============================================
 
 # Base flags
-CPPFLAGS = -Iaddons/game_engine -Iaddons/v4pserial -Iaddons/qfont -Iaddons/particles -I/usr/include/lua5.1
+CPPFLAGS = -Iaddons -I/usr/include/lua5.1
 CFLAGS  = -Wall -Wextra -std=gnu99 -fPIC
 LDFLAGS =
 LDLIBS  =
@@ -207,7 +207,7 @@ CORE_SRCS = \
 BACKEND_SRCS = backends/$(TARGET)/$(BACKEND)/v4pi.c
 
 # Addons
-GAME_ENGINE_SRCS = addons/game_engine/g4p.c addons/game_engine/$(TARGET)/$(BACKEND)/g4pi.c addons/game_engine/collision.c
+GAME_ENGINE_SRCS = addons/game_engine/g4p.c addons/game_engine/backends/$(TARGET)/$(BACKEND)/g4pi.c addons/game_engine/collision.c
 QFONT_SRCS = addons/qfont/qfont.c
 V4PSERIAL_SRCS = addons/v4pserial/v4pserial.c
 PARTICLES_SRCS = addons/particles/particles.c
@@ -224,9 +224,12 @@ DEBUG_SRCS = addons/debug/debug.c
 %/%.o: %/%.c
 	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 
+addons/game_engine/%.o: addons/game_engine/%.c
+	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -Iaddons/game_engine -c $< -o $@
+
 # Demos - build object files in demo directories
 demos/%.o: demos/%.c
-	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -Iaddons/game_engine -Iaddons/v4pserial -Iaddons/qfont -Iaddons/debug -Iaddons/nuklear -c $< -o $@
+	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -Iaddons -c $< -o $@
 
 demos/demo_nuklear.o: addons/nuklear/nuklear_v4p.h
 
@@ -243,7 +246,7 @@ demos/%.html: demos/%.o $(TEMPLATE_FILE) libv4p.a libg4p.a libqfont.a libv4pseri
 
 # Tests - build object files in demo directories
 tests/%.o: tests/%.c # Note: It is recommanded to build tests with DEBUG=1 for better diagnostics
-	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -DDEBUG=1 -Iaddons/game_engine -Iaddons/v4pserial -Iaddons/qfont -Iaddons/nuklear -c $< -o $@
+	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -DDEBUG=1 -Iaddons -c $< -o $@
 
 # Link tests in their directories
 tests/%: tests/%.o libv4p.a libg4p.a libqfont.a libv4pserial.a libparticles.a

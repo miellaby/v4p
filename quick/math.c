@@ -39,7 +39,11 @@ int floorLog232(UInt32 v) {
     return MultiplyDeBruijnBitPosition[(UInt32) (v * 0x07C4ACDDU) >> 27];
 }
 
+/** Compute cosine and sine values lwmCosa and lwmSina for a given angle
+ *  in the range [0, 512) where 512 represents a full circle (360 degrees).
+ */
 int computeCosSin(UInt16 angle) {
+    // Use a lookup table for cosine values and derives sine from it
     int tb, tr;
     UInt16 b;
     angle = (angle & (UInt16) 0x1FF);

@@ -1,12 +1,11 @@
+#include "v4p.h"
+#include "game_engine/g4p.h"
+#include "v4pserial/v4pserial.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-#include "g4p.h"
-#include "v4p.h"
 
-#include "v4pserial.h"
-#include <stdio.h>
 #define NUM_STARS 1000
 #define STAR_DEPTH 100.0f
 #define SPEED 0.004f

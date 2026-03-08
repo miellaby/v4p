@@ -1,7 +1,7 @@
-#include <stdio.h>
 #include "v4p.h"
-#include "addons/game_engine/g4p.h"
-#include "addons/game_engine/collision.h"
+#include "game_engine/g4p.h"
+#include "game_engine/collision.h"
+#include <stdio.h>
 
 // Test state
 static int collision_callback_count = 0;

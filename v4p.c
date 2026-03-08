@@ -698,7 +698,8 @@ V4pPolygonP v4p_destroyActiveEdges(V4pPolygonP p) {
     return p;
 }
 
-// Called by v4p_transformClone ()
+// Called by v4p_transformClone to recursively transform a clone polygon and its subs from the parent polygon
+// angle is in range [0, 512) where 512 = 360 degrees, so angle step is 360/512 degrees
 V4pPolygonP v4p_recPolygonTransformClone(Boolean estSub, V4pPolygonP p, V4pPolygonP c, V4pCoord dx, V4pCoord dy,
                                          int angle, V4pLayer dz, V4pCoord anchor_x, V4pCoord anchor_y, V4pCoord zoom_x,
                                          V4pCoord zoom_y) {
@@ -720,6 +721,7 @@ V4pPolygonP v4p_recPolygonTransformClone(Boolean estSub, V4pPolygonP p, V4pPolyg
     sc = c->point1;
     V4pPointP prev_sc = NULL;  // To track previous point for adding new points
 
+    // Pre-compute lwmCosa and lwmSina for the given angle to optimize rotation of all points
     computeCosSin(angle);
 
     while (sp) {

@@ -4,7 +4,7 @@
  */
 
 #include "v4p.h"
-#include "g4p.h"
+#include "game_engine/g4p.h"
 
 // Nuklear configuration
 #define NK_INCLUDE_FIXED_TYPES
@@ -16,9 +16,9 @@
 #define NK_INCLUDE_DEFAULT_FONT
 #define NK_INCLUDE_SOFTWARE_FONT
 
-#include "addons/nuklear/nuklear.h"
+#include "nuklear/nuklear.h"
 #define NK_V4P_IMPLEMENTATION
-#include "addons/nuklear/nuklear_v4p.h"
+#include "nuklear/nuklear_v4p.h"
 
 // Nuklear context and state
 static struct nk_context *nk_ctx = NULL;

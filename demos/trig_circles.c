@@ -1,5 +1,5 @@
-#include "g4p.h"
 #include "v4p.h"
+#include "game_engine/g4p.h"
 #include "quick/math.h"
 
 #define BIG_CIRCLE_RADIUS 400
@@ -28,10 +28,11 @@ int g4p_onInit(int quality, Boolean fullscreen) {
     return success;
 }
 
-int elapsedTime = 0;
 
 int g4p_onTick(Int32 deltaTime) {
+    static int elapsedTime = 0;
     elapsedTime += deltaTime;
+
     int scale = 256;
 
     // Make the circles pulse with a sine wave effect

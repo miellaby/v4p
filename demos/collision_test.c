@@ -1,7 +1,7 @@
-#include <stdio.h>
 #include "v4p.h"
-#include "collision.h"
-#include "g4p.h"
+#include "game_engine/g4p.h"
+#include "game_engine/collision.h"
+#include <stdio.h>
 
 // Simple test to demonstrate collision debugging
 

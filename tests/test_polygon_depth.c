@@ -1,8 +1,8 @@
+#include "quick/sorted.h"
+#include "v4p.h"
+#include "_v4p.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "../quick/sorted.h"
-#include "../v4p.h"
-#include "../_v4p.h"
 
 // Comparison function for polygons based on depth (z layer)
 static int polygonDepthComparator(void* a, void* b) {

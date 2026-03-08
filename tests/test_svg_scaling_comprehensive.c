@@ -1,8 +1,8 @@
+#include "v4p.h"
+#include "v4pserial/v4pserial.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "v4p.h"
-#include "v4pserial.h"
 
 int main() {
     v4p_init();

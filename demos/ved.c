@@ -1,10 +1,10 @@
+#include "v4p.h"
+#include "game_engine/g4p.h"
+#include "quick/math.h"
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
-#include "v4p.h"
-#include "g4p.h"
-#include "quick/math.h"
 
 /** global options with their default values */
 

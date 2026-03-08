@@ -31,8 +31,6 @@
 #define NK_V4P_H_
 
 #include "v4p.h"
-#include "addons/qfont/qfont.h"
-#include "v4p_trace.h"
 
 struct nk_context;
 
@@ -50,6 +48,8 @@ NK_API void                  nk_v4p_resize(struct nk_context *ctx, V4pCoord widt
  */
 #ifdef NK_V4P_IMPLEMENTATION
 
+#include "qfont/qfont.h"
+#include "v4p_trace.h"
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -106,72 +106,56 @@ nk_v4p_stroke_line(const struct nk_v4p_context *v4p_ctx,
     V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1,
     const unsigned int line_thickness, v4p_color col)
 {
-    // v4p doesn't support 1px lines, so we create a thin rectangle polygon
-    // For simplicity, we'll create a rectangle that approximates the line
-    // This is a simplified approach using axis-aligned rectangles
-    
     v4p_trace(NUKLEAR, "Drawing line from (%d,%d) to (%d,%d), thickness=%u, color=%d\n", x0, y0, x1, y1, line_thickness, col);
-    
-    V4pCoord thickness = line_thickness > 0 ? line_thickness : 1;
-    
+    if (line_thickness == 0) {
+        // No line to draw
+        return;
+    }
+
     // Create a rectangle polygon representing the line
     V4pPolygonP line = v4p_sceneAddNewPoly(v4p_ctx->scene, V4P_ABSOLUTE, col, v4p_ctx->current_layer);
     v4p_trace(NUKLEAR, "Created line polygon %p at layer %d\n", (void*)line, v4p_ctx->current_layer);
     
-    // Apply scissor clipping
-    if (!NK_SCISSOR_NULL(v4p_ctx->scissors)) {
-        v4p_trace(NUKLEAR, "Applying scissor clipping to line: (%d,%d)-(%d,%d)\n",
-                 v4p_ctx->scissors.x, v4p_ctx->scissors.y,
-                 v4p_ctx->scissors.x + v4p_ctx->scissors.w,
-                 v4p_ctx->scissors.y + v4p_ctx->scissors.h);
-        v4p_clip(line, v4p_ctx->scissors.x, v4p_ctx->scissors.y,
-                 v4p_ctx->scissors.x + v4p_ctx->scissors.w,
-                 v4p_ctx->scissors.y + v4p_ctx->scissors.h);
-    }
-    
-    // For horizontal/vertical lines, this is straightforward
-    if (x0 == x1) {
-        // Vertical line
-        V4pCoord half_thick = thickness / 2;
-        v4p_addPoint(line, x0 - half_thick, y0);
-        v4p_addPoint(line, x0 + half_thick, y0);
-        v4p_addPoint(line, x0 + half_thick, y1);
-        v4p_addPoint(line, x0 - half_thick, y1);
-    } else if (y0 == y1) {
-        // Horizontal line
-        V4pCoord half_thick = thickness / 2;
-        v4p_addPoint(line, x0, y0 - half_thick);
-        v4p_addPoint(line, x1, y0 - half_thick);
-        v4p_addPoint(line, x1, y0 + half_thick);
-        v4p_addPoint(line, x0, y0 + half_thick);
-    } else {
-        // Diagonal line - use a simple approximation with a rectangle
-        // This creates a rectangle from (x0,y0) to (x1,y1) with given thickness
-        V4pCoord dx = x1 - x0;
-        V4pCoord dy = y1 - y0;
-        V4pCoord line_length = (V4pCoord)sqrt(dx*dx + dy*dy);
-        
-        if (line_length == 0) {
-            // Single point - draw a small square
-            V4pCoord half_thick = thickness / 2;
-            v4p_addPoint(line, x0 - half_thick, y0 - half_thick);
-            v4p_addPoint(line, x0 + half_thick, y0 - half_thick);
-            v4p_addPoint(line, x0 + half_thick, y0 + half_thick);
-            v4p_addPoint(line, x0 - half_thick, y0 + half_thick);
-        } else {
-            // For diagonal lines, we'll use a simpler approach
-            // Create a rectangle that covers the line area
-            V4pCoord half_thick = thickness / 2;
+    if (line_thickness == 1) { // 1px line
+        // Use the stroke mode
+        v4p_setStroke(line, 1);
+        v4p_addPoint(line, x0, y0);
+        v4p_addPoint(line, x0, y1);
+        v4p_addJump(line);
+    } else { // line with thickness > 1
+        // v4p doesn't support thick line, so we create a rectangle polygon
+        V4pCoord half_thick = line_thickness / 2;
+        V4pCoord half_thick2 = half_thick + (line_thickness % 2); // Add 1 if thickness is odd to ensure proper coverage
+
+        if (x0 == x1 || y0 == y1) { // Vertical or horizontal line or even a single point
+            // draw a straight rectangle corresponding to the line and its thickness
+            v4p_addCorners(line, x0 - half_thick, y0 - half_thick, x0 + half_thick2, y0 + half_thick2);
+        } else { // Diagonal line
+            // Calculate the rectangle vertices based on the line angle and thickness
+            V4pCoord dx = x1 - x0;
+            V4pCoord dy = y1 - y0;
+            V4pCoord line_length = (V4pCoord)sqrt(dx*dx + dy*dy);
             
             // Calculate perpendicular offset
             V4pCoord px = -dy * half_thick / line_length;
             V4pCoord py = dx * half_thick / line_length;
-            
-            v4p_addPoint(line, x0 + px, y0 + py);
-            v4p_addPoint(line, x1 + px, y1 + py);
+            V4pCoord px2 = -dy * half_thick2 / line_length;
+            V4pCoord py2 = dx * half_thick2 / line_length;
+
+            v4p_addPoint(line, x0 + px2, y0 + py2);
+            v4p_addPoint(line, x1 + px2, y1 + py2);
             v4p_addPoint(line, x1 - px, y1 - py);
             v4p_addPoint(line, x0 - px, y0 - py);
         }
+    }
+
+    // Apply scissor clipping
+    if (! NK_SCISSOR_NULL(v4p_ctx->scissors)) {
+        v4p_trace(NUKLEAR, "Applying scissor clipping to line: (%d,%d)-(%d,%d)\n", v4p_ctx->scissors.x,
+                  v4p_ctx->scissors.y, v4p_ctx->scissors.x + v4p_ctx->scissors.w,
+                  v4p_ctx->scissors.y + v4p_ctx->scissors.h);
+        v4p_clip(line, v4p_ctx->scissors.x, v4p_ctx->scissors.y, v4p_ctx->scissors.x + v4p_ctx->scissors.w,
+                 v4p_ctx->scissors.y + v4p_ctx->scissors.h);
     }
 }
 
@@ -187,11 +171,13 @@ nk_v4p_fill_rect(const struct nk_v4p_context *v4p_ctx,
     // Use the current layer for proper z-ordering
     V4pPolygonP rect = v4p_sceneAddNewPoly(v4p_ctx->scene, V4P_ABSOLUTE, col, v4p_ctx->current_layer);
     v4p_trace(NUKLEAR, "Created rectangle polygon %p at layer %d\n", (void*)rect, v4p_ctx->current_layer);
-    
-    v4p_addPoint(rect, x, y);
-    v4p_addPoint(rect, x + w, y);
-    v4p_addPoint(rect, x + w, y + h);
-    v4p_addPoint(rect, x, y + h);
+    if (r > 0) {
+        // rounded rectangles
+        v4p_addCutCorners(rect, x, y, x + w, y + h, r);
+        v4p_setRound(rect, true);
+    } else {
+        v4p_addCorners(rect, x, y, x + w, y + h);
+    }
     
     // Apply scissor clipping
     if (!NK_SCISSOR_NULL(v4p_ctx->scissors)) {
@@ -202,6 +188,56 @@ nk_v4p_fill_rect(const struct nk_v4p_context *v4p_ctx,
         v4p_clip(rect, v4p_ctx->scissors.x, v4p_ctx->scissors.y,
                  v4p_ctx->scissors.x + v4p_ctx->scissors.w,
                  v4p_ctx->scissors.y + v4p_ctx->scissors.h);
+    }
+}
+
+static void nk_v4p_draw_rect(const struct nk_v4p_context* v4p_ctx, const V4pCoord x, const V4pCoord y, const V4pCoord w,
+                               const V4pCoord h, const short r, const V4pCoord line_thickness, v4p_color col) {
+    v4p_trace(NUKLEAR, "Drawing rectangle: (%d,%d) %d×%d, rounding=%d, line_thickness=%d, color=%d\n", x, y, w, h, r, line_thickness, col);
+
+    if (line_thickness == 0) {
+        // No line to draw
+        return;
+    }
+
+    // Create a polygon and add to scene
+    V4pPolygonP rect = v4p_sceneAddNewPoly(v4p_ctx->scene, V4P_ABSOLUTE, col, v4p_ctx->current_layer);
+    v4p_trace(NUKLEAR, "Created hollow rectangle polygon %p at layer %d\n", (void*) rect, v4p_ctx->current_layer);
+
+    if (line_thickness == 1) {  // 1px rectangle
+        // Use the stroke mode
+        v4p_setStroke(rect, 1);
+        if (r > 0) { // a rounded rectangle
+            v4p_addCutCorners(rect, x, y, x + w, y + h, r);
+            v4p_setRound(rect, true);
+        } else { // a regular rectangle
+            v4p_addCorners(rect, x, y, x + w, y + h);
+        }
+    } else {  // rectangle with thickness > 1
+        // v4p doesn't support closed polylines with thickness > 1px
+        // we create two closed rectangle pathes, an external and an internal one, to form a hollow rectangle
+        V4pCoord half_thick = line_thickness / 2;
+        V4pCoord half_thick2 = half_thick + (line_thickness % 2);
+
+        if (r > 0) { // 2 rounded rectangles
+            v4p_addCutCorners(rect, x - half_thick, y - half_thick, x + w + half_thick, y + h + half_thick, r);
+            v4p_addJump(rect); // Add a jump to separate the two rectangles
+            v4p_addCutCorners(rect, x + half_thick2, y + half_thick2, x + w - half_thick2, y + h - half_thick2, r);
+            v4p_setRound(rect, true);
+        } else { // 2 regular rectangles
+            v4p_addCorners(rect, x - half_thick, y - half_thick, x + w + half_thick, y + h + half_thick);
+            v4p_addJump(rect);  // Add a jump to separate the two rectangles
+            v4p_addCorners(rect, x + half_thick2, y + half_thick2, x + w - half_thick2, y + h - half_thick2);
+        }
+
+        // Apply scissor clipping
+        if (! NK_SCISSOR_NULL(v4p_ctx->scissors)) {
+            v4p_trace(NUKLEAR, "Applying scissor clipping to rectangle: (%d,%d)-(%d,%d)\n", v4p_ctx->scissors.x,
+                      v4p_ctx->scissors.y, v4p_ctx->scissors.x + v4p_ctx->scissors.w,
+                      v4p_ctx->scissors.y + v4p_ctx->scissors.h);
+            v4p_clip(rect, v4p_ctx->scissors.x, v4p_ctx->scissors.y, v4p_ctx->scissors.x + v4p_ctx->scissors.w,
+                     v4p_ctx->scissors.y + v4p_ctx->scissors.h);
+        }
     }
 }
 
@@ -406,19 +442,10 @@ nk_v4p_render(struct nk_context *ctx)
         } break;
         case NK_COMMAND_RECT: {
             const struct nk_command_rect *r = (const struct nk_command_rect *)cmd;
-            v4p_trace(NUKLEAR, "Command: RECT (%d,%d) %d×%d, thickness=%d\n", r->x, r->y, r->w, r->h, r->line_thickness);
-            // Draw hollow rectangle using 4 lines
-            v4p_color col = nk_v4p_color2int(r->color);
-            nk_v4p_stroke_line(v4p, r->x, r->y, r->x + r->w, r->y, r->line_thickness, col);
+            v4p_trace(NUKLEAR, "Command: RECT (%d,%d) %d×%d, rounding=%d, thickness=%d\n", r->x, r->y, r->w, r->h, r->rounding, r->line_thickness);
+            nk_v4p_draw_rect(v4p, r->x, r->y, r->w, r->h, (short) r->rounding, r->line_thickness, nk_v4p_color2int(r->color));
             v4p->current_layer++;
-            nk_v4p_stroke_line(v4p, r->x + r->w, r->y, r->x + r->w, r->y + r->h, r->line_thickness, col);
-            v4p->current_layer++;
-            nk_v4p_stroke_line(v4p, r->x + r->w, r->y + r->h, r->x, r->y + r->h, r->line_thickness, col);
-            v4p->current_layer++;
-            nk_v4p_stroke_line(v4p, r->x, r->y + r->h, r->x, r->y, r->line_thickness, col);
-            v4p->current_layer++;
-        }
-            break;
+        } break;
         case NK_COMMAND_RECT_FILLED: {
             const struct nk_command_rect_filled *r = (const struct nk_command_rect_filled *)cmd;
             v4p_trace(NUKLEAR, "Command: RECT_FILLED (%d,%d) %d×%d, rounding=%d\n", 

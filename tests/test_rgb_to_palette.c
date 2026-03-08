@@ -1,5 +1,5 @@
-#include "../v4p_color.h"
-#include "../v4p_ll.h"
+#include "v4p_color.h"
+#include "v4p_ll.h"
 #include <stdio.h>
 
 int main() {

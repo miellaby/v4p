@@ -1,7 +1,7 @@
-#include "g4p.h"
 #include "v4p.h"
+#include "game_engine/g4p.h"
+#include "qfont/qfont.h"
 #include <stdio.h>
-#include "addons/qfont/qfont.h"
 
 #define COLORS_PER_ROW 16
 #define COLOR_BOX_SIZE 20

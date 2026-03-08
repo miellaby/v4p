@@ -1,10 +1,9 @@
-#include "g4p.h"
 #include "v4p.h"
-
-#include "quick/math.h"  // For iabs() function
+#include "game_engine/g4p.h"
+#include "quick/math.h"  // For IABS() function
 
 #define BOX_SIZE 50
-#define SPACING 70
+#define SPACING 100
 #define GRID_SIZE 3
 
 V4pPolygonP box_matrix[GRID_SIZE][GRID_SIZE];
@@ -29,12 +28,11 @@ int g4p_onInit(int quality, Boolean fullscreen) {
     return success;  // Keep running indefinitely
 }
 
-int elapsedTime = 0;
-
 int g4p_onTick(Int32 deltaTime) {
-    int i, j;
-
+    static int elapsedTime = 0;
     elapsedTime += deltaTime;
+
+    int i, j;
 
     // Apply different zoom levels to each box
     for (j = 0; j < GRID_SIZE; j++) {

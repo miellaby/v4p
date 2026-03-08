@@ -1,16 +1,16 @@
-#include "g4p.h"
 #include "v4p.h"
-#include "v4pserial.h"
-#include <stdlib.h>
-#include <math.h>    // For fabs()
+#include "game_engine/g4p.h"
+#include "game_engine/collision.h"
+#include "v4pserial/v4pserial.h"
+#include "qfont/qfont.h"  // For score display
+#include "particles/particles.h"  // For particle effects
 #include "quick/math.h"  // For computeCosSin()
-#include "addons/game_engine/collision.h"
-#include "addons/qfont/qfont.h"  // For score display
-#include "addons/particles/particles.h"  // For particle effects
-#include "backends/v4pi.h"  // For v4pi_debug
 #ifdef DEBUG
-    #include "addons/debug/debug.h"  // For debug functions
+    #include "backends/v4pi.h"  // For v4pi_debug
+    #include "debug/debug.h"  // For debug functions
 #endif
+#include <stdlib.h>
+#include <math.h>  // For fabs()
 
 #define MAX_ASTEROIDS 15
 #define MAX_BULLETS 5

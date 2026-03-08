@@ -1,16 +1,15 @@
-#include <stdio.h>
-#include "g4p.h"
 #include "v4p.h"
-
-#include "qfont.h"
+#include "game_engine/g4p.h"
+#include "qfont/qfont.h"
 #include "quick/math.h"
+#include <stdio.h>
 
-#define STRESS_AMOUNT 9
+#define GRID_SIZE 9
 V4pPolygonP proto;
-V4pPolygonP textMatrix[STRESS_AMOUNT * 2][STRESS_AMOUNT];
+V4pPolygonP textMatrix[GRID_SIZE * 2][GRID_SIZE];
 
 int iu = 0;
-int diu = STRESS_AMOUNT;
+int diu = GRID_SIZE;
 int liu = 3;
 
 int g4p_onInit(int quality, Boolean fullscreen) {
@@ -51,13 +50,13 @@ int g4p_onInit(int quality, Boolean fullscreen) {
                                  v4p_displayHeight / 16,
                                  12);
     v4p_setAnchorToCenter(proto);
-    for (j = 0; j < STRESS_AMOUNT * 2; j++) {
-        for (k = 0; k < STRESS_AMOUNT; k++) {
+    for (j = 0; j < GRID_SIZE * 2; j++) {
+        for (k = 0; k < GRID_SIZE; k++) {
             textMatrix[j][k] = v4p_addClone(proto);
             v4p_transformClone(proto,
                                textMatrix[j][k],
-                               v4p_displayWidth * (2.2 + 2 * k - STRESS_AMOUNT) * 2,
-                               v4p_displayHeight * (1 + j - STRESS_AMOUNT / 2) / 2,
+                               v4p_displayWidth * (2.2 + 2 * k - GRID_SIZE) * 2,
+                               v4p_displayHeight * (1 + j - GRID_SIZE / 2) / 2,
                                0,
                                10,
                                256,
@@ -67,22 +66,22 @@ int g4p_onInit(int quality, Boolean fullscreen) {
     return success;
 }
 
-int elapsedTime = 0;
-
 int g4p_onTick(Int32 deltaTime) {
+    static int elapsedTime = 0;
     elapsedTime += deltaTime;
+
     int scale = (129 - iabs(elapsedTime % 256 - 128) + (3 * elapsedTime / 2) % 64000) / 64;
     v4p_setView(-v4p_displayWidth * scale / 256,
                 -v4p_displayHeight * scale / 256,
                 v4p_displayWidth + v4p_displayWidth * scale / 256,
                 v4p_displayHeight + v4p_displayHeight * scale / 256);
 
-    for (int j = 0; j < STRESS_AMOUNT * 2; j++) {
-        for (int k = 0; k < STRESS_AMOUNT; k++) {
+    for (int j = 0; j < GRID_SIZE * 2; j++) {
+        for (int k = 0; k < GRID_SIZE; k++) {
             v4p_transform(textMatrix[j][k],
-                        v4p_displayWidth * (2.2 + 2 * k - STRESS_AMOUNT) * 2
+                        v4p_displayWidth * (2.2 + 2 * k - GRID_SIZE) * 2
                         + iabs((elapsedTime / 16) % 256 - 128) * 32,
-                        v4p_displayHeight * (1 + j - STRESS_AMOUNT / 2) / 2,
+                        v4p_displayHeight * (1 + j - GRID_SIZE / 2) / 2,
                         // sci-saw angle move
                         (iabs(elapsedTime % 256 - 128) - 128) / 128.0 * 4,
                         10,

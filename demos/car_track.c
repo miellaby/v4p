@@ -1,12 +1,12 @@
+#include "v4p.h"
+#include "game_engine/g4p.h"
+#include "game_engine/collision.h"
+#include "v4pserial/v4pserial.h"
+#include "qfont/qfont.h"  // For text rendering
+#include "backends/v4pi.h"  // For v4pi_debug
+#include "quick/math.h"  // For computeCosSin() and gaugeDist()
 #include <stdio.h>
 #include <math.h>
-#include "g4p.h"
-#include "v4p.h"
-#include "v4pserial.h"
-#include "quick/math.h"  // For computeCosSin() and gaugeDist()
-#include "../addons/game_engine/collision.h"
-#include "../addons/qfont/qfont.h"  // For text rendering
-#include "../backends/v4pi.h"  // For v4pi_debug
 
 // Background layers from circuit.svg
 V4pPolygonP level;

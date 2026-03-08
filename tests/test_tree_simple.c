@@ -1,6 +1,6 @@
+#include "quick/sorted.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "../quick/sorted.h"
 
 // Comparison function for int data
 static int intComparator(void* a, void* b) {

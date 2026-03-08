@@ -1,5 +1,5 @@
-#include "g4p.h"
 #include "v4p.h"
+#include "game_engine/g4p.h"
 #include "quick/math.h"  // For iabs() function
 #define DEPTH 6
 #define GRID_SIZE 7
@@ -38,9 +38,9 @@ int g4p_onInit(int quality, Boolean fullscreen) {
     return success;
 }
 
-int elapsedTime = 0;
 
 int g4p_onTick(Int32 deltaTime) {
+    static int elapsedTime = 0;
     int i, j;
 
     elapsedTime += deltaTime;
