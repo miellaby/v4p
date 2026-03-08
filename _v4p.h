@@ -30,7 +30,7 @@ typedef struct v4p_polygon_s {
     V4pProps props;  // Property flags
     V4pPointP point1;  // List of points (only 1 for disk)
     V4pColor color;  // V4pColor (any data needed by the drawing function)
-    Boolean round;  // Boolean is round (disk = round diamond)
+    bool round;  // bool is round (disk = round diamond)
     V4pLayer z;  // Depth
     V4pCollisionLayer collisionMask;  // Collision mask
     V4pPolygonP sub1;  // Subs list
@@ -40,8 +40,8 @@ typedef struct v4p_polygon_s {
     V4pCoord minx, maxx, miny, maxy;  // Bounding box
     V4pCoord minyv, maxyv;  // Vertical boundaries in view coordinates
     List ActiveEdge1;  // ActiveEdges list
-    UInt32 id;  // Unique polygon ID
-    UInt32 stroke;  // Stroke width (1 = 1px stroke, 0 = filled)
+    uint32_t id;  // Unique polygon ID
+    uint32_t stroke;  // Stroke width (1 = 1px stroke, 0 = filled)
 } Polygon;
 
 // ActiveEdge type
@@ -51,7 +51,7 @@ typedef struct activeEdge_s {
     V4pCoord avx, avy, bvx, bvy;  // Vector coordinates in view
     V4pCoord h;  // Remaining scanlines to process
     V4pCoord x;  // Current x coordinate (in view) at y=scanline
-    Boolean isArc;  // circle arc edge
+    bool isArc;  // circle arc edge
     union {
         struct { // Circle arc edge
             V4pCoord cx, cy;  // center
@@ -67,7 +67,7 @@ typedef struct activeEdge_s {
             V4pCoord r2;  // r1 - dy
         } straight;
     } as;
-    Boolean isStroke;  // If true: plot 1px per scanline, don't toggle fill
+    bool isStroke;  // If true: plot 1px per scanline, don't toggle fill
 } ActiveEdge;
 
 typedef struct activeEdge_s* ActiveEdgeP;
@@ -95,9 +95,9 @@ typedef struct v4p_context_s {
     V4pCoord screenToView_wholeY, screenToView_remY;  // Screen-to-View scaling (zoom out, Y axis)
     V4pCoord viewToScreen_wholeX, viewToScreen_remX;  // View-to-Screen scaling (zoom in, X axis)
     V4pCoord viewToScreen_wholeY, viewToScreen_remY;  // View-to-Screen scaling (zoom in, Y axis)
-    Boolean scaling;  // Is scaling necessary?
-    UInt32 changes;
-    UInt32 nextId;
+    bool scaling;  // Is scaling necessary?
+    uint32_t changes;
+    uint32_t nextId;
 } V4pContext;
 
 /**

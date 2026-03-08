@@ -16,6 +16,10 @@
 // Actual trace function
 void v4pi_trace(const char* tag, const char* format, ...);
 
+// Debug and error functions
+void v4p_debug(char* formatString, ...);
+int v4p_error(char* s, ...);
+
 #ifndef TRACE_SCAN
     #define TRACE_SCAN 0
 #endif

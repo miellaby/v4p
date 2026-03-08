@@ -61,11 +61,11 @@ static XGCValues values;
  * Metrics stuff
  */
 
-static Int32 t1;
-static Int32 laps[4] = { 0, 0, 0, 0 };
-static Int32 tlaps = 0;
+static int32_t t1;
+static int32_t laps[4] = { 0, 0, 0, 0 };
+static int32_t tlaps = 0;
 
-static Int32 getTicks() {
+static int32_t getTicks() {
     static struct tms buf;
     static int clk_ticks = 0;
     if (! clk_ticks) {
@@ -73,7 +73,7 @@ static Int32 getTicks() {
         printf("clk_ticks = %d\n", clk_ticks);
     }
 
-    Int32 t = times(&buf) * 1000 / clk_ticks;
+    int32_t t = times(&buf) * 1000 / clk_ticks;
     return t;
 }
 
@@ -91,7 +91,7 @@ int v4pi_start() {
 int v4pi_end() {
     // Get end time and compute average rendering time
     static int j = 0;
-    Int32 t2 = getTicks();
+    int32_t t2 = getTicks();
     tlaps -= laps[j % 4];
     tlaps += laps[j % 4] = t2 - t1;
     j++;
@@ -140,7 +140,7 @@ int v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
 }
 
 // Create and "map" a window
-static Boolean createWindow(V4piContextP vd, int width, int height) {
+static bool createWindow(V4piContextP vd, int width, int height) {
     Display* d = vd->d;
     int s = vd->s;
     Window w;
@@ -234,7 +234,7 @@ static Boolean createWindow(V4piContextP vd, int width, int height) {
 }
 
 // Prepare things before the very first graphic rendering
-int v4pi_init(int quality, Boolean fullscreen) {
+int v4pi_init(int quality, bool fullscreen) {
     int rc = success;
 
     /* connect to X server */

@@ -23,7 +23,7 @@ static void get_program_name(char* buffer, size_t buffer_size) {
     if (fp != NULL) {
         if (fgets(buffer, buffer_size, fp) != NULL) {
             // Replace null bytes with spaces to handle multiple arguments
-            for (int i = 0; i < buffer_size && buffer[i] != '\0'; i++) {
+            for (int i = 0; i < (int) buffer_size && buffer[i] != '\0'; i++) {
                 if (buffer[i] == '\0') {
                     buffer[i] = ' ';
                 }
@@ -64,9 +64,9 @@ static int iBuffer;
 /**
  * Metrics stuff
  */
-static UInt32 t1;
-static UInt32 laps[4] = { 0, 0, 0, 0 };
-static UInt32 tlaps = 0;
+static uint32_t t1;
+static uint32_t laps[4] = { 0, 0, 0, 0 };
+static uint32_t tlaps = 0;
 
 static void init_palette() {
     for (int i = 0; i < 256; i++) {
@@ -151,7 +151,7 @@ int v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
 }
 
 // Prepare things before the very first graphic rendering
-int v4pi_init(int quality, Boolean fullscreen) {
+int v4pi_init(int quality, bool fullscreen) {
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         v4p_error("v4pi_init failed, SDL error: '%s'\n", SDL_GetError());

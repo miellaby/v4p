@@ -30,7 +30,7 @@ int v4p_parseHexDigit(char c) {
 V4pPolygonP v4p_decodePoints(V4pPolygonP p, const char* s, int scale) {
     int j;
     long xs, ys, xs1, ys1;
-    Boolean sep, psep;
+    bool sep, psep;
     char c;
 
     // Pre-compute integer scaling factors for the scale using quotient-remainder technique
@@ -148,7 +148,7 @@ V4pPolygonP v4p_decodePolygon(const char* s, int scale) {
 
 char* v4p_encodePolygon(V4pPolygonP p, int scale) {
     const char* t = "0123456789ABCDEF";
-    UInt16 i, v;
+    uint16_t i, v;
     char *s, *ss, *sss;
 
     s = (char*) malloc(7);
@@ -205,7 +205,7 @@ static int parse_coords(const char* s, int* j, float* p1, float* p2) {
 
 V4pPolygonP v4p_decodeSVGPath(V4pPolygonP p, const char* s, float scale) {
     int j;
-    Boolean knowFirstPoint = false, nextIsRelative = false;
+    bool knowFirstPoint = false, nextIsRelative = false;
     char cmd = 0;
     enum e_status { INIT, MOVE, LINE, NEXT } status = INIT;
     float param_1, param_2;

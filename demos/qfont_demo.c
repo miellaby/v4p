@@ -12,7 +12,7 @@ int iu = 0;
 int diu = GRID_SIZE;
 int liu = 3;
 
-int g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, bool fullscreen) {
     int j, k;
 
     v4p_init2(quality, fullscreen);
@@ -66,7 +66,7 @@ int g4p_onInit(int quality, Boolean fullscreen) {
     return success;
 }
 
-int g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(int32_t deltaTime) {
     static int elapsedTime = 0;
     elapsedTime += deltaTime;
 

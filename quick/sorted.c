@@ -233,7 +233,7 @@ void* TreeFindMin(QuickTree* tree) {
 }
 
 // Check if data exists in the tree
-Boolean TreeContains(QuickTree* tree, void* data) {
+bool TreeContains(QuickTree* tree, void* data) {
     TreeNodeP node = tree->root;
     while (node) {
         int cmp = TreeCompareFunc(data, node->data);

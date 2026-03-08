@@ -54,9 +54,7 @@ Concepts
 #define _V4P_C
 #include "v4p.h"
 #include "_v4p.h"
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
+#include "v4p_platform.h"
 
 // Comparison function for polygons based on their depth (z) field
 static int polygonDepthComparator(void* a, void* b) {
@@ -135,7 +133,7 @@ V4pSceneP v4p_getScene() {
 
 // Create a v4p context
 V4pContextP v4p_newContext(V4pSceneP scene) {
-    V4pContextP v4p = (V4pContextP) malloc(sizeof(V4pContext));
+    V4pContextP v4p = (V4pContextP) v4p_malloc(sizeof(V4pContext));
     int lineWidth = v4p_displayWidth, lineNb = v4p_displayHeight;
 
     v4p->display = v4pi_context;
@@ -177,23 +175,23 @@ void v4p_destroyContext(V4pContextP p) {
     QuickHeapDestroy(v4p->activeEdgeHeap);
     TreeDestroy(v4p->openedPolygons);
     QuickTableDestroy(v4p->openableAETable);
-    free(p);
+    v4p_free(p);
 }
 
 // Create a new scene
 V4pSceneP v4p_newScene(const char* label) {
-    V4pSceneP s = (V4pSceneP) malloc(sizeof(V4pScene));
+    V4pSceneP s = (V4pSceneP) v4p_malloc(sizeof(V4pScene));
     s->label = label ? label : "";
     s->polygons = NULL;
     return s;
 }
 
 void v4p_destroyScene(V4pSceneP s) {
-    free(s);
+    v4p_free(s);
 }
 
 // V4P initialization with parameters
-int v4p_init2(int quality, Boolean fullscreen) {
+int v4p_init2(int quality, bool fullscreen) {
     if (v4pi_init(quality, fullscreen)) {
         return failure;
     }
@@ -306,7 +304,7 @@ int v4p_destroy(V4pPolygonP p) {
 
 // Add a polygon to a list linked by the 'next' pointer
 V4pPolygonP v4p_intoList(V4pPolygonP p, V4pPolygonP* list) {
-    assert(*list != p);
+    v4p_assert(*list != p, "List already contains the polygon");
     p->next = *list;
     *list = p;
     return p;
@@ -442,7 +440,7 @@ V4pProps v4p_removeProp(V4pPolygonP p, V4pProps i) {
 }
 
 // Set polygon coordinate system (relative = TRUE for view-related, FALSE for scene-absolute)
-V4pProps v4p_setRelative(V4pPolygonP p, Boolean relative) {
+V4pProps v4p_setRelative(V4pPolygonP p, bool relative) {
     v4p_changed(p);
     if (relative) {
         return (p->props |= V4P_RELATIVE);
@@ -495,14 +493,14 @@ V4pPointP v4p_addJump(V4pPolygonP p) {
 }
 
 // Make polygon round (turning a diamond into a disk)
-V4pCoord v4p_setRound(V4pPolygonP p, Boolean round) {
+V4pCoord v4p_setRound(V4pPolygonP p, bool round) {
     p->round = round;
     v4p_changed(p);
     return round;
 }
 
 // Set polygon stroke width (0 = filled, 1 = 1px stroke)
-UInt32 v4p_setStroke(V4pPolygonP p, UInt32 stroke) {
+uint32_t v4p_setStroke(V4pPolygonP p, uint32_t stroke) {
     p->stroke = stroke;
     v4p_changed(p); // TODO it doesn't change the actives edges but it add horizontal edges, so we need to recompute them all
     return stroke;
@@ -517,11 +515,11 @@ V4pColor v4p_setColor(V4pPolygonP p, V4pColor c) {
 // set polygon layer (z-depth)
 V4pLayer v4p_setLayer(V4pPolygonP p, V4pLayer z) {
     // Not changed because not affecting geometry
-    return p->z = z;  // Full UInt32 depth support
+    return p->z = z;  // Full uint32_t depth support
 }
 
 // set polygon visibility (via property V4P_HIDDEN)
-int v4p_setVisibility(V4pPolygonP p, Boolean visible) {
+int v4p_setVisibility(V4pPolygonP p, bool visible) {
     if (visible) {
         return v4p_removeProp(p, V4P_HIDDEN);
     } else {
@@ -531,7 +529,7 @@ int v4p_setVisibility(V4pPolygonP p, Boolean visible) {
 }
 
 // returns a polygon id
-UInt32 v4p_getId(V4pPolygonP p) {
+uint32_t v4p_getId(V4pPolygonP p) {
     return p->id;
 }
 
@@ -700,7 +698,7 @@ V4pPolygonP v4p_destroyActiveEdges(V4pPolygonP p) {
 
 // Called by v4p_transformClone to recursively transform a clone polygon and its subs from the parent polygon
 // angle is in range [0, 512) where 512 = 360 degrees, so angle step is 360/512 degrees
-V4pPolygonP v4p_recPolygonTransformClone(Boolean estSub, V4pPolygonP p, V4pPolygonP c, V4pCoord dx, V4pCoord dy,
+V4pPolygonP v4p_recPolygonTransformClone(bool estSub, V4pPolygonP p, V4pPolygonP c, V4pCoord dx, V4pCoord dy,
                                          int angle, V4pLayer dz, V4pCoord anchor_x, V4pCoord anchor_y, V4pCoord zoom_x,
                                          V4pCoord zoom_y) {
     V4pPointP sp, sc;
@@ -833,7 +831,7 @@ V4pPolygonP v4p_centerPolygon(V4pPolygonP p) {
 
 // Helper functions for Sutherland-Hodgman clipping
 // Simplified clipEdge for axis-aligned clipping
-static V4pPointP clipEdge(V4pPointP subject, Boolean isVertical, V4pCoord clipCoord, Boolean isMinEdge) {
+static V4pPointP clipEdge(V4pPointP subject, bool isVertical, V4pCoord clipCoord, bool isMinEdge) {
     V4pPointP result = NULL;
     V4pPointP prev = NULL;
     V4pPointP current = subject;
@@ -859,7 +857,7 @@ static V4pPointP clipEdge(V4pPointP subject, Boolean isVertical, V4pCoord clipCo
 
         // Compute prevPoint/prevInside from this sub-path's last point
         V4pPointP prevPoint = lastPoint;
-        Boolean prevInside = false;
+        bool prevInside = false;
         if (prevPoint != NULL) {
             V4pCoord lx = prevPoint->x;
             V4pCoord ly = prevPoint->y;
@@ -890,7 +888,7 @@ static V4pPointP clipEdge(V4pPointP subject, Boolean isVertical, V4pCoord clipCo
 
             V4pCoord x = current->x;
             V4pCoord y = current->y;
-            Boolean currentInside;
+            bool currentInside;
 
             if (isVertical) {
                 currentInside = isMinEdge ? (x >= clipCoord) : (x <= clipCoord);
@@ -964,7 +962,7 @@ static V4pPointP clipEdge(V4pPointP subject, Boolean isVertical, V4pCoord clipCo
 }
 
 // Clip a polygon against a rectangle using Sutherland-Hodgman algorithm
-V4pPolygonP v4p_recPolygonClipClone(Boolean estSub, V4pPolygonP p, V4pPolygonP c, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1) {
+V4pPolygonP v4p_recPolygonClipClone(bool estSub, V4pPolygonP p, V4pPolygonP c, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1) {
     V4pPointP sp, sc;
     V4pPointP clippedPoints = NULL;
 
@@ -1040,7 +1038,7 @@ V4pPolygonP v4p_clip(V4pPolygonP p, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCo
 }
 
 // called by v4p_polygonClone
-V4pPolygonP v4p_recPolygonClone(Boolean estSub, V4pPolygonP p) {
+V4pPolygonP v4p_recPolygonClone(bool estSub, V4pPolygonP p) {
     V4pPointP s;
     V4pPolygonP c = v4p_new(p->props, p->color, p->z);
     c->round = p->round;
@@ -1150,7 +1148,7 @@ void v4p_absoluteToView(V4pCoord x, V4pCoord y, V4pCoord* xa, V4pCoord* ya) {
 }
 
 // return false if polygon is located out of the view area
-Boolean v4p_isVisible(V4pPolygonP p) {
+bool v4p_isVisible(V4pPolygonP p) {
     if (! p->point1) return false;
     if (p->miny == V4P_NIL)  // unknown limits
         v4p_computeLimits(p);
@@ -1168,7 +1166,7 @@ Boolean v4p_isVisible(V4pPolygonP p) {
 
 // build a list of ActiveEdges for a given polygon
 V4pPolygonP v4p_buildActiveEdgeList(V4pPolygonP p) {
-    Boolean isVisible = false;
+    bool isVisible = false;
 
     if (! (p->props & V4P_CHANGED)) {
         // This polygon has not changed. Let's try to be smart
@@ -1390,7 +1388,7 @@ int v4p_render() {
     V4pPolygonP visiblePolygon;  // Visible (opened at top) polygon
 
     V4pPolygonP concretePolygons[32];  // Concrete active polygon per layer
-    UInt32 concreteBitmask;  // Bitmask of layer with active concrete polygon
+    uint32_t concreteBitmask;  // Bitmask of layer with active concrete polygon
 
     v4pi_setContext(v4p->display);
 
@@ -1413,7 +1411,7 @@ int v4p_render() {
 
     // Scan-line loop
     for (vy = 0; vy < v4p_displayHeight; vy++) {
-        Boolean sortNeeded = false;
+        bool sortNeeded = false;
 
         if (su >= 0) {
             su += ru2;
@@ -1490,7 +1488,7 @@ int v4p_render() {
         // TreeSetCompareFunc(TreeSetCompareFunc); // alreay set in v4p_init
 
         // Reset concrete polygons
-        memset(concretePolygons, 0, sizeof(concretePolygons));
+        v4p_memset(concretePolygons, 0, sizeof(concretePolygons));
         concreteBitmask = 0;
 
         // Reset visible polygon
@@ -1504,7 +1502,7 @@ int v4p_render() {
             ae = (ActiveEdgeP) ListData(l);
             vx = ae->x;
             p = ae->p;
-            V4pLayer depth = p->z;  // Full UInt32 depth support
+            V4pLayer depth = p->z;  // Full uint32_t depth support
 
             if (vx > 0 && pvx < vx) {  // slice before current edge
                 // Plot one pixel (stroke slice) if there is a pending stroke and it is above the current polygon
@@ -1520,10 +1518,10 @@ int v4p_render() {
 
             // Check collisions between concrete polygons
             // only collisions between pairs in layer order are reported
-            UInt32 bitmask = concreteBitmask;
+            uint32_t bitmask = concreteBitmask;
             if (bitmask > 0 && vx > 0) {
                 V4pCollisionLayer topLayer = floorLog2(bitmask);
-                UInt32 bitmaskMinusTop = bitmask & (~((UInt32) 1 << topLayer));
+                uint32_t bitmaskMinusTop = bitmask & (~((uint32_t) 1 << topLayer));
                 while (bitmaskMinusTop > 0) {  // Collision with concrete layers
                     V4pCollisionLayer secondLayer = floorLog2(bitmaskMinusTop);
                     V4pPolygonP topConcrete = concretePolygons[topLayer];
@@ -1532,7 +1530,7 @@ int v4p_render() {
                     collisionCallback(topLayer, secondLayer, vy, px_collide, vx, topConcrete, secondConcrete);
                     bitmask = bitmaskMinusTop;
                     topLayer = secondLayer;
-                    bitmaskMinusTop = bitmask & (~((UInt32) 1 << topLayer));
+                    bitmaskMinusTop = bitmask & (~((uint32_t) 1 << topLayer));
                 }
             }
 

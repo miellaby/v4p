@@ -36,7 +36,7 @@ void v4p_debugPolygon(V4pPolygonP poly, const char* name) {
     }
 
     // Check visibility
-    Boolean visible = v4p_isVisible(poly);
+    bool visible = v4p_isVisible(poly);
     v4p_debug("Visibility: %s\n", visible ? "VISIBLE" : "NOT VISIBLE");
 
     // Check if polygon has active edges

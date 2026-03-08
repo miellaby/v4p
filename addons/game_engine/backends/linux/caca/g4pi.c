@@ -6,7 +6,7 @@
 #include "v4pi.h"
 
 // get ticks in milliseconds
-Int32 g4p_getTicks() {
+int32_t g4p_getTicks() {
     // libcaca doesn't have a direct tick function, so we use standard time
     // This is a simplified implementation
     static struct timespec start = { 0, 0 };
@@ -19,11 +19,11 @@ Int32 g4p_getTicks() {
         return 0;
     }
 
-    return (Int32) ((now.tv_sec - start.tv_sec) * 1000 + (now.tv_nsec - start.tv_nsec) / 1000000);
+    return (int32_t) ((now.tv_sec - start.tv_sec) * 1000 + (now.tv_nsec - start.tv_nsec) / 1000000);
 }
 
 // pause execution
-void g4pi_delay(Int32 d) {
+void g4pi_delay(int32_t d) {
     // Simple busy wait for libcaca backend
     // Note: This is not ideal for production, but works for demo purposes
     struct timespec ts;
@@ -48,7 +48,7 @@ int g4pi_pollEvents() {
     int rc = 0;  // return code
     
     // Key release workaround state
-    static UInt16 timeout = 0;
+    static uint16_t timeout = 0;
 
     caca_event_t ev;
 
@@ -119,7 +119,7 @@ int g4pi_pollEvents() {
                         g4p_state.buttons[G4P_SPACE] = 0;
                         break;
                     default:
-                        if (g4p_state.key == (UInt16) caca_get_event_key_ch(&ev)) g4p_state.key = 0;
+                        if (g4p_state.key == (uint16_t) caca_get_event_key_ch(&ev)) g4p_state.key = 0;
                 }
                 break;
 

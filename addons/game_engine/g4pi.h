@@ -13,10 +13,10 @@ void g4pi_init();
 void g4pi_destroy();
 
 // get ticks in milliseconds
-Int32 g4p_getTicks();
+int32_t g4p_getTicks();
 
 // pause execution for milliseconds
-void g4pi_delay(Int32 d);
+void g4pi_delay(int32_t d);
 
 // poll user events
 int g4pi_pollEvents();

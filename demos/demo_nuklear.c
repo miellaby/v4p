@@ -91,7 +91,7 @@ void setup_colorful_style(struct nk_context *ctx) {
     ctx->style.text.color = nk_rgba(240, 240, 240, 255);
 }
 
-int g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, bool fullscreen) {
     // Initialize v4p
     v4p_init2(quality, fullscreen);
     
@@ -112,7 +112,7 @@ int g4p_onInit(int quality, Boolean fullscreen) {
     return success;
 }
 
-int g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(int32_t deltaTime) {
     // Update progress value for demo
     progress_value += 0.0001f * deltaTime;
     if (progress_value > 1.0f) progress_value = 0.0f;

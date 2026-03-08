@@ -11,12 +11,12 @@
 #include "v4p_ll.h"
 
 // V4p color (palette index)
-typedef UInt8 V4pColor;
+typedef uint8_t V4pColor;
 
 // Shared 256-colors RGB palette
 // This palette is inspired by old Palm Computing Devices and provides a consistent color reference across all V4P backends.
 
-extern const UInt8 v4p_palette[256][3];
+extern const uint8_t v4p_palette[256][3];
 
 #define V4P_WHITE 0
 #define V4P_SILVER 225
@@ -42,7 +42,7 @@ extern const UInt8 v4p_palette[256][3];
 #define V4P_MAROON 227
 
 // Color index to RGB triplet
-#define V4P_PALETTE_RGB(index) ((const UInt8*)v4p_palette[index])
+#define V4P_PALETTE_RGB(index) ((const uint8_t*)v4p_palette[index])
 
 // Individual component access
 #define V4P_PALETTE_R(index) (v4p_palette[index][0])
@@ -50,6 +50,6 @@ extern const UInt8 v4p_palette[256][3];
 #define V4P_PALETTE_B(index) (v4p_palette[index][2])
 
 // Function to compute palette index from RGB values
-V4pColor v4p_rgb_to_palette_index(UInt8 r, UInt8 g, UInt8 b);
+V4pColor v4p_rgb_to_palette_index(uint8_t r, uint8_t g, uint8_t b);
 
 #endif // V4P_PALETTE_H

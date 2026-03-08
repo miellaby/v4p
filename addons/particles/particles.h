@@ -16,7 +16,7 @@ typedef struct Particle {
     float rotation_speed;           // Rotation speed
     float growth;                   // Growth rate
     float scale;                    // Current scale
-    Boolean active;                 // Whether particle is active
+    bool active;                 // Whether particle is active
 } Particle;
 
 // Particle system structure
@@ -52,7 +52,7 @@ void particles_set_noise(ParticleSystem* system, float speed_noise, float angle_
 void particles_emit(ParticleSystem* system, float x, float y, float angle);
 
 // Update all particles in the system
-void particles_iterate(ParticleSystem* system, Int32 deltaTime);
+void particles_iterate(ParticleSystem* system, int32_t deltaTime);
 
 // Create a default particle prototype (small square)
 V4pPolygonP particles_create_default_prototype();

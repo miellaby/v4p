@@ -1,18 +1,18 @@
 /**
- * Test for UInt32 depth support
+ * Test for uint32_t depth support
  * This test verifies that the new balanced tree implementation
- * supports the full UInt32 depth range instead of being limited to 32 layers
+ * supports the full uint32_t depth range instead of being limited to 32 layers
  */
 
 #include "v4p.h"
 #include "game_engine/g4p.h"
 #include <stdio.h>
 
-int g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, bool fullscreen) {
     v4p_init2(quality, fullscreen);
     v4p_setBGColor(V4P_BLACK);
     
-    printf("Testing UInt32 depth range support...\n");
+    printf("Testing uint32_t depth range support...\n");
     
     // Test depth values that would have been truncated in the old 32-layer system
     V4pLayer testDepths[] = {31, 32, 64, 128, 256, 512, 1024, 10000, 100000, 1000000, 0xFFFFFFFF};
@@ -33,11 +33,11 @@ int g4p_onInit(int quality, Boolean fullscreen) {
         }
     }
     
-    printf("All depth tests passed! UInt32 depth support is working.\n");
+    printf("All depth tests passed! uint32_t depth support is working.\n");
     return success;
 }
 
-int g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(int32_t deltaTime) {
     // Test dynamic depth changes
     static int frameCount = 0;
     frameCount++;

@@ -23,7 +23,7 @@ void getSinCosFromDegrees(float degrees, int* sina, int* cosa) {
     // Convert degrees to v4p's 512-unit circle format
     // computeCosSin will handle angle wrapping via bitmasking (angle & 0x1FF)
     int v4p_angle = (int)(degrees * 512.0f / 360.0f);
-    computeCosSin((UInt16)v4p_angle);
+    computeCosSin((uint16_t)v4p_angle);
     *sina = lwmSina;
     *cosa = lwmCosa;
 }
@@ -68,8 +68,8 @@ int bullet_count = 0;
 float ship_angle = 0;
 float ship_x = 0, ship_y = 0;
 float ship_speed_x = 0, ship_speed_y = 0;  // Ship's speed/moment vector
-Boolean thrusting = false;
-Boolean game_over = false;
+bool thrusting = false;
+bool game_over = false;
 float invulnerability_timer = 5000;  // Invulnerability timer in milliseconds after respawn
 
 // Objects to remove (can't remove in callback)
@@ -397,19 +397,19 @@ void fireBullet() {
 
 
 // Collision point callback for finalized averages
-void asteroids_onCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord avg_x, V4pCoord avg_y, UInt16 count) {
+void asteroids_onCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord avg_x, V4pCoord avg_y, uint16_t count) {
     // Get collision layers for both polygons
     V4pCollisionMask mask1 = v4p_getCollisionMask(p1);
     V4pCollisionMask mask2 = v4p_getCollisionMask(p2);
     
     // Classify collision based on layers
-    Boolean isBullet1 = (mask1 == 4); // Bullet mask is 4
-    Boolean isAsteroid1 = (mask1 == 2); // Asteroid mask is 2
-    Boolean isShip1 = (p1 == ship);
+    bool isBullet1 = (mask1 == 4); // Bullet mask is 4
+    bool isAsteroid1 = (mask1 == 2); // Asteroid mask is 2
+    bool isShip1 = (p1 == ship);
     
-    Boolean isBullet2 = (mask2 == 4); // Bullet mask is 4
-    Boolean isAsteroid2 = (mask2 == 2); // Asteroid mask is 2
-    Boolean isShip2 = (p2 == ship);
+    bool isBullet2 = (mask2 == 4); // Bullet mask is 4
+    bool isAsteroid2 = (mask2 == 2); // Asteroid mask is 2
+    bool isShip2 = (p2 == ship);
 
     // Bullet-asteroid collision
     if ((isBullet1 && isAsteroid2) || (isBullet2 && isAsteroid1)) {
@@ -481,7 +481,7 @@ void asteroids_onCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord avg_x, 
     }
 }
 
-int g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, bool fullscreen) {
     v4p_init2(quality, fullscreen);
     v4p_setView(-0.44 * v4p_displayWidth, -0.44 * v4p_displayHeight,
                  v4p_displayWidth * 0.44, v4p_displayHeight * 0.44);
@@ -527,13 +527,13 @@ int g4p_onInit(int quality, Boolean fullscreen) {
     return success;
 }
 
-int g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(int32_t deltaTime) {
     static int totalTime = 0;
     totalTime += deltaTime;
     int level = 3 + score / 1000;
 
     // remember last space button state
-    static Boolean last_space_pressed = false;
+    static bool last_space_pressed = false;
 
     // Handle mode switching based on spacebar long press
     if (g4p_state.buttons[G4P_SPACE]) {  // Space button
@@ -695,7 +695,7 @@ int g4p_onTick(Int32 deltaTime) {
             
             // Emit thrust particles with cooldown (max 1 particle per 100ms)
             if (thrust_system) {
-                static Int32 thrust_cooldown = 0;  // Accumulated cooldown in milliseconds
+                static int32_t thrust_cooldown = 0;  // Accumulated cooldown in milliseconds
                 
                 // Add current frame's deltaTime to cooldown accumulator
                 thrust_cooldown += deltaTime;

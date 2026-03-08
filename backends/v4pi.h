@@ -16,7 +16,7 @@ extern V4piContextP v4pi_defaultContext;
 extern V4piContextP v4pi_context;
 
 /** Initialize the implementation and a default context */
-int v4pi_init(int quality, Boolean fullscreen);
+int v4pi_init(int quality, bool fullscreen);
 
 /** To cleanup resources */
 void v4pi_destroy();

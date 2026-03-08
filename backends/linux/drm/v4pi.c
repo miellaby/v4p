@@ -49,7 +49,7 @@ typedef struct v4pi_context_s {
     uint32_t fb_size;            // Framebuffer size in bytes
     
     // Current state
-    Boolean initialized;
+    bool initialized;
 } v4pi_context_s;
 
 // DRM-specific types (alias for compatibility)
@@ -390,7 +390,7 @@ static void cleanup_drm() {
 
 // V4P Interface Functions
 
-int v4pi_init(int quality, Boolean fullscreen) {
+int v4pi_init(int quality, bool fullscreen) {
     (void) quality;
     (void) fullscreen;  // Unused for now
     

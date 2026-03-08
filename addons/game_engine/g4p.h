@@ -21,9 +21,9 @@ typedef enum {
 
 // Engine State
 typedef struct g4pState_s {
-    Boolean buttons[9];  // Button states
+    bool buttons[9];  // Button states
     V4pCoord xpen, ypen;
-    UInt16 key;  // Legacy single key press (backend dependant)
+    uint16_t key;  // Legacy single key press (backend dependant)
 } G4pState;
 
 // Game 4 Pocket entry points
@@ -50,9 +50,9 @@ extern int g4p_framerate;
 extern int g4p_avgFramePeriod;
 
 // To be implemented by the caller
-extern int g4p_onInit(int quality, Boolean fullscreen);
-extern int g4p_onTick(Int32 deltaTime);
+extern int g4p_onInit(int quality, bool fullscreen);
+extern int g4p_onTick(int32_t deltaTime);
 extern int g4p_onFrame();
 extern void g4p_onQuit();
-extern void g4p_delay(Int32 sleepTime);
+extern void g4p_delay(int32_t sleepTime);
 #endif

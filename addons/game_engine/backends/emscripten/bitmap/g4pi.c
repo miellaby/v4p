@@ -15,7 +15,7 @@ extern G4pState g4p_state;
 
 // Input state
 static int g4p_initialized = false;
-static Boolean gamepad_connected = false;
+static bool gamepad_connected = false;
 
 // Keyboard event handlers
 EM_BOOL key_down_callback(int eventType, const EmscriptenKeyboardEvent* keyEvent, void* userData) {
@@ -226,11 +226,11 @@ int g4pi_pollEvents() {
 }
 
 // Timing functions
-Int32 g4p_getTicks() {
-    return (Int32)emscripten_get_now();
+int32_t g4p_getTicks() {
+    return (int32_t)emscripten_get_now();
 }
 
-void g4pi_delay(Int32 d) {
+void g4pi_delay(int32_t d) {
     emscripten_sleep(d);
 }
 

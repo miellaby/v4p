@@ -8,7 +8,7 @@
 V4pPolygonP proto;
 V4pPolygonP boxMatrix[GRID_SIZE][GRID_SIZE];
 
-int g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, bool fullscreen) {
     int j, k;
 
     v4p_init2(quality, fullscreen);  // Normal quality, windowed
@@ -35,7 +35,7 @@ int g4p_onInit(int quality, Boolean fullscreen) {
 
 int frame_count = 0;
 
-int g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(int32_t deltaTime) {
     int i = frame_count++;
     int j, k;
 

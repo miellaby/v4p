@@ -13,7 +13,7 @@
 typedef struct collision_point_data_s {
     V4pCoord x_sum;      // Sum of x coordinates
     V4pCoord y_sum;      // Sum of y coordinates  
-    UInt16 count;        // Number of collision points
+    uint16_t count;        // Number of collision points
     V4pCoord avg_x;      // Average x coordinate
     V4pCoord avg_y;      // Average y coordinate
     V4pPolygonP p1;      // First polygon
@@ -21,7 +21,7 @@ typedef struct collision_point_data_s {
 } CollisionPointData;
 
 // Callback function type for collision point finalization
-typedef void (*G4pCollisionCallback)(V4pPolygonP p1, V4pPolygonP p2, V4pCoord avg_x, V4pCoord avg_y, UInt16 count);
+typedef void (*G4pCollisionCallback)(V4pPolygonP p1, V4pPolygonP p2, V4pCoord avg_x, V4pCoord avg_y, uint16_t count);
 
 // Initialize collision point system
 typedef struct collision_points_system_s {

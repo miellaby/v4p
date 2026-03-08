@@ -6,7 +6,7 @@
 // Simple test to demonstrate collision debugging
 
 // Stub callbacks required by the game engine
-int g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, bool fullscreen) {
     printf("=== COLLISION TEST INIT ===\n");
     
     // Initialize the system
@@ -36,7 +36,7 @@ int g4p_onInit(int quality, Boolean fullscreen) {
     return success;
 }
 
-int g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(int32_t deltaTime) {
     // No physics needed for this test
     return success;
 }

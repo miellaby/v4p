@@ -82,9 +82,9 @@ static int iBuffer;
 /**
  * Metrics stuff
  */
-static UInt32 t1;
-static UInt32 laps[4] = { 0, 0, 0, 0 };
-static UInt32 tlaps = 0;
+static uint32_t t1;
+static uint32_t laps[4] = { 0, 0, 0, 0 };
+static uint32_t tlaps = 0;
 
 // prepare things before V4P engine scanline loop
 int v4pi_start() {
@@ -104,7 +104,7 @@ int v4pi_end() {
 
     // Get end time and compute average rendering time
     // TODO: implement proper timing
-    UInt32 t2 = 0;
+    uint32_t t2 = 0;
     tlaps -= laps[j % 4];
     tlaps += laps[j % 4] = t2 - t1;
     j++;
@@ -146,7 +146,7 @@ int v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
 }
 
 // Prepare things before the very first graphic rendering
-int v4pi_init(int quality, Boolean fullscreen) {
+int v4pi_init(int quality, bool fullscreen) {
     // Initialize palette
     init_palette();
 

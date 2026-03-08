@@ -7,11 +7,11 @@
 #include "v4p_color.h"
 #include "v4p_trace.h"
 
-typedef UInt32 V4pLayer;  // Rendering layer
-typedef UInt32 V4pCollisionLayer;  // Collision layer (< 32)
-typedef UInt32 V4pCollisionMask;  // Collision mask (<= 0xFFFFFFFF)
+typedef uint32_t V4pLayer;  // Rendering layer
+typedef uint32_t V4pCollisionLayer;  // Collision layer (< 32)
+typedef uint32_t V4pCollisionMask;  // Collision mask (<= 0xFFFFFFFF)
 
-typedef UInt16 V4pFlag;
+typedef uint16_t V4pFlag;
 #define V4P_STANDARD (V4pFlag) 0
 #define V4P_HIDDEN (V4pFlag) 2  // invisibles help to gather polygons
 #define V4P_TRANSLUCENT (V4pFlag) 4  // to be done
@@ -64,7 +64,7 @@ extern V4pCoord v4p_displayHeight;  // current display height
 
 // v4p library fundamentals
 int v4p_init();
-int v4p_init2(int quality, Boolean fullscreen);
+int v4p_init2(int quality, bool fullscreen);
 void v4p_setContext(V4pContextP);  // change the (default) context
 int v4p_render();
 void v4p_quit();
@@ -101,26 +101,26 @@ int v4p_destroyFromParent(V4pPolygonP parent, V4pPolygonP p);
 V4pPolygonP v4p_destroyPointFrom(V4pPolygonP p, V4pPointP s);
 V4pProps v4p_putProp(V4pPolygonP p, V4pProps i);
 V4pProps v4p_removeProp(V4pPolygonP p, V4pProps i);
-V4pProps v4p_setRelative(V4pPolygonP p, Boolean relative);
+V4pProps v4p_setRelative(V4pPolygonP p, bool relative);
 V4pPointP v4p_addPoint(V4pPolygonP p, V4pCoord x, V4pCoord y);
 V4pPointP v4p_addJump(V4pPolygonP p);
 V4pPointP v4p_movePoint(V4pPolygonP p, V4pPointP s, V4pCoord x, V4pCoord y);
 V4pColor v4p_setColor(V4pPolygonP p, V4pColor c);
 V4pLayer v4p_setLayer(V4pPolygonP p, V4pLayer z);
-V4pCoord v4p_setRound(V4pPolygonP p, Boolean round);
-int  v4p_setVisibility(V4pPolygonP p, Boolean visible);
-UInt32   v4p_setStroke(V4pPolygonP p, UInt32 stroke);
+V4pCoord v4p_setRound(V4pPolygonP p, bool round);
+int  v4p_setVisibility(V4pPolygonP p, bool visible);
+uint32_t   v4p_setStroke(V4pPolygonP p, uint32_t stroke);
 V4pPointP v4p_getPoints(V4pPolygonP p);
 V4pLayer v4p_getLayer(V4pPolygonP p);
 V4pCollisionMask v4p_getCollisionMask(V4pPolygonP p);
-UInt32 v4p_getId(V4pPolygonP p);
+uint32_t v4p_getId(V4pPolygonP p);
 V4pColor v4p_getColor(V4pPolygonP p);
 V4pPolygonP v4p_getLimits(V4pPolygonP p, V4pCoord* minx, V4pCoord* maxx, V4pCoord* miny, V4pCoord* maxy);
 V4pProps v4p_enable(V4pPolygonP p);
 V4pProps v4p_disable(V4pPolygonP p);
 
 // Visibility check
-Boolean v4p_isVisible(V4pPolygonP p);
+bool v4p_isVisible(V4pPolygonP p);
 
 // Polygon tree traversal functions
 V4pPolygonP v4p_getFirstSub(V4pPolygonP parent);

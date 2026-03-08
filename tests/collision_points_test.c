@@ -8,7 +8,7 @@ static int collision_callback_count = 0;
 static int collision_point_callback_count = 0;
 
 // Forward declarations
-void test_collision_point_callback(V4pPolygonP p1, V4pPolygonP p2, V4pCoord avg_x, V4pCoord avg_y, UInt16 count);
+void test_collision_point_callback(V4pPolygonP p1, V4pPolygonP p2, V4pCoord avg_x, V4pCoord avg_y, uint16_t count);
 
 // Game state
 V4pPolygonP poly1 = NULL;
@@ -16,7 +16,7 @@ V4pPolygonP poly2 = NULL;
 V4pPolygonP poly3 = NULL;
 
 // Game initialization
-int g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, bool fullscreen) {
     printf("=== COLLISION POINTS TEST ===\n");
     
     // Set collision point callback
@@ -49,7 +49,7 @@ int g4p_onInit(int quality, Boolean fullscreen) {
 }
 
 // Game tick (physics/update logic)
-int g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(int32_t deltaTime) {
     // No physics needed for this test
     return success;
 }
@@ -105,7 +105,7 @@ void custom_collision_callback(V4pCollisionLayer i1, V4pCollisionLayer i2, V4pCo
 }
 
 // Collision point callback for testing
-void test_collision_point_callback(V4pPolygonP p1, V4pPolygonP p2, V4pCoord avg_x, V4pCoord avg_y, UInt16 count) {
+void test_collision_point_callback(V4pPolygonP p1, V4pPolygonP p2, V4pCoord avg_x, V4pCoord avg_y, uint16_t count) {
     collision_point_callback_count++;
     
     printf("Collision point callback: polygons %p vs %p, avg=(%d,%d), count=%d\n",

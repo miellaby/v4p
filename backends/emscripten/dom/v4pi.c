@@ -33,7 +33,7 @@ V4piContextP v4pi_defaultContext = &v4pi_defaultContextSingleton;
 V4piContextP v4pi_context = &v4pi_defaultContextSingleton;
 
 // Initialize the DOM backend
-int v4pi_init(int quality, Boolean fullscreen) {
+int v4pi_init(int quality, bool fullscreen) {
     // Set display dimensions
     v4p_displayWidth = 640;
     v4p_displayHeight = 480;

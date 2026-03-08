@@ -9,7 +9,7 @@
 
 V4pPolygonP circles[STEPS];
 
-int g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, bool fullscreen) {
     int i;
     v4p_init2(quality, fullscreen);
     v4p_setBGColor(V4P_BLACK);
@@ -29,7 +29,7 @@ int g4p_onInit(int quality, Boolean fullscreen) {
 }
 
 
-int g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(int32_t deltaTime) {
     static int elapsedTime = 0;
     elapsedTime += deltaTime;
 
@@ -37,7 +37,7 @@ int g4p_onTick(Int32 deltaTime) {
 
     // Make the circles pulse with a sine wave effect
     for (int i = 0; i < STEPS; i++) {
-        UInt16 angle = ((i * 512) / STEPS) % 512 + 512;  // Convert degree index to angle
+        uint16_t angle = ((i * 512) / STEPS) % 512 + 512;  // Convert degree index to angle
         computeCosSin(angle);
 
         // Calculate position using trigonometry

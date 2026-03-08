@@ -24,7 +24,7 @@ typedef struct v4pi_context_s {
     char canvas_id[64];  // Must be first field for g4pi.c access
     unsigned int width;
     unsigned int height;
-    UInt32* bitmap;  // Pointer to bitmap memory (RGBA format)
+    uint32_t* bitmap;  // Pointer to bitmap memory (RGBA format)
     EMSCRIPTEN_WEBGL_CONTEXT_HANDLE canvas_context;
 } V4piContext;
 
@@ -36,14 +36,14 @@ V4pCoord v4p_displayWidth = V4P_DEFAULT_SCREEN_WIDTH;
 V4pCoord v4p_displayHeight = V4P_DEFAULT_SCREEN_HEIGHT;
 
 // Initialize the bitmap backend
-int v4pi_init(int quality, Boolean fullscreen) {
+int v4pi_init(int quality, bool fullscreen) {
     // Calculate display dimensions based on quality
     int screenWidth = V4P_DEFAULT_SCREEN_WIDTH * 2 / (3 - quality);
     int screenHeight = V4P_DEFAULT_SCREEN_HEIGHT * 2 / (3 - quality);
 
     // Allocate bitmap memory (RGBA format)
-    size_t bitmap_size = screenWidth * screenHeight * sizeof(UInt32);
-    v4pi_defaultContext->bitmap = (UInt32*)malloc(bitmap_size);
+    size_t bitmap_size = screenWidth * screenHeight * sizeof(uint32_t);
+    v4pi_defaultContext->bitmap = (uint32_t*)malloc(bitmap_size);
     if (!v4pi_defaultContext->bitmap) {
         v4p_debug("Failed to allocate bitmap memory\n");
         return failure;
@@ -86,7 +86,7 @@ int v4pi_init(int quality, Boolean fullscreen) {
 // Start rendering - clear bitmap
 int v4pi_start() {
     // Clear bitmap to transparent black
-    size_t bitmap_size = v4pi_context->width * v4pi_context->height * sizeof(UInt32);
+    size_t bitmap_size = v4pi_context->width * v4pi_context->height * sizeof(uint32_t);
     memset(v4pi_context->bitmap, 0, bitmap_size);
     return success;
 }
@@ -99,20 +99,20 @@ int v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
 
     // Convert V4P color to RGBA
     // ImageData expects bytes in RGBA order: [R, G, B, A]
-    // On little-endian systems, UInt32 0xAABBGGRR is stored as bytes [RR, GG, BB, AA]
+    // On little-endian systems, uint32_t 0xAABBGGRR is stored as bytes [RR, GG, BB, AA]
     // So to get [R, G, B, A] in memory, we need: (A << 24) | (B << 16) | (G << 8) | R
-    UInt8 r = V4P_PALETTE_R(c);
-    UInt8 g = V4P_PALETTE_G(c);
-    UInt8 b = V4P_PALETTE_B(c);
+    uint8_t r = V4P_PALETTE_R(c);
+    uint8_t g = V4P_PALETTE_G(c);
+    uint8_t b = V4P_PALETTE_B(c);
     
     // Create RGBA value with correct byte order for ImageData
-    UInt32 rgba = (0xFF << 24) | (b << 16) | (g << 8) | r;
+    uint32_t rgba = (0xFF << 24) | (b << 16) | (g << 8) | r;
 
     // Write to bitmap (clamp x1 to display width)
     V4pCoord end_x = (x1 > v4pi_context->width) ? v4pi_context->width : x1;
 
     // Write the slice to the bitmap
-    UInt32* row_ptr = v4pi_context->bitmap + (y * v4pi_context->width);
+    uint32_t* row_ptr = v4pi_context->bitmap + (y * v4pi_context->width);
     for (V4pCoord x = x0; x < end_x; x++) {
         row_ptr[x] = rgba;
     }
@@ -143,7 +143,7 @@ V4piContextP v4pi_newContext(int width, int height) {
 
     c->width = width;
     c->height = height;
-    c->bitmap = (UInt32*)malloc(width * height * sizeof(UInt32));
+    c->bitmap = (uint32_t*)malloc(width * height * sizeof(uint32_t));
     if (!c->bitmap) {
         free(c);
         return NULL;

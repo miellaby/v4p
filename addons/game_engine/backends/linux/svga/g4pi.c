@@ -8,7 +8,7 @@
     #include <stdio.h>
 #endif
 
-Int32 g4p_getTicks() {
+int32_t g4p_getTicks() {
     static struct tms buf;
     static int clk_ticks = 0;
     if (! clk_ticks) {
@@ -18,12 +18,12 @@ Int32 g4p_getTicks() {
 #endif
     }
 
-    Int32 t = times(&buf) * 1000 / clk_ticks;
+    int32_t t = times(&buf) * 1000 / clk_ticks;
     return t;
 }
 
 // pause execution
-void g4pi_delay(Int32 d) {
+void g4pi_delay(int32_t d) {
     usleep(d * 1000);
 }
 
@@ -71,7 +71,7 @@ int g4pi_pollEvents() {
 #ifdef TESTU_G4P_LINUX_SVGA
     #include <stdio.h>
     #include "g4p.h"
-int g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, bool fullscreen) {
     return success;
 }
 
@@ -87,9 +87,9 @@ int g4p_onFrame() {
 }
 
 int main(int argc, char** argv) {
-    Int32 t0 = g4p_getTicks();
+    int32_t t0 = g4p_getTicks();
     g4pi_delay(1000);
-    Int32 t1 = g4p_getTicks();
+    int32_t t1 = g4p_getTicks();
     printf("Waited 1s from %d to %d\n", (int) t0, (int) t1);
     return g4p_main(argc, argv);
 }

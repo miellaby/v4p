@@ -46,21 +46,21 @@ void g4p_onCollide(V4pCollisionLayer i1,
     g4p_addCollisionPoint(p1, p2, collision_x, collision_y);
 }
 
-void g4p_delay(Int32 sleepTime) {
+void g4p_delay(int32_t sleepTime) {
     g4pi_delay(sleepTime);
 }
 
 // Game 4 Pocket main function
 int g4p_main(int argc, char* argv[]) {
-        Boolean rc = 0;
-        Int32 beforeTime, afterTime, timeDiff, sleepTime, overSleepTime;
-        Int32 lastTickTime = 0;
-        Int32 deltaTime = 0;
-        UInt32 frameCount = 0;
+        bool rc = 0;
+        int32_t beforeTime, afterTime, timeDiff, sleepTime, overSleepTime;
+        int32_t lastTickTime = 0;
+        int32_t deltaTime = 0;
+        uint32_t frameCount = 0;
 
         // Default parameters
         int quality = V4P_QUALITY_NORMAL;
-        Boolean fullscreen = V4P_UX_NORMAL;
+        bool fullscreen = V4P_UX_NORMAL;
 
         // Parse command line arguments
         for (int i = 1; i < argc; i++) {

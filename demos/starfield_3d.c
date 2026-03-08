@@ -62,7 +62,7 @@ V4pPolygonP createStarPolygon() {
     return v4p_addClone(poly);
 }
 
-int g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, bool fullscreen) {
     int i;
 
     // Seed random number generator
@@ -81,7 +81,7 @@ int g4p_onInit(int quality, Boolean fullscreen) {
     return success;
 }
 
-int g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(int32_t deltaTime) {
     int i;
     float screenX, screenY, screenSize;
 
@@ -112,10 +112,10 @@ int g4p_onTick(Int32 deltaTime) {
 
         // Adjust color based on brightness using RGB palette mapping
         // Calculate RGB values based on star color and brightness
-        UInt8 r = 0, g = 0, b = 0;
+        uint8_t r = 0, g = 0, b = 0;
         
         // Get base RGB values from the star's color
-        const UInt8* baseRgb = V4P_PALETTE_RGB(stars[i].color);
+        const uint8_t* baseRgb = V4P_PALETTE_RGB(stars[i].color);
         r = baseRgb[0];
         g = baseRgb[1];
         b = baseRgb[2];
@@ -123,9 +123,9 @@ int g4p_onTick(Int32 deltaTime) {
         // Apply brightness variation - make stars twinkle by adjusting RGB components
         // Brighter stars have higher RGB values, dimmer stars have lower values
         float brightnessFactor = 0.6f + 0.4f * sinf(stars[i].twinkle_phase * 3.14159f * 2.0f);
-        r = (UInt8)(r * brightnessFactor);
-        g = (UInt8)(g * brightnessFactor);
-        b = (UInt8)(b * brightnessFactor);
+        r = (uint8_t)(r * brightnessFactor);
+        g = (uint8_t)(g * brightnessFactor);
+        b = (uint8_t)(b * brightnessFactor);
         
         // Convert the modified RGB back to palette index
         V4pColor twinkleColor = v4p_rgb_to_palette_index(r, g, b);

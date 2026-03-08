@@ -4,12 +4,12 @@
 #include "g4pi.h"
 
 // get ticks
-Int32 g4p_getTicks() {
+int32_t g4p_getTicks() {
     return SDL_GetTicks();
 }
 
 // pause execution
-void g4pi_delay(Int32 d) {
+void g4pi_delay(int32_t d) {
     SDL_Delay(d);
 }
 

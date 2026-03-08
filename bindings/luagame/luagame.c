@@ -34,7 +34,7 @@ static int l_g4pMain(lua_State* luaVM) {
 }
 // END Functions exposed to Lua ======================================
 
-int g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, bool fullscreen) {
     // Call to Lua g4pOnInit
     if (luaL_dostring(luaVM, "return g4pOnInit()")) {
         fprintf(stderr, "lua script error\n");
@@ -47,7 +47,7 @@ int g4p_onInit(int quality, Boolean fullscreen) {
     return rc;
 }
 
-int g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(int32_t deltaTime) {
     // transmit g4p_state to LUA in a dumb way
     static char buffer[500];
     snprintf(buffer,

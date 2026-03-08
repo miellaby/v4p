@@ -8,7 +8,7 @@
 
 V4pPolygonP box_matrix[GRID_SIZE][GRID_SIZE];
 
-int g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, bool fullscreen) {
     int i, j;
     v4p_init2(quality, fullscreen);  // Normal quality, windowed
     v4p_setBGColor(V4P_BLACK);  // Black background
@@ -28,7 +28,7 @@ int g4p_onInit(int quality, Boolean fullscreen) {
     return success;  // Keep running indefinitely
 }
 
-int g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(int32_t deltaTime) {
     static int elapsedTime = 0;
     elapsedTime += deltaTime;
 

@@ -88,7 +88,7 @@ V4pPolygonP createStar() {
 #include "game_engine/g4p.h"
 ..
 
-int g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, bool fullscreen) {
     v4p_init2(quality, fullscreen);
     v4p_setBGColor(V4P_BLACK);
     // add new polys to the scene (use the cloning pattern for transformed duplicates)
@@ -97,7 +97,7 @@ int g4p_onInit(int quality, Boolean fullscreen) {
     // - temporarly hide/show polygon with v4p_disable/enable
 }
 
-int g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(int32_t deltaTime) {
     // - read user inputs
     // - make the app logic goes
     // - v4p_transform() to move/rotate/zoom existing objects

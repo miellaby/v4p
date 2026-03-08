@@ -54,7 +54,7 @@ V4pPolygonP create_hexagon(V4pCoord size, V4pColor color) {
     return hex;
 }
 
-int g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, bool fullscreen) {
     v4p_init2(quality, fullscreen);  // Normal quality, windowed
     v4p_setBGColor(V4P_BLACK);  // Black background
 
@@ -100,7 +100,7 @@ int g4p_onInit(int quality, Boolean fullscreen) {
     return success;
 }
 
-int g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(int32_t deltaTime) {
     static int elapsedTime = 0;
     elapsedTime += deltaTime;
 

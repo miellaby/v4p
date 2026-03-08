@@ -9,7 +9,7 @@ typedef struct {
     const char* name;
     V4pCoord x0, y0, x1, y1;
     int expected_points;
-    Boolean should_render;
+    bool should_render;
 } TestCase;
 
 // Test cases for various rectangle configurations
@@ -27,7 +27,7 @@ TestCase test_cases[] = {
 
 const int num_test_cases = sizeof(test_cases) / sizeof(test_cases[0]);
 
-int g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, bool fullscreen) {
     v4p_init2(quality, fullscreen);
     v4p_setBGColor(V4P_BLACK);
     
@@ -56,7 +56,7 @@ int g4p_onInit(int quality, Boolean fullscreen) {
     return success;
 }
 
-int g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(int32_t deltaTime) {
     // No special logic needed for this test
     return success;
 }

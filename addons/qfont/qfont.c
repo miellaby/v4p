@@ -10,7 +10,7 @@
 
 // ASCII character map - 4x5 pixel representation for each character
 // 5 bytes each byte represents a row of 4 pixels (4 bits used)
-const UInt8 char_map[96][5] = {
+const uint8_t char_map[96][5] = {
     // 32: space
     {   0b0000,
         0b0000,
@@ -590,7 +590,7 @@ const UInt8 char_map[96][5] = {
 };
 
 // Function to get character data
-const UInt8* qfont_get_char(char c) {
+const uint8_t* qfont_get_char(char c) {
 
     if (c >= 32 && c < 127) {
         return char_map[c - 32];
@@ -608,16 +608,12 @@ const UInt8* qfont_get_char(char c) {
 // It produces closed pathes of points, which we add to the polygon with jump points in between.
 // This part was coded by Claude.
 
-// Direction vectors: R, D, L, U  (clockwise)
-static const int DX[4] = { 1, 0, -1, 0 };
-static const int DY[4] = { 0, 1, 0, -1 };
-
 // Turn right / left in the direction table
 #define TURN_RIGHT(d) (((d) + 1) & 3)
 #define TURN_LEFT(d) (((d) + 3) & 3)
 
 // Is pixel (px,py) a filled glyph pixel? (bounds-safe)
-static Boolean pixel_set(const UInt8* qfont, int px, int py) {
+static bool pixel_set(const uint8_t* qfont, int px, int py) {
     if (px < 0 || px >= CHAR_WIDTH || py < 0 || py >= CHAR_HEIGHT) return 0;
     return (qfont[py] >> (CHAR_WIDTH - 1 - px)) & 1;
 }
@@ -626,8 +622,8 @@ static Boolean pixel_set(const UInt8* qfont, int px, int py) {
 // visited array: one bit per boundary edge, sized generously
 // We track edges as (x,y,dir) — here flattened into a small array
 #define MAX_EDGES ((CHAR_WIDTH + 1) * (CHAR_HEIGHT + 1) * 4)
-static UInt32 visited[MAX_EDGES] = {0};
-static UInt32 generation = 0; //< We use a generation counter to avoid clearing the visited array on every call.
+static uint32_t visited[MAX_EDGES] = {0};
+static uint32_t generation = 0; //< We use a generation counter to avoid clearing the visited array on every call.
 
 static int edge_index(int x, int y, int dir) {
     return (y * (CHAR_WIDTH + 1) + x) * 4 + dir;

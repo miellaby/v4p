@@ -22,7 +22,7 @@
  *   // 225..230 = specials: SILVER, GRAY, MAROON, PURPLE, GREEN, TEAL
  *  // 231..255 = unused (BLACK)
  */
-const UInt8 v4p_palette[256][3] = {
+const uint8_t v4p_palette[256][3] = {
     { 255, 255, 255 }, { 255, 204, 255 }, { 255, 153, 255 }, { 255, 102, 255 },
     { 255, 51, 255 },  { 255, 0, 255 },   { 255, 255, 204 }, { 255, 204, 204 },
     { 255, 153, 204 }, { 255, 102, 204 }, { 255, 51, 204 },  { 255, 0, 204 },
@@ -99,11 +99,11 @@ const UInt8 v4p_palette[256][3] = {
  * @param b Blue component (0-255)
  * @return Color index (0-255) in the V4P palette
  */
-V4pColor v4p_rgb_to_palette_index(UInt8 r, UInt8 g, UInt8 b) {
+V4pColor v4p_rgb_to_palette_index(uint8_t r, uint8_t g, uint8_t b) {
     // Quantize each color channel to 6 levels (0, 51, 102, 153, 204, 255)
-    UInt8 r_index = ((r + 25) / 51);
-    UInt8 g_index = ((g + 25) / 51);
-    UInt8 b_index = ((b + 25) / 51);
+    uint8_t r_index = ((r + 25) / 51);
+    uint8_t g_index = ((g + 25) / 51);
+    uint8_t b_index = ((b + 25) / 51);
 
     // level indexes to compute palette index
     int bi[] = { 120, 114, 108, 12, 6, 0 };

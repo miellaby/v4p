@@ -10,7 +10,7 @@
 
 #define CLOCKS_PER_MSEC (CLOCKS_PER_SEC / 1000);
 
-Int32 g4p_getTicks() {
+int32_t g4p_getTicks() {
     static struct tms buf;
     static int clk_ticks = 0;
     if (! clk_ticks) {
@@ -20,12 +20,12 @@ Int32 g4p_getTicks() {
 #endif
     }
 
-    Int32 t = times(&buf) * 1000 / clk_ticks;
+    int32_t t = times(&buf) * 1000 / clk_ticks;
     return t;
 }
 
 // pause execution for milliseconds
-void g4pi_delay(Int32 d) {
+void g4pi_delay(int32_t d) {
     if (d <= 0) return;
     struct timespec req;
     req.tv_sec = d / 1000;

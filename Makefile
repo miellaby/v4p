@@ -200,9 +200,9 @@ endif
 
 # Core library
 CORE_SRCS = \
+    backends/$(TARGET)/v4p_platform.c \
     v4p.c v4p_color.c \
-    quick/heap.c quick/table.c quick/sortable.c quick/sorted.c quick/imath.c \
-    backends/$(TARGET)/v4p_ll.c
+    quick/heap.c quick/table.c quick/sortable.c quick/sorted.c quick/imath.c
 
 BACKEND_SRCS = backends/$(TARGET)/$(BACKEND)/v4pi.c
 
@@ -292,9 +292,10 @@ tests: $(TEST_TARGETS)
 clean:
 	$(Q)$(RM) *.o *.a
 	$(Q)$(RM) quick/*.o
-	$(Q)$(RM) backends/*.o backends/*/*.o
+	$(Q)$(RM) backends/*/*.o backends/*/*/*.o
 	$(Q)$(RM) addons/*/*.o
 	$(Q)$(RM) addons/*/*.a
+	$(Q)$(RM) addons/*/backends/*/*.o addons/*/backends/*/*/*.o
 	$(Q)$(RM) demos/*.o
 	$(Q)$(RM) $(patsubst demos/%.c,demos/%,$(wildcard demos/*.c))
 	$(Q)$(RM) tests/*.o

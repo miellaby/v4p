@@ -6,7 +6,7 @@
 V4pPolygonP squares[GRID_SIZE][GRID_SIZE];
 static V4pCoord dimension;
 
-int g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, bool fullscreen) {
     v4p_init2(quality, fullscreen);
     v4p_setBGColor(V4P_BLUE);
     dimension = IMIN(v4p_displayWidth / 8, v4p_displayHeight / 8);
@@ -27,7 +27,7 @@ int triangle_wave(int x, int period, int amplitude) {
 }
 
 
-int g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(int32_t deltaTime) {
     static int elapsedTime = 0;
     elapsedTime += deltaTime;
 

@@ -25,14 +25,14 @@ float car_angle = 90;  // Start facing right (90 degrees)
 float car_speed_x = 0;
 float car_speed_y = 0;
 float wheel_rotation_angle = 0;  // Front wheel rotation angle
-Boolean thrusting = false;
+bool thrusting = false;
 
 // Collision tracking
-UInt16 collision_count = 0;
+uint16_t collision_count = 0;
 
 // Lap counting
-UInt16 lap_count = 0;
-UInt32 checkpoints_passed = 0;  // Bitmask: bits 0-6 (bit 6 = start line)
+uint16_t lap_count = 0;
+uint32_t checkpoints_passed = 0;  // Bitmask: bits 0-6 (bit 6 = start line)
 V4pPolygonP lap_text_poly = NULL;  // Polygon for displaying lap count
 
 // Checkpoint visualization
@@ -46,7 +46,7 @@ void track_checkpoint_crossings();
 typedef struct {
     V4pCoord x, y; // position
     V4pCoord ref_dx, ref_dy; // Reference vector for required crossing direction
-    Boolean requires_clockwise; // Whether the crossing should be clockwise or counter-clockwise
+    bool requires_clockwise; // Whether the crossing should be clockwise or counter-clockwise
 } Checkpoint;
 Checkpoint checkpoints[7];
 
@@ -57,7 +57,7 @@ void getSinCosFromDegrees(float degrees, int* sina, int* cosa) {
     // Convert degrees to v4p's 512-unit circle format
     // computeCosSin will handle angle wrapping via bitmasking (angle & 0x1FF)
     int v4p_angle = (int) (degrees * 512.0f / 360.0f);
-    computeCosSin((UInt16) v4p_angle);
+    computeCosSin((uint16_t) v4p_angle);
     *sina = lwmSina;
     *cosa = lwmCosa;
 }
@@ -372,16 +372,16 @@ V4pPolygonP create_level() {
 }
 
 // Collision callback function
-void car_demo_onCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord avg_x, V4pCoord avg_y, UInt16 count) {
+void car_demo_onCollisionPoint(V4pPolygonP p1, V4pPolygonP p2, V4pCoord avg_x, V4pCoord avg_y, uint16_t count) {
     // Get collision layers for both polygons
     V4pCollisionMask mask1 = v4p_getCollisionMask(p1);
     V4pCollisionMask mask2 = v4p_getCollisionMask(p2);
     
     // Check if this is a car-road collision
-    Boolean isCar1 = (mask1 == 1); // Car mask is 1
-    Boolean isRoad1 = (mask1 == 2); // Road mask is 2
-    Boolean isCar2 = (mask2 == 1); // Car mask is 1
-    Boolean isRoad2 = (mask2 == 2); // Road mask is 2
+    bool isCar1 = (mask1 == 1); // Car mask is 1
+    bool isRoad1 = (mask1 == 2); // Road mask is 2
+    bool isCar2 = (mask2 == 1); // Car mask is 1
+    bool isRoad2 = (mask2 == 2); // Road mask is 2
     
     if ((isCar1 && isRoad2) || (isCar2 && isRoad1)) {
         // Car-road collision detected
@@ -401,7 +401,7 @@ void update_lap_count_display() {
     qfontDefinePolygonFromString(lap_text, lap_text_poly, v4p_displayWidth - 200, v4p_displayHeight - 20, 8, 8, 2);
 }
 
-int g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, bool fullscreen) {
     v4p_init2(quality, fullscreen);
     v4p_setView(-0.44 * v4p_displayWidth, -0.44 * v4p_displayHeight, v4p_displayWidth * 0.44, v4p_displayHeight * 0.44);
     v4p_setBGColor(V4P_TEAL);
@@ -447,7 +447,7 @@ void track_checkpoint_crossings() {
             // v4p_debug("Near checkpoint %d: distance to : %d, cross product: %d\n", i, distance, cross);
 
             // Detect crossing of the reference vector in the correct direction
-            Boolean crossed_now = false;
+            bool crossed_now = false;
 
             if (checkpoints[i].requires_clockwise) {
                 // Clockwise: looking for positive->negative crossing
@@ -482,7 +482,7 @@ void track_checkpoint_crossings() {
 
                 if (i == 0) {  // Start line - check for lap completion
                     // Check if all required checkpoints have been passed
-                    UInt32 required_checkpoints = 0b01111111;  // Checkpoints 0-5 must be passed (bits 0-5 set to 1)
+                    uint32_t required_checkpoints = 0b01111111;  // Checkpoints 0-5 must be passed (bits 0-5 set to 1)
                     v4p_debug("Checking lap completion: checkpoints passed %08X, required %08X\n",
                                checkpoints_passed, required_checkpoints);
                     if ((checkpoints_passed & required_checkpoints) == required_checkpoints) {
@@ -497,7 +497,7 @@ void track_checkpoint_crossings() {
     }
 }
 
-int g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(int32_t deltaTime) {
     
     // Calculate current speed magnitude for realistic car handling
     float current_speed = sqrtf(car_speed_x * car_speed_x + car_speed_y * car_speed_y);

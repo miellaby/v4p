@@ -19,7 +19,7 @@ static EM_JS(void, v4pi_cache_canvas_context, (), {
     window.v4pCanvasContext = window.v4pCanvas ? window.v4pCanvas.getContext('2d') : null;
 });
 
-static Boolean canvas_context_cached = false;
+static bool canvas_context_cached = false;
 
 // Default window/screen width & height
 const V4pCoord V4P_DEFAULT_SCREEN_WIDTH = 640, V4P_DEFAULT_SCREEN_HEIGHT = 480;
@@ -48,9 +48,9 @@ EMSCRIPTEN_WEBGL_CONTEXT_HANDLE canvas_context = 0;
 /**
  * Metrics stuff
  */
-static UInt32 t1;
-static UInt32 laps[4] = { 0, 0, 0, 0 };
-static UInt32 tlaps = 0;
+static uint32_t t1;
+static uint32_t laps[4] = { 0, 0, 0, 0 };
+static uint32_t tlaps = 0;
 
 // Prepare things before V4P engine scanline loop
 int v4pi_start() {
@@ -65,7 +65,7 @@ int v4pi_end() {
     static int j = 0;
 
     // Get end time and compute average rendering time
-    UInt32 t2 = emscripten_get_now();
+    uint32_t t2 = emscripten_get_now();
     tlaps -= laps[j % 4];
     tlaps += laps[j % 4] = t2 - t1;
     j++;
@@ -88,9 +88,9 @@ int v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
     }
 
     // Convert V4P color to HTML color
-    UInt8 r = V4P_PALETTE_R(c);
-    UInt8 g = V4P_PALETTE_G(c);
-    UInt8 b = V4P_PALETTE_B(c);
+    uint8_t r = V4P_PALETTE_R(c);
+    uint8_t g = V4P_PALETTE_G(c);
+    uint8_t b = V4P_PALETTE_B(c);
     
     // Use cached global variables for much better performance
     EM_ASM_({
@@ -104,7 +104,7 @@ int v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
 }
 
 // Prepare things before the very first graphic rendering
-int v4pi_init(int quality, Boolean fullscreen) {
+int v4pi_init(int quality, bool fullscreen) {
     // Set up canvas dimensions based on quality
     int screenWidth = V4P_DEFAULT_SCREEN_WIDTH * 2 / (3 - quality);
     int screenHeight = V4P_DEFAULT_SCREEN_HEIGHT * 2 / (3 - quality);

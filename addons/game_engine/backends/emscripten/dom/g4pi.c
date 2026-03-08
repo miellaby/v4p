@@ -16,10 +16,10 @@
 extern G4pState g4p_state;
 
 // Keyboard state
-static UInt16 current_key = 0;
+static uint16_t current_key = 0;
 
 // Gamepad state
-static Boolean gamepad_connected = false;
+static bool gamepad_connected = false;
 
 // Keyboard event handlers
 EM_BOOL key_down_callback(int eventType, const EmscriptenKeyboardEvent* keyEvent, void* userData) {
@@ -187,12 +187,12 @@ void g4pi_update() {
 }
 
 // Get ticks in milliseconds
-Int32 g4p_getTicks() {
+int32_t g4p_getTicks() {
     return emscripten_get_now();
 }
 
 // pause execution
-void g4pi_delay(Int32 d) {
+void g4pi_delay(int32_t d) {
     // Emscripten async delay using emscripten_sleep
     // This requires ASYNCIFY support
     if (d > 0) {

@@ -38,7 +38,7 @@ void* TreeFindMax(QuickTree* tree);
 void* TreeFindMin(QuickTree* tree);
 
 // Check if data exists in the tree
-Boolean TreeContains(QuickTree* tree, void* data);
+bool TreeContains(QuickTree* tree, void* data);
 
 // Reset the tree by clearing all nodes and resetting the root
 void TreeReset(QuickTree* tree);

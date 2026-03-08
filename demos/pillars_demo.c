@@ -164,7 +164,7 @@ void initPillars() {
     }
 }
 
-int g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, bool fullscreen) {
     v4p_init2(quality, fullscreen);
     v4p_setView(-v4p_displayWidth / 2, -v4p_displayHeight / 2, v4p_displayWidth / 2, v4p_displayHeight / 2);
     v4p_setBGColor(V4P_BLACK);
@@ -175,7 +175,7 @@ int g4p_onInit(int quality, Boolean fullscreen) {
     return success;
 }
 
-int g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(int32_t deltaTime) {
     (void)deltaTime; // Unused parameter
     
     // Clear the scene by removing all polygons

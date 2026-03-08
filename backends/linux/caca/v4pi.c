@@ -112,7 +112,7 @@ int v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
 }
 
 // Prepare things before the very first graphic rendering
-int v4pi_init(int quality, Boolean fullscreen) {
+int v4pi_init(int quality, bool fullscreen) {
     // Initialize libcaca
     // Create a canvas with reasonable character dimensions
     // libcaca works in characters, not pixels

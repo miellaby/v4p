@@ -72,7 +72,7 @@ static void cleanup_input_devices() {
 }
 
 // get ticks in milliseconds
-Int32 g4p_getTicks() {
+int32_t g4p_getTicks() {
     struct timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
 
@@ -98,11 +98,11 @@ Int32 g4p_getTicks() {
     // Use long long to avoid overflow during intermediate calculations
     long long total_milliseconds = (long long) seconds * 1000 + nanoseconds / 1000000;
 
-    return (Int32) total_milliseconds;
+    return (int32_t) total_milliseconds;
 }
 
 // pause execution for milliseconds
-void g4pi_delay(Int32 d) {
+void g4pi_delay(int32_t d) {
     if (d <= 0)
         return;
     struct timespec req;

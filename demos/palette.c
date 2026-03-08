@@ -54,7 +54,7 @@ const char* get_color_name(int color_index) {
     }
 }
 
-int g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, bool fullscreen) {
     int i;
     V4pCoord x, y;
 
@@ -79,7 +79,7 @@ int g4p_onInit(int quality, Boolean fullscreen) {
     return success;
 }
 
-int g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(int32_t deltaTime) {
     int i;
     char info_buffer[64];
 

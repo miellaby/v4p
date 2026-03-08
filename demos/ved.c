@@ -21,7 +21,7 @@ static V4pCoord xvu, yvu, lvu, xpen1, ypen1, xpen0, ypen0, yButton = 1, stepGrid
 
 V4pPolygonP spots[64];
 
-Boolean pen1;
+bool pen1;
 
 int iButton = 0, sel;
 int bAddition, bDel, bLayer, bScroll, bSave, bCol, bGrid;
@@ -62,11 +62,11 @@ void g4p_onCollisionPoint(V4pPolygonP p1,
                           V4pPolygonP p2,
                           V4pCoord avg_x,
                           V4pCoord avg_y,
-                          UInt16 count) {
+                          uint16_t count) {
     polygonUnderPen = p2;    
 }
 
-int g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, bool fullscreen) {
     v4p_init2(quality, fullscreen);
     v4p_setBGColor(V4P_GREEN);
     xvu = -v4p_displayWidth / 2;
@@ -126,7 +126,7 @@ V4pCoord align(V4pCoord x) {
         return ((x - stepGrid / 2) / stepGrid) * stepGrid;
 }
 
-int g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(int32_t deltaTime) {
     V4pCoord stepGrid0, stepGridPrec, xs, ys;
     V4pLayer z0, precZ;
     int selPrec;

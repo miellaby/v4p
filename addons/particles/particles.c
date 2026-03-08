@@ -155,13 +155,13 @@ void particles_emit(ParticleSystem* system, float x, float y, float angle) {
     
     // Transform the particle - computeCosSin/v4p_transform will handle angle wrapping
     int v4p_angle = (int)(particle->rotation_angle * 512.0f / 360.0f);
-    v4p_transform(particle->poly, x, y, (UInt16)v4p_angle, 0, 256, 256);
+    v4p_transform(particle->poly, x, y, (uint16_t)v4p_angle, 0, 256, 256);
 
     system->active_particles++;
 }
 
 // Update all particles in the system
-void particles_iterate(ParticleSystem* system, Int32 deltaTime) {
+void particles_iterate(ParticleSystem* system, int32_t deltaTime) {
     if (!system) return;
     
     for (int i = 0; i < system->max_particles; i++) {
@@ -206,7 +206,7 @@ void particles_iterate(ParticleSystem* system, Int32 deltaTime) {
         v4p_transform(particle->poly, 
                       particle->x, 
                       particle->y, 
-                      (UInt16)v4p_angle, 
+                      (uint16_t)v4p_angle, 
                       0, 
                       scale_int, 
                       scale_int);

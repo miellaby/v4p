@@ -5,7 +5,7 @@
 #include "quick/imath.h"
 int lwmCosa = 255;
 int lwmSina = 0;
-static UInt16 lastAngle = 0;
+static uint16_t lastAngle = 0;
 const int tabCos[129] = {
     255, 255, 255, 255, 255, 255, 254, 254, 254, 253, 253, 253, 252, 252, 251, 251, 250, 249, 249, 248, 247, 247,
     246, 245, 244, 243, 242, 241, 240, 239, 238, 237, 236, 234, 233, 232, 231, 229, 228, 226, 225, 223, 222, 220,
@@ -15,11 +15,11 @@ const int tabCos[129] = {
     56,  53,  50,  47,  44,  41,  37,  34,  31,  28,  25,  22,  19,  16,  13,  9,   6,   3,
     0  // The 129th entry (Index 128)
 };
-int floorLog2(UInt32 v) {
+int floorLog2(uint32_t v) {
     return floorLog232(v);
 }
 
-int floorLog232(UInt32 v) {
+int floorLog232(uint32_t v) {
     //  Find the log base 2 of an N-bit integer in O(lg(N)) operations with
     //  multiply and lookup
     // Credits: http://graphics.stanford.edu/~seander/bithacks.htm
@@ -36,23 +36,23 @@ int floorLog232(UInt32 v) {
     v |= v >> 8;
     v |= v >> 16;
 
-    return MultiplyDeBruijnBitPosition[(UInt32) (v * 0x07C4ACDDU) >> 27];
+    return MultiplyDeBruijnBitPosition[(uint32_t) (v * 0x07C4ACDDU) >> 27];
 }
 
 /** Compute cosine and sine values lwmCosa and lwmSina for a given angle
  *  in the range [0, 512) where 512 represents a full circle (360 degrees).
  */
-int computeCosSin(UInt16 angle) {
+int computeCosSin(uint16_t angle) {
     // Use a lookup table for cosine values and derives sine from it
     int tb, tr;
-    UInt16 b;
-    angle = (angle & (UInt16) 0x1FF);
+    uint16_t b;
+    angle = (angle & (uint16_t) 0x1FF);
     if (angle == lastAngle) return success;
 
     lastAngle = angle;
-    b = angle & (UInt16) 127; // b is 0 to 127
+    b = angle & (uint16_t) 127; // b is 0 to 127
 
-    if (! (angle & (UInt16) 256)) {  // First 1/2 circle
+    if (! (angle & (uint16_t) 256)) {  // First 1/2 circle
         tb = tabCos[b];
         tr = tabCos[128 - b];        // Changed from 127 to 128
     } else {
@@ -60,7 +60,7 @@ int computeCosSin(UInt16 angle) {
         tr = -tabCos[128 - b];       // Changed from 127 to 128
     }
 
-    if (! (angle & (UInt16) 128)) {  // 1st or 3d 1/4 circle
+    if (! (angle & (uint16_t) 128)) {  // 1st or 3d 1/4 circle
         lwmCosa = tb;
         lwmSina = tr;
     } else {
@@ -80,8 +80,8 @@ void straighten(V4pCoord x, V4pCoord y, V4pCoord* xn, V4pCoord* yn) {
     }
 }
 
-UInt16 isqrt(UInt16 v) {  // Jim Henry isqrt
-    UInt16 t, g = 0, b = 0x80, s = 7;
+uint16_t isqrt(uint16_t v) {  // Jim Henry isqrt
+    uint16_t t, g = 0, b = 0x80, s = 7;
     while (b > 0) {
         t = ((g << 1) + b) << s;
         if (v >= t) {
@@ -94,15 +94,15 @@ UInt16 isqrt(UInt16 v) {  // Jim Henry isqrt
     return g;
 }
 
-static UInt16 tabAtanFloorLog2[8] = {
+static uint16_t tabAtanFloorLog2[8] = {
     // 19, 37, 64, 90, 108, 117, 122, 125
     64, 63, 60, 50, 37, 28, 19, 7
 };
 
-UInt16 iatan(V4pCoord x, V4pCoord y) {
-    UInt16 m, a;
+uint16_t iatan(V4pCoord x, V4pCoord y) {
+    uint16_t m, a;
     V4pCoord t;
-    Boolean op1, op2, op3;
+    bool op1, op2, op3;
     if (y < 0) {  // y inverted
         y = -y;
         op3 = true;
@@ -140,18 +140,18 @@ UInt16 iatan(V4pCoord x, V4pCoord y) {
     return a;
 }
 
-UInt16 iatan2p(V4pCoord x1, V4pCoord y1, V4pCoord x0, V4pCoord y0) {
+uint16_t iatan2p(V4pCoord x1, V4pCoord y1, V4pCoord x0, V4pCoord y0) {
     return iatan(x1 - x0, y1 - y0);
 }
 
-int angleCmp(UInt16 a1, UInt16 a0) {
+int angleCmp(uint16_t a1, uint16_t a0) {
     int d = a1 - a0;
-    if (! (d & (UInt16) 0x1ff))
+    if (! (d & (uint16_t) 0x1ff))
         return 0;
-    else if (d & (UInt16) 0x100)
-        return (d | (UInt16) 0xfffffe00);
+    else if (d & (uint16_t) 0x100)
+        return (d | (uint16_t) 0xfffffe00);
     else
-        return (d & (UInt16) 0x1ff);
+        return (d & (uint16_t) 0x1ff);
 }
 
 V4pCoord iabs(V4pCoord i) {

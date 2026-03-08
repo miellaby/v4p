@@ -12,7 +12,7 @@ int triangle_wave(int x, int period, int amplitude) {
     return IABS((x % period) - (period / 2)) * amplitude * 2 / period;
 }
 
-int g4p_onInit(int quality, Boolean fullscreen) {
+int g4p_onInit(int quality, bool fullscreen) {
     int j, k;
     v4p_init2(quality, fullscreen);
     v4p_setBGColor(V4P_BLACK);
@@ -35,7 +35,7 @@ int g4p_onInit(int quality, Boolean fullscreen) {
     return success;
 }
 
-int g4p_onTick(Int32 deltaTime) {
+int g4p_onTick(int32_t deltaTime) {
     static int elapsedTime = 0;
     elapsedTime += deltaTime;
 
