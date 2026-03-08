@@ -52,11 +52,11 @@ Concepts
 
 */
 #define _V4P_C
+#include "v4p.h"
+#include "_v4p.h"
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include "v4p.h"
-#include "_v4p.h"
 
 // Comparison function for polygons based on their depth (z) field
 static int polygonDepthComparator(void* a, void* b) {
