@@ -18,18 +18,18 @@ int g4p_onInit(int quality, bool fullscreen) {
 
     // Create stroke lines forming diameters of a circle
     for (int i = 0; i < NUM_LINES; i++) {
-        float angle = (2 * M_PI * i) / NUM_LINES;
+        float angle = (M_PI * i) / (NUM_LINES);
         int x1 = CENTER_X + RADIUS * cos(angle);
         int y1 = CENTER_Y + RADIUS * sin(angle);
         int x2 = CENTER_X - RADIUS * cos(angle);
         int y2 = CENTER_Y - RADIUS * sin(angle);
+        v4p_debug("%dx%d-%dx%d\n", x1, y1, x2, y2);
 
-        lines[i] = v4p_addNew(V4P_ABSOLUTE, V4P_RED, 2);
-        //v4p_setStroke(lines[i], 1);
+        lines[i] = v4p_addNew(V4P_ABSOLUTE, V4P_RED, 10 + i);
+        v4p_setStroke(lines[i], 1);
+        v4p_addJump(lines[i]);
         v4p_addPoint(lines[i], x1, y1);
         v4p_addPoint(lines[i], x2, y2);
-        v4p_debug("%dx%d-%dx%d\n", x1, y1, x2, y2);
-        v4p_addJump(lines[i]);
     }
 
     return success;

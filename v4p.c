@@ -1239,10 +1239,10 @@ V4pPolygonP v4p_buildActiveEdgeList(V4pPolygonP p) {
                     v4p_trace(POLYGON, "Adding 2 thin edges for horizontal segment from (%d, %d) to (%d, %d)\n", sa->x, sa->y, sb->x, sb->y);
                     V4pPoint thin; // to build small vertical edges for horizontal segments
                     thin = *sa;
-                    thin.y++;  // Shift down by 2 pixels to create a thin vertical edge of 1px
+                    thin.y++;  // Shift down for a thin vertical edge of 1px
                     v4p_addNewActiveEdge(p, sa, &thin, false);
                     thin = *sb;
-                    thin.y++;  // Shift down by 2 pixels to create a thin vertical edge
+                    thin.y++;  // Shift down for a thin vertical edge
                     v4p_addNewActiveEdge(p, sb, &thin, false);
                 }
             }
@@ -1255,23 +1255,22 @@ V4pPolygonP v4p_buildActiveEdgeList(V4pPolygonP p) {
             sb = sb->next;
         }
         if (! sb) {  // no more vertice
-            sb = s1; // last segment (closing path)
             v4p_trace(POLYGON, "End of path subset, last point (%d, %d)\n", sa->x, sa->y);
-            if (sa != sb) {  // add a closing edge
-                if (sa->y != sb->y) {
+            if (sa != s1) {  // add a closing edge
+                if (sa->y != s1->y) {
                     v4p_trace(POLYGON, "Adding closing edge from (%d, %d) to (%d, %d)\n", sa->x, sa->y, s1->x, s1->y);
-                    v4p_addNewActiveEdge(p, sa, sb, false);
+                    v4p_addNewActiveEdge(p, sa, s1, false);
                     if (p->stroke) {  // for a 1px stroke we add another "is_stroke" active edge
-                        v4p_addNewActiveEdge(p, sa, sb, true);
+                        v4p_addNewActiveEdge(p, sa, s1, true);
                     }
-                } else if (p->stroke && sa->x != sb->x) {
+                } else if (p->stroke && sa->x != s1->x) {
                     V4pPoint thin;  // to build small vertical edges for horizontal segments
                     thin = *sa;
-                    thin.y++;  // Shift down by 2 pixels to create a thin vertical edge of 1px
+                    thin.y++;  // Shift down for a thin vertical edge of 1px
                     v4p_addNewActiveEdge(p, sa, &thin, false);
-                    thin = *sb;
-                    thin.y++;  // Shift down by 2 pixels to create a thin vertical edge
-                    v4p_addNewActiveEdge(p, sb, &thin, false);
+                    thin = *s1;
+                    thin.y++;  // Shift down for a thin vertical edge
+                    v4p_addNewActiveEdge(p, s1, &thin, false);
                 }
             }
             break;
@@ -1358,7 +1357,7 @@ List v4p_openActiveEdge(V4pCoord vy, V4pCoord yu) {
             continue;
         if (bvy <= vy) continue;
 
-        ae->h = bvy - vy - (ae->isStroke ? 0 : 1);
+        ae->h = bvy - vy;
         ae->x = avx;
         dx = bvx - avx;
         dy = bvy - avy;
@@ -1381,15 +1380,15 @@ List v4p_openActiveEdge(V4pCoord vy, V4pCoord yu) {
             if (ae->isStroke) {
                 // the stroke dedicated AE is a secondary AE next to the regular one so to draw a 1px line on screen
                 // it simply the same AE, but with one scanline computation ahead
-                ae->x += ae->as.straight.o2;
-                ae->as.straight.s += ae->as.straight.r1;
+                ae->x += (q == 0 ? 1 : q);
+                ae->as.straight.s += r;
             }
         } else {
             ae->as.arc.rx = dx * (ae->ay == ae->as.arc.cy ? -1 : 1);
             ae->as.arc.ry = dy;
             if (ae->isStroke) {
                 ae->as.arc.rx += (ae->ax == ae->as.arc.cx ? 1 : - 1);
-                ae->as.arc.ry += (ae->ay == ae->as.arc.cy ? 1 : - 1);
+                ae->as.arc.ry += 1;
             }
             v4p_trace(OPEN, "Opening arc edge %p, center=(%d,%d)\n", (void*) ae, ae->as.arc.cvx, ae->as.arc.cvy);
         }
@@ -1465,11 +1464,11 @@ int v4p_render() {
             } else {  // Shift ActiveEdge
                 ae->h--;
                 if (ae->isArc) {
-                    V4pCoord dyv = vy - ae->as.arc.cvy;
                     V4pCoord rx = ae->as.arc.rx;
                     V4pCoord ry = ae->as.arc.ry;
+                    V4pCoord dyv = vy - ae->as.arc.cvy;
                     V4pCoord dxv = rx * isqrt(ry * ry - dyv * dyv) / ry;
-                    vx = ae->x = ae->as.arc.cvx + dxv + (ae->isStroke);
+                    vx = ae->x = ae->as.arc.cvx + dxv;
                     v4p_trace(SHIFT, "Shift circle arc edge %p (%d,%d)x(%d,%d) to x=%d, y=%d\n",
                               (void*) ae, ae->avx, ae->avy, ae->bvx, ae->bvy, vx, vy);
 
