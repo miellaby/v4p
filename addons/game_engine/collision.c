@@ -1,6 +1,5 @@
 #include "collision.h"
 #include "g4p.h"
-#include "v4pi.h"
 #include "v4p_trace.h"
 #include "quick/sortable.h"
 #include <stdlib.h>

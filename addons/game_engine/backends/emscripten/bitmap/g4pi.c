@@ -1,14 +1,10 @@
 /**
  * Game Engine Input for Emscripten Bitmap Backend
  */
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include "g4pi.h"
+#include "g4p.h"
 #include <emscripten.h>
 #include <emscripten/html5.h>
-
-#include "g4p.h"
-#include "g4pi.h"
 
 // External global state (defined in g4p.c)
 extern G4pState g4p_state;
@@ -219,19 +215,16 @@ void g4pi_init() {
     g4p_initialized = true;
 }
 
+// Poll a single event from the event buffer
+bool g4p_pollEvent(G4pEvent* event) {
+    // TODO
+    return false;
+}
+
 // Update input state
 int g4pi_pollEvents() {
     // No special update needed for bitmap backend
     return 0;
-}
-
-// Timing functions
-int32_t g4p_getTicks() {
-    return (int32_t)emscripten_get_now();
-}
-
-void g4pi_delay(int32_t d) {
-    emscripten_sleep(d);
 }
 
 // Cleanup

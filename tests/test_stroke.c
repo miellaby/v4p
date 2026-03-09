@@ -22,10 +22,19 @@ int g4p_onInit(int quality, bool fullscreen) {
     v4p_addPoint(stroke_diamond, 250, 200);
     v4p_addPoint(stroke_diamond, 200, 150);
     
-
     // Create another filled polygon on top to test depth ordering
     V4pPolygonP top_filled = v4p_addNew(V4P_ABSOLUTE, V4P_BLUE, 5);
     v4p_addCorners(top_filled, 150, 160, 400, 200);
+    
+    // Create a stroke-mode circle
+    V4pPolygonP stroke_circle = v4p_addNewDisk(V4P_ABSOLUTE, V4P_YELLOW, 6, 450, 150, 40);
+    v4p_setStroke(stroke_circle, 1);  // Set to 1px stroke mode
+    
+    // Create a stroke-mode round rectangle
+    V4pPolygonP stroke_round_rect = v4p_addNew(V4P_ABSOLUTE, V4P_CYAN, 7);
+    v4p_setRound(stroke_round_rect, 1);
+    v4p_addCutCorners(stroke_round_rect, 350, 50, 500, 150, 20);
+    v4p_setStroke(stroke_round_rect, 1);  // Set to 1px stroke mode
     
     return success;
 }

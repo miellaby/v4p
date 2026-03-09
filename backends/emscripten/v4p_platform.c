@@ -5,6 +5,20 @@
 #include <stdarg.h>
 #include <emscripten.h>
 
+int32_t v4p_getTicks() {
+    static int t0 = 0;
+    if (t0 == 0) t0 = emscripten_get_now();
+    return (int32_t) (emscripten_get_now() - t0);
+}
+
+// pause execution
+void v4p_delay(int32_t d) {
+    // Emscripten async delay using emscripten_sleep requires ASYNCIFY support
+    if (d > 0) {
+        emscripten_sleep(d);
+    }
+}
+
 // Debug function
 void v4p_debug(char* formatString, ...) {
     va_list args;

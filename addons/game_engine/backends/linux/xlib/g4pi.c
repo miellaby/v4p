@@ -1,14 +1,9 @@
-#include <stdio.h>
-#include <unistd.h>
-#include <errno.h>
-#include <time.h>
-#include <sys/times.h>
+#include "g4p.h"
+#include "g4pi.h"
+#include "v4pi.h"
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <X11/Xutil.h>
-#include "g4p.h"
-#include "v4pi.h"
-#include "g4pi.h"
 
 #define CLOCKS_PER_MSEC (CLOCKS_PER_SEC / 1000)
 #define MAX_EVENTS 32
@@ -21,31 +16,6 @@ typedef struct {
 } EventBuffer;
 
 static EventBuffer event_buffer = {0};
-
-int32_t g4p_getTicks() {
-    static struct tms buf;
-    static int clk_ticks = 0;
-    if (! clk_ticks) {
-        clk_ticks = sysconf(_SC_CLK_TCK);
-#ifdef TESTU_GM_LINUX_SVGA
-        printf("clk_ticks = %d\n", clk_ticks);
-#endif
-    }
-
-    int32_t t = times(&buf) * 1000 / clk_ticks;
-    return t;
-}
-
-// pause execution for milliseconds
-void g4pi_delay(int32_t d) {
-    if (d <= 0) return;
-    struct timespec req;
-    req.tv_sec = d / 1000;
-    req.tv_nsec = (d % 1000) * 1000000;
-    while (nanosleep(&req, &req) == -1 && errno == EINTR) {
-        // Continue if interrupted by signal
-    }
-}
 
 // Initialize the game engine
 void g4pi_init() {

@@ -2,17 +2,18 @@
  * V4P Implementation for DOM (WebAssembly)
  * Minimal implementation using DIV elements for pixels
  */
+#include "v4pi.h"
+#include "v4p_platform.h"
+#include "v4p_trace.h"
+#include "v4p_color.h"
+#include <emscripten.h>
+#include <emscripten/html5.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <assert.h>
 #include <string.h>
-#include <emscripten.h>
-#include <emscripten/html5.h>
 
-#include "v4pi.h"
-#include "v4p.h"
-#include "v4p_color.h"
 
 // V4P display context variables
 V4pCoord v4p_displayWidth = 640;

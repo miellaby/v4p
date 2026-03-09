@@ -1,13 +1,15 @@
 /**
  * V4P Implementation for Linux + SDL
  */
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <unistd.h>
-#include <sys/times.h>
-#include <vga.h>
 #include "v4pi.h"
+#include "v4p_platform.h"
+#include "v4p_trace.h"
+#include "v4p_color.h"
+#include <vga.h>
+#include <stdlib.h>
+
+// Metrics stuff
+static int32_t t1, laps[4] = { 0, 0, 0, 0 };
 
 // Default window/screen width & heigth
 const V4pCoord V4P_DEFAULT_SCREEN_WIDTH = 640, V4P_DEFAULT_SCREEN_HEIGHT = 480;
@@ -31,11 +33,17 @@ V4pCoord v4p_displayHeight;
 // prepare things before V4P engine scanline loop
 int v4pi_start() {
     // remember start time
+    t1 = v4p_getTicks();
     return success;
 }
 
 // finalize things after V4P engine scanline loop
 int v4pi_end() {
+    // Get end time and compute average rendering time
+    static int j = 0;
+    int32_t t2 = v4p_getTicks();
+    laps[j++ % 4] = t2 - t1;
+    if (! (j % 100)) v4p_trace(RENDER, "render time = %.1fms\n", (laps[0] + laps[1] + laps[2] + laps[3]) / 4.0);
     return success;
 }
 

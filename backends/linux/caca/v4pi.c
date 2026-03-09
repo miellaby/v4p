@@ -4,15 +4,16 @@
  * This backend uses libcaca to render vector graphics as ASCII art in a terminal.
  * It uses direct libcaca API calls for better performance and quality.
  */
+#include "v4pi.h"
+#include "v4p_platform.h"
+#include "v4p_trace.h"
+#include "v4p_color.h"
+#include <caca.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <assert.h>
 #include <string.h>
-#include <caca.h>
-
-#include "v4pi.h"
-#include "v4p_color.h"
 
 // Default window/screen dimensions in characters
 const V4pCoord V4P_DEFAULT_SCREEN_WIDTH = 80, V4P_DEFAULT_SCREEN_HEIGHT = 25;

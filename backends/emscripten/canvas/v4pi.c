@@ -2,15 +2,17 @@
  * V4P Implementation for Emscripten (WebAssembly)
  * This backend uses HTML5 Canvas for rendering
  */
+#include "v4pi.h"
+#include "v4p_platform.h"
+#include "v4p_trace.h"
+#include "v4p_color.h"
+#include <emscripten.h>
+#include <emscripten/html5.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <assert.h>
 #include <string.h>
-#include <emscripten.h>
-#include <emscripten/html5.h>
-
-#include "v4pi.h"
 
 // Global canvas context to avoid repeated DOM queries
 static EM_JS(void, v4pi_cache_canvas_context, (), {
@@ -50,7 +52,6 @@ EMSCRIPTEN_WEBGL_CONTEXT_HANDLE canvas_context = 0;
  */
 static uint32_t t1;
 static uint32_t laps[4] = { 0, 0, 0, 0 };
-static uint32_t tlaps = 0;
 
 // Prepare things before V4P engine scanline loop
 int v4pi_start() {
@@ -66,12 +67,8 @@ int v4pi_end() {
 
     // Get end time and compute average rendering time
     uint32_t t2 = emscripten_get_now();
-    tlaps -= laps[j % 4];
-    tlaps += laps[j % 4] = t2 - t1;
-    j++;
-    if (!(j % 100))
-        v4p_debug("v4p_displayEnd, average time = %dms\n", tlaps / 4);
-
+    laps[j++ % 4] = t2 - t1;
+    if (! (j % 100)) v4p_trace(RENDER, "render time = %.1fms\n", (laps[0] + laps[1] + laps[2] + laps[3]) / 4.0);
     return success;
 }
 

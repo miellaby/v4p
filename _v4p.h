@@ -16,6 +16,8 @@
 #include "quick/table.h"
 #include "v4p.h"
 #include "v4pi.h"
+#include "v4p_trace.h"
+#include "v4p_platform.h"
 
 // Forward declarations
 V4pPolygonP v4p_computeLimits(V4pPolygonP p);

@@ -54,7 +54,6 @@ Concepts
 #define _V4P_C
 #include "v4p.h"
 #include "_v4p.h"
-#include "v4p_platform.h"
 
 // Comparison function for polygons based on their depth (z) field
 static int polygonDepthComparator(void* a, void* b) {
@@ -617,10 +616,10 @@ V4pPolygonP v4p_setCollisionMask(V4pPolygonP p, V4pCollisionMask collisionMask) 
 }
 
 // Create an ActiveEdge of a polygon
-ActiveEdgeP v4p_addNewActiveEdge(V4pPolygonP p, V4pPointP a, V4pPointP b) {
+ActiveEdgeP v4p_addNewActiveEdge(V4pPolygonP p, V4pPointP a, V4pPointP b, bool is_stroke) {
     ActiveEdgeP ae = QuickHeapAlloc(v4p->activeEdgeHeap);
     ae->p = p;
-    ae->isStroke = (p->stroke == 1) ? true : false;
+    ae->isStroke = is_stroke;
     ListPrepend(p->ActiveEdge1, ae);
     int ax, ay, bx, by;
 
@@ -1231,17 +1230,20 @@ V4pPolygonP v4p_buildActiveEdgeList(V4pPolygonP p) {
             v4p_trace(POLYGON, "Processing edge from (%d, %d) to (%d, %d)\n", sa->x, sa->y, sb->x, sb->y);
 
             if (sa->y != sb->y) {  // add an active edge
-                v4p_addNewActiveEdge(p, sa, sb);
+                v4p_addNewActiveEdge(p, sa, sb, false);
+                if (p->stroke) { // if stroke we add another "is_stroke" active edge
+                    v4p_addNewActiveEdge(p, sa, sb, true);
+                }
             } else if (p->stroke) {  // if stroke enabled, add a 2 1-pixel edges to allow a horizontal segment to be visible
                 if (sa->x != sb->x) {
                     v4p_trace(POLYGON, "Adding 2 thin edges for horizontal segment from (%d, %d) to (%d, %d)\n", sa->x, sa->y, sb->x, sb->y);
                     V4pPoint thin; // to build small vertical edges for horizontal segments
                     thin = *sa;
-                    thin.y++;  // Shift down by 1 pixel to create a thin vertical edge
-                    v4p_addNewActiveEdge(p, sa, &thin);
+                    thin.y++;  // Shift down by 2 pixels to create a thin vertical edge of 1px
+                    v4p_addNewActiveEdge(p, sa, &thin, false);
                     thin = *sb;
-                    thin.y++;  // Shift down by 1 pixel to create a thin vertical edge
-                    v4p_addNewActiveEdge(p, sb, &thin);
+                    thin.y++;  // Shift down by 2 pixels to create a thin vertical edge
+                    v4p_addNewActiveEdge(p, sb, &thin, false);
                 }
             }
             if (sa != s1 && sb->x == s1->x && sb->y == s1->y) {  // the path is closed
@@ -1253,10 +1255,24 @@ V4pPolygonP v4p_buildActiveEdgeList(V4pPolygonP p) {
             sb = sb->next;
         }
         if (! sb) {  // no more vertice
+            sb = s1; // last segment (closing path)
             v4p_trace(POLYGON, "End of path subset, last point (%d, %d)\n", sa->x, sa->y);
-            if (sa->y != s1->y) {  // add a closing edge
-                v4p_trace(POLYGON, "Adding closing edge from (%d, %d) to (%d, %d)\n", sa->x, sa->y, s1->x, s1->y);
-                v4p_addNewActiveEdge(p, sa, s1);
+            if (sa != sb) {  // add a closing edge
+                if (sa->y != sb->y) {
+                    v4p_trace(POLYGON, "Adding closing edge from (%d, %d) to (%d, %d)\n", sa->x, sa->y, s1->x, s1->y);
+                    v4p_addNewActiveEdge(p, sa, sb, false);
+                    if (p->stroke) {  // for a 1px stroke we add another "is_stroke" active edge
+                        v4p_addNewActiveEdge(p, sa, sb, true);
+                    }
+                } else if (p->stroke && sa->x != sb->x) {
+                    V4pPoint thin;  // to build small vertical edges for horizontal segments
+                    thin = *sa;
+                    thin.y++;  // Shift down by 2 pixels to create a thin vertical edge of 1px
+                    v4p_addNewActiveEdge(p, sa, &thin, false);
+                    thin = *sb;
+                    thin.y++;  // Shift down by 2 pixels to create a thin vertical edge
+                    v4p_addNewActiveEdge(p, sb, &thin, false);
+                }
             }
             break;
         }
@@ -1362,9 +1378,19 @@ List v4p_openActiveEdge(V4pCoord vy, V4pCoord yu) {
                 ae->x += dy2 * q + dy2 * SIGN(dx) * r / dy;
                 ae->as.straight.s += (dy2 * r) % dy;
             }
+            if (ae->isStroke) {
+                // the stroke dedicated AE is a secondary AE next to the regular one so to draw a 1px line on screen
+                // it simply the same AE, but with one scanline computation ahead
+                ae->x += ae->as.straight.o2;
+                ae->as.straight.s += ae->as.straight.r1;
+            }
         } else {
             ae->as.arc.rx = dx * (ae->ay == ae->as.arc.cy ? -1 : 1);
             ae->as.arc.ry = dy;
+            if (ae->isStroke) {
+                ae->as.arc.rx += (ae->ax == ae->as.arc.cx ? 1 : - 1);
+                ae->as.arc.ry += (ae->ay == ae->as.arc.cy ? 1 : - 1);
+            }
             v4p_trace(OPEN, "Opening arc edge %p, center=(%d,%d)\n", (void*) ae, ae->as.arc.cvx, ae->as.arc.cvy);
         }
         ListPrepend(newlyOpenedAEList, ae);
@@ -1443,7 +1469,7 @@ int v4p_render() {
                     V4pCoord rx = ae->as.arc.rx;
                     V4pCoord ry = ae->as.arc.ry;
                     V4pCoord dxv = rx * isqrt(ry * ry - dyv * dyv) / ry;
-                    vx = ae->x = ae->as.arc.cvx + dxv;
+                    vx = ae->x = ae->as.arc.cvx + dxv + (ae->isStroke);
                     v4p_trace(SHIFT, "Shift circle arc edge %p (%d,%d)x(%d,%d) to x=%d, y=%d\n",
                               (void*) ae, ae->avx, ae->avy, ae->bvx, ae->bvy, vx, vy);
 
@@ -1496,8 +1522,6 @@ int v4p_render() {
 
         // Loop among active edges
         pvx = px_collide = 0;
-        V4pColor stroke_color = 0;  // WIP
-        V4pLayer stroke_depth = V4P_NIL;  // WIP
         for (l = v4p->openedAEList; l; l = ListNext(l)) {
             ae = (ActiveEdgeP) ListData(l);
             vx = ae->x;
@@ -1505,15 +1529,8 @@ int v4p_render() {
             V4pLayer depth = p->z;  // Full uint32_t depth support
 
             if (vx > 0 && pvx < vx) {  // slice before current edge
-                // Plot one pixel (stroke slice) if there is a pending stroke and it is above the current polygon
-                if (stroke_depth != V4P_NIL && (!visiblePolygon || stroke_depth >= visiblePolygon->z)) {
-                    v4pi_slice(vy, pvx, IMIN(pvx + 1, v4p_displayWidth), stroke_color);
-                    pvx++;
-                    stroke_depth = V4P_NIL;  // reset the stroke state after plotting
-                }
                 v4pi_slice(vy, pvx, IMIN(vx, v4p_displayWidth), visiblePolygon ? visiblePolygon->color : v4p->background);
                 pvx = vx;
-                stroke_depth = V4P_NIL;  // reset the stroke state when we move to a new pixel
             }
 
             // Check collisions between concrete polygons
@@ -1532,18 +1549,6 @@ int v4p_render() {
                     topLayer = secondLayer;
                     bitmaskMinusTop = bitmask & (~((uint32_t) 1 << topLayer));
                 }
-            }
-
-            // STROKE EDGE: we'll plot 1px if visible, skipping fill-toggle logic
-            if (ae->isStroke) { // WIP
-                if (vx >= 0 && vx < v4p_displayWidth) {
-                    if (stroke_depth == V4P_NIL || p->z > stroke_depth) {
-                        // Store that there is a stroke with its color and depth
-                        stroke_color = p->color;
-                        stroke_depth = p->z;
-                    }
-                }
-                continue;  // Do NOT touch the depth tree or collision state
             }
 
             // Update depth tree for opened polygons (AVL tree for depth management)
@@ -1596,11 +1601,6 @@ int v4p_render() {
 
         // Last slice
         if (pvx < v4p_displayWidth) {
-            // Plot one pixel (stroke slice) if there is a pending stroke and it is above the current polygon
-            if (stroke_depth != V4P_NIL && (!visiblePolygon || stroke_depth >= visiblePolygon->z)) {
-                v4pi_slice(vy, pvx, IMIN(pvx + 1, v4p_displayWidth), stroke_color);
-                pvx++;
-            }
             if (pvx < v4p_displayWidth) {
                 v4pi_slice(vy, IMAX(0, pvx), v4p_displayWidth, visiblePolygon ? visiblePolygon->color : v4p->background);
             }

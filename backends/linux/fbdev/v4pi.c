@@ -1,6 +1,14 @@
 /**
  * V4P Implementation for Linux Framebuffer
  */
+#include "v4pi.h"
+#include "v4p_platform.h"
+#include "v4p_trace.h"
+#include "v4p_color.h"
+#include "quick/imath.h"
+#include <linux/fb.h>
+#include <linux/vt.h>
+#include <linux/kd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -9,13 +17,8 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
-#include <linux/fb.h>
-#include <linux/vt.h>
-#include <linux/kd.h>
 
-#include "v4pi.h"
-#include "v4p_color.h"
-#include "quick/imath.h"
+
 
 // A display context
 typedef struct v4pi_context_s {
@@ -79,17 +82,13 @@ V4pCoord v4p_displayHeight;
 static unsigned char* currentBuffer;
 static int iBuffer;
 
-/**
- * Metrics stuff
- */
-static uint32_t t1;
-static uint32_t laps[4] = { 0, 0, 0, 0 };
-static uint32_t tlaps = 0;
+// Metrics stuff
+static int32_t t1, laps[4] = { 0, 0, 0, 0 };
 
 // prepare things before V4P engine scanline loop
 int v4pi_start() {
     // remember start time
-    t1 = 0;  // TODO: implement proper timing
+    t1 = v4p_getTicks();
 
     // Reset buffer pointer used by v4pi_slice()
     iBuffer = 0;
@@ -99,17 +98,11 @@ int v4pi_start() {
 
 // finalize things after V4P engine scanline loop
 int v4pi_end() {
-    int i;
-    static int j = 0;
-
     // Get end time and compute average rendering time
-    // TODO: implement proper timing
-    uint32_t t2 = 0;
-    tlaps -= laps[j % 4];
-    tlaps += laps[j % 4] = t2 - t1;
-    j++;
-    if (! (j % 100))
-        v4p_debug("v4p_displayEnd, average time = %dms\n", tlaps / 4);
+    static int j = 0;
+    int32_t t2 = v4p_getTicks();
+    laps[j++ % 4] = t2 - t1;
+    if (! (j % 100)) v4p_trace(RENDER, "render time = %.1fms\n", (laps[0] + laps[1] + laps[2] + laps[3]) / 4.0);
 
     return success;
 }

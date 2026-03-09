@@ -4,8 +4,6 @@
  * V4P Implementation I/F
  * Depends on platform/backend
  */
-
-#include "v4p_ll.h"
 #include "v4p.h"
 typedef struct v4pi_context_s* V4piContextP;
 

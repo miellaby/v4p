@@ -5,7 +5,6 @@
 #include "lauxlib.h"
 #include "game_engine/g4p.h"
 #include "v4p.h"
-#include "v4pi.h"
 // V4P->lua bindings
 extern int luaopen_v4p(lua_State* L);  // V4P binding
 

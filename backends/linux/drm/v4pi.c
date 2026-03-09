@@ -11,7 +11,14 @@
  * - No plane manipulation (as requested)
  * - Simplified dumb buffer approach
  */
-
+#include "v4pi.h"
+#include "v4p_platform.h"
+#include "v4p_trace.h"
+#include "v4p_color.h"
+#include <drm/drm.h>
+#include <drm/drm_fourcc.h>
+#include <xf86drm.h>
+#include <xf86drmMode.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -23,12 +30,6 @@
 #include <sys/mman.h>
 #include <errno.h>
 
-#include <drm/drm.h>
-#include <drm/drm_fourcc.h>
-#include <xf86drm.h>
-#include <xf86drmMode.h>
-
-#include "v4pi.h"
 
 // Define the v4pi_context_s structure that was forward-declared in v4pi.h
 typedef struct v4pi_context_s {

@@ -1,6 +1,5 @@
 #include "v4pserial.h"
 #include "v4p.h"
-#include "v4pi.h"
 #include "quick/imath.h"
 #include <stdlib.h>
 #include <math.h>

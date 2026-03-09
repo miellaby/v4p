@@ -1,36 +1,8 @@
-#include <stdio.h>
-#include <time.h>
-#include <caca.h>
 #include "g4p.h"
 #include "g4pi.h"
 #include "v4pi.h"
-
-// get ticks in milliseconds
-int32_t g4p_getTicks() {
-    // libcaca doesn't have a direct tick function, so we use standard time
-    // This is a simplified implementation
-    static struct timespec start = { 0, 0 };
-    struct timespec now;
-
-    clock_gettime(CLOCK_MONOTONIC, &now);
-
-    if (start.tv_sec == 0 && start.tv_nsec == 0) {
-        start = now;
-        return 0;
-    }
-
-    return (int32_t) ((now.tv_sec - start.tv_sec) * 1000 + (now.tv_nsec - start.tv_nsec) / 1000000);
-}
-
-// pause execution
-void g4pi_delay(int32_t d) {
-    // Simple busy wait for libcaca backend
-    // Note: This is not ideal for production, but works for demo purposes
-    struct timespec ts;
-    ts.tv_sec = d / 1000;
-    ts.tv_nsec = (d % 1000) * 1000000;
-    nanosleep(&ts, NULL);
-}
+#include <caca.h>
+#include <stdio.h>
 
 // Initialize the game engine
 void g4pi_init() {
@@ -41,7 +13,11 @@ void g4pi_destroy() {
     // libcaca cleanup is handled by the main application's v4pi_destroy
 }
 
-
+// Poll a single event from the event buffer
+bool g4p_pollEvent(G4pEvent* event) {
+    // TODO
+    return false;
+}
 
 // poll user events
 int g4pi_pollEvents() {

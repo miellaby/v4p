@@ -1,15 +1,15 @@
 /**
  * V4P Implementation for Linux + X
  */
+#include "v4pi.h"
+#include "v4p_platform.h"
+#include "v4p_trace.h"
+#include "v4p_color.h"
+#include <X11/Xutil.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdarg.h>
-#include <unistd.h>
-#include <sys/times.h>
 #include <string.h>
 
-#include <X11/Xutil.h>
-#include "v4pi.h"
 
 typedef struct v4pi_context_s {
     Display* d;
@@ -57,33 +57,14 @@ static int iBuffer;
 // Data buffer
 static XGCValues values;
 
-/**
- * Metrics stuff
- */
-
-static int32_t t1;
-static int32_t laps[4] = { 0, 0, 0, 0 };
-static int32_t tlaps = 0;
-
-static int32_t getTicks() {
-    static struct tms buf;
-    static int clk_ticks = 0;
-    if (! clk_ticks) {
-        clk_ticks = sysconf(_SC_CLK_TCK);
-        printf("clk_ticks = %d\n", clk_ticks);
-    }
-
-    int32_t t = times(&buf) * 1000 / clk_ticks;
-    return t;
-}
+// Metrics stuff
+static int32_t t1, laps[4] = { 0, 0, 0, 0 };
 
 // prepare things before V4P engine scanline loop
 int v4pi_start() {
-    // remember start time
-    t1 = getTicks();
-
     // Reset buffer pointer used by v4pi_slice()
     iBuffer = 0;
+    t1 = v4p_getTicks();
 
     return success;
 }
@@ -91,12 +72,10 @@ int v4pi_start() {
 int v4pi_end() {
     // Get end time and compute average rendering time
     static int j = 0;
-    int32_t t2 = getTicks();
-    tlaps -= laps[j % 4];
-    tlaps += laps[j % 4] = t2 - t1;
-    j++;
+    int32_t t2 = v4p_getTicks();
+    laps[j++ % 4] = t2 - t1;
     if (! (j % 100))
-        v4p_debug("v4p_displayEnd, average time = %dms\n", tlaps / 4);
+        v4p_trace(RENDER, "render time = %.1fms\n", (laps[0] + laps[1] + laps[2] + laps[3]) / 4.0);
 
     // Commit graphic changes we made
     XPutImage(currentDisplay,

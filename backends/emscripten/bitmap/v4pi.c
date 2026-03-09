@@ -2,17 +2,17 @@
  * V4P Implementation for Emscripten Bitmap Backend
  * Creates a bitmap in memory and renders to it
  */
+#include "v4pi.h"
+#include "v4p_platform.h"
+#include "v4p_trace.h"
+#include "v4p_color.h"
+#include <emscripten.h>
+#include <emscripten/html5.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <assert.h>
 #include <string.h>
-#include <emscripten.h>
-#include <emscripten/html5.h>
-
-#include "v4pi.h"
-#include "v4p.h"
-#include "v4p_color.h"
 
 // Default display dimensions
 const V4pCoord V4P_DEFAULT_SCREEN_WIDTH = 640;
@@ -34,6 +34,9 @@ V4piContextP v4pi_defaultContext = &v4pi_defaultContextSingleton;
 V4piContextP v4pi_context = &v4pi_defaultContextSingleton;
 V4pCoord v4p_displayWidth = V4P_DEFAULT_SCREEN_WIDTH;
 V4pCoord v4p_displayHeight = V4P_DEFAULT_SCREEN_HEIGHT;
+
+static uint32_t t1;
+static uint32_t laps[4] = { 0, 0, 0, 0 };
 
 // Initialize the bitmap backend
 int v4pi_init(int quality, bool fullscreen) {
@@ -85,6 +88,9 @@ int v4pi_init(int quality, bool fullscreen) {
 
 // Start rendering - clear bitmap
 int v4pi_start() {
+    // remember start time
+    t1 = v4p_getTicks();
+
     // Clear bitmap to transparent black
     size_t bitmap_size = v4pi_context->width * v4pi_context->height * sizeof(uint32_t);
     memset(v4pi_context->bitmap, 0, bitmap_size);
@@ -122,6 +128,8 @@ int v4pi_slice(V4pCoord y, V4pCoord x0, V4pCoord x1, V4pColor c) {
 
 // Finalize rendering and display bitmap
 int v4pi_end() {
+    static int j = 0;
+
     // Transfer bitmap to canvas
     EM_ASM_({
         var canvas = document.getElementById(UTF8ToString($0));
@@ -133,6 +141,9 @@ int v4pi_end() {
     }, v4pi_context->canvas_id, v4pi_context->width, v4pi_context->height,
        v4pi_context->bitmap, v4pi_context->width * v4pi_context->height * 4);
 
+    uint32_t t2 = v4p_getTicks();
+    laps[j++ % 4] = t2 - t1;
+    if (! (j % 100)) v4p_trace(RENDER, "render time = %.1fms\n", (laps[0] + laps[1] + laps[2] + laps[3]) / 4.0);
     return success;
 }
 

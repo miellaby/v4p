@@ -17,10 +17,8 @@ static char* buffer = NULL;
 
 static int iBuffer;
 
-
-
-static UInt32 t1;
-static UInt32 laps[4] = { 0, 0, 0, 0 }, tlaps = 0;
+// Metrics stuff
+static int32_t t1, laps[4] = { 0, 0, 0, 0 };
 
 int v4pi_start() {
     int i;
@@ -33,13 +31,11 @@ int v4pi_start() {
 
 int v4pi_end() {
     int i;
+    // Get end time and compute average rendering time
     static int j = 0;
-    UInt32 t2 = TimGetTicks();
-    tlaps -= laps[j % 4];
-    tlaps += laps[j % 4] = t2 - t1;
-    j++;
-    idebug(tlaps);
-
+    int32_t t2 = TimGetTicks();
+    laps[j++ % 4] = t2 - t1;
+    if (! (j % 100)) v4p_trace(RENDER, "render time = %.1fms\n", (laps[0] + laps[1] + laps[2] + laps[3]) / 4.0);
 
     return success;
 }

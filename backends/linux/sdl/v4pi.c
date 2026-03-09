@@ -1,15 +1,18 @@
 /**
  * V4P Implementation for Linux + SDL
  */
+#include "v4pi.h"
+#include "v4p_platform.h"
+#include "v4p_trace.h"
+#include "v4p_color.h"
+#include <SDL/SDL.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <assert.h>
-#include <SDL/SDL.h>
 #include <unistd.h>
 #include <string.h>
 
-#include "v4pi.h"
 
 // SDL Color palette
 static SDL_Color sdlColors[256];
@@ -61,12 +64,8 @@ V4pCoord v4p_displayHeight;
 static Uint8* currentBuffer;
 static int iBuffer;
 
-/**
- * Metrics stuff
- */
-static uint32_t t1;
-static uint32_t laps[4] = { 0, 0, 0, 0 };
-static uint32_t tlaps = 0;
+// Metrics stuff
+static int32_t t1, laps[4] = { 0, 0, 0, 0 };
 
 static void init_palette() {
     for (int i = 0; i < 256; i++) {
@@ -94,16 +93,11 @@ int v4pi_start() {
 
 // finalize things after V4P engine scanline loop
 int v4pi_end() {
-    int i;
-    static int j = 0;
-
     // Get end time and compute average rendering time
-    Uint32 t2 = SDL_GetTicks();
-    tlaps -= laps[j % 4];
-    tlaps += laps[j % 4] = t2 - t1;
-    j++;
-    if (! (j % 100))
-        v4p_debug("v4p_displayEnd, average time = %dms\n", tlaps / 4);
+    static int j = 0;
+    int32_t t2 = SDL_GetTicks();
+    laps[j++ % 4] = t2 - t1;
+    if (! (j % 100)) v4p_trace(RENDER, "render time = %.1fms\n", (laps[0] + laps[1] + laps[2] + laps[3]) / 4.0);
 
     // SDL locking stuff
     if (SDL_MUSTLOCK(v4pi_context->surface))

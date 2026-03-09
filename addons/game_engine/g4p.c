@@ -1,11 +1,11 @@
+#include "g4p.h"
+#include "g4pi.h"
+#include "v4p_platform.h"
+#include "v4p_trace.h"
+#include "collision.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "g4p.h"
-#include "v4p_ll.h"
-#include "v4pi.h"
-#include "g4pi.h"
-#include "collision.h"
 
 // The game 4 pocket states holds basic up-to-date data
 G4pState g4p_state;
@@ -44,10 +44,6 @@ void g4p_onCollide(V4pCollisionLayer i1,
 
     // Store collision point for this polygon pair
     g4p_addCollisionPoint(p1, p2, collision_x, collision_y);
-}
-
-void g4p_delay(int32_t sleepTime) {
-    g4pi_delay(sleepTime);
 }
 
 // Game 4 Pocket main function
@@ -105,10 +101,10 @@ int g4p_main(int argc, char* argv[]) {
         if (g4p_onInit(quality, fullscreen))
             return failure;
 
-        lastTickTime = g4p_getTicks();
+        lastTickTime = v4p_getTicks();
         while (! rc) {  // main game loop
             // Get current time and calculate delta since last tick
-            beforeTime = g4p_getTicks();
+            beforeTime = v4p_getTicks();
             deltaTime = beforeTime - lastTickTime;
             lastTickTime = beforeTime;
 
@@ -138,14 +134,14 @@ int g4p_main(int argc, char* argv[]) {
             g4p_finalizeCollisions();
 
             // calculate sleep time to maintain target frame rate
-            afterTime = g4p_getTicks();
+            afterTime = v4p_getTicks();
             timeDiff = afterTime - beforeTime;
             sleepTime = (g4p_period - timeDiff);
             if (sleepTime <= 2) {
                 sleepTime = 2;  // minimum sleep to prevent busy waiting
             }
             frameCount++;
-            g4pi_delay(sleepTime);
+            v4p_delay(sleepTime);
             g4p_avgFramePeriod = (3 * g4p_avgFramePeriod + timeDiff + sleepTime) / 4;
 #if TRACE_G4P
             if (frameCount % g4p_framerate == 0) {

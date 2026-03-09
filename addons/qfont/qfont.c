@@ -4,7 +4,6 @@
  */
 
 #include "v4p.h"
-#include "v4pi.h"
 #include "qfont.h"
 #include "string.h"
 

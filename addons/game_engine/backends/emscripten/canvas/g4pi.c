@@ -2,15 +2,14 @@
  * G4P Implementation for Emscripten Canvas (WebAssembly)
  * This provides input handling for web browsers with canvas backend
  */
+#include "g4pi.h"
+#include "g4p.h"
+#include <emscripten.h>
+#include <emscripten/html5.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <assert.h>
-#include <emscripten.h>
-#include <emscripten/html5.h>
-
-#include "g4pi.h"
-#include "g4p.h"
 
 // External global state (defined in g4p.c)
 extern G4pState g4p_state;
@@ -186,18 +185,10 @@ void g4pi_update() {
     }
 }
 
-// Get ticks in milliseconds
-int32_t g4p_getTicks() {
-    return emscripten_get_now();
-}
-
-// pause execution
-void g4pi_delay(int32_t d) {
-    // Emscripten async delay using emscripten_sleep
-    // This requires ASYNCIFY support
-    if (d > 0) {
-        emscripten_sleep(d);
-    }
+// Poll a single event from the event buffer
+bool g4p_pollEvent(G4pEvent* event) {
+    // TODO
+    return false;
 }
 
 // poll user events

@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (v4pi_end() != success) {
-        fprintf(stderr, "v4p_displayEnd failed\n");
+        fprintf(stderr, "v4pi_end failed\n");
         v4pi_destroyContext(ctx);
         v4pi_destroy();
         return 1;

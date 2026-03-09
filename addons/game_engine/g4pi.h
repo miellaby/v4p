@@ -1,6 +1,6 @@
 #ifndef GAME_4_POCKET_I_H
 #define GAME_4_POCKET_I_H
-#include "v4p_ll.h"
+#include "v4p_platform.h"
 
 /**
  * Game 4 Pocket Implementation
@@ -11,12 +11,6 @@ void g4pi_init();
 
 // Cleanup the game 4 pocket backend
 void g4pi_destroy();
-
-// get ticks in milliseconds
-int32_t g4p_getTicks();
-
-// pause execution for milliseconds
-void g4pi_delay(int32_t d);
 
 // poll user events
 int g4pi_pollEvents();

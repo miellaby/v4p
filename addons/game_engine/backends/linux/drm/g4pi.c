@@ -1,15 +1,14 @@
+#include "g4pi.h"
+#include "g4p.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <time.h>
 #include <linux/input.h>
 #include <sys/time.h>
 #include <errno.h>
 #include <limits.h>
-#include "g4p.h"
-#include "g4pi.h"
 
 // Global variables for input handling
 static int mouse_fd = -1;
@@ -71,48 +70,6 @@ static void cleanup_input_devices() {
     mouse_fd = keyboard_fd = -1;
 }
 
-// get ticks in milliseconds
-int32_t g4p_getTicks() {
-    struct timespec now;
-    clock_gettime(CLOCK_MONOTONIC, &now);
-
-    // Lazy initialization - initialize start_time on first call
-    static int initialized = 0;
-    if (! initialized) {
-        start_time = now;
-        initialized = 1;
-    }
-
-    // Calculate milliseconds since start
-    // Handle potential negative nanoseconds when now.tv_nsec <
-    // start_time.tv_nsec
-    long seconds = now.tv_sec - start_time.tv_sec;
-    long nanoseconds = now.tv_nsec - start_time.tv_nsec;
-
-    if (nanoseconds < 0) {
-        seconds--;
-        nanoseconds += 1000000000;  // Add 1 second in nanoseconds
-    }
-
-    // Convert to milliseconds, being careful about overflow
-    // Use long long to avoid overflow during intermediate calculations
-    long long total_milliseconds = (long long) seconds * 1000 + nanoseconds / 1000000;
-
-    return (int32_t) total_milliseconds;
-}
-
-// pause execution for milliseconds
-void g4pi_delay(int32_t d) {
-    if (d <= 0)
-        return;
-    struct timespec req;
-    req.tv_sec = d / 1000;
-    req.tv_nsec = (d % 1000) * 1000000;
-    while (nanosleep(&req, &req) == -1 && errno == EINTR) {
-        // Continue if interrupted by signal
-    }
-}
-
 // Read mouse event from device
 static void read_mouse_event() {
     if (mouse_fd < 0)
@@ -147,6 +104,12 @@ static int read_keyboard_event() {
         }
     }
     return 0;
+}
+
+// Poll a single event from the event buffer
+bool g4p_pollEvent(G4pEvent* event) {
+    // TODO
+    return false;
 }
 
 // poll user events

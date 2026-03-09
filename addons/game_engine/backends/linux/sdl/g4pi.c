@@ -1,8 +1,6 @@
-#include <stdio.h>
-#include <string.h>
+#include "g4pi.h"
 #include "g4p.h"
 #include "SDL/SDL.h"
-#include "g4pi.h"
 
 #define MAX_EVENTS 32
 
@@ -14,16 +12,6 @@ typedef struct {
 } EventBuffer;
 
 static EventBuffer event_buffer = {0};
-
-// get ticks
-int32_t g4p_getTicks() {
-    return SDL_GetTicks();
-}
-
-// pause execution
-void g4pi_delay(int32_t d) {
-    SDL_Delay(d);
-}
 
 // Initialize the game engine
 void g4pi_init() {

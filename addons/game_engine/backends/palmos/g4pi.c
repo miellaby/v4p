@@ -1,6 +1,5 @@
 #include <PalmOS.h>
 #include "g4p.h"
-#include "v4pi.h"
 
 #define EVENT int
 EventPtr __evt;
