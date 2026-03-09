@@ -1357,7 +1357,7 @@ List v4p_openActiveEdge(V4pCoord vy, V4pCoord yu) {
             continue;
         if (bvy <= vy) continue;
 
-        ae->h = bvy - vy;
+        ae->h = bvy - vy - 1;
         ae->x = avx;
         dx = bvx - avx;
         dy = bvy - avy;
