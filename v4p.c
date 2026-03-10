@@ -616,10 +616,10 @@ V4pPolygonP v4p_setCollisionMask(V4pPolygonP p, V4pCollisionMask collisionMask) 
 }
 
 // Create an ActiveEdge of a polygon
-ActiveEdgeP v4p_addNewActiveEdge(V4pPolygonP p, V4pPointP a, V4pPointP b, bool is_stroke) {
+ActiveEdgeP v4p_addNewActiveEdge(V4pPolygonP p, V4pPointP a, V4pPointP b, bool isStroke) {
     ActiveEdgeP ae = QuickHeapAlloc(v4p->activeEdgeHeap);
     ae->p = p;
-    ae->isStroke = is_stroke;
+    ae->isStroke = isStroke;
     ListPrepend(p->ActiveEdge1, ae);
     int ax, ay, bx, by;
 
@@ -1380,8 +1380,8 @@ List v4p_openActiveEdge(V4pCoord vy, V4pCoord yu) {
             if (ae->isStroke) {
                 // the stroke dedicated AE is a secondary AE next to the regular one so to draw a 1px line on screen
                 // it simply the same AE, but with one scanline computation ahead
-                ae->x += (q == 0 ? 1 : q);
-                ae->as.straight.s += r;
+                ae->x += (q == 0 ? 1 : q);  // SIGN(IABS(dx) - dy) +
+                ae->as.straight.s += (IABS(dx) > dy ? r : 0); // += dy / 2 - 1; // += dy / 2; //  * SIGN(dy - dx);
             }
         } else {
             ae->as.arc.rx = dx * (ae->ay == ae->as.arc.cy ? -1 : 1);

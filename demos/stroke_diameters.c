@@ -4,7 +4,7 @@
 #include "quick/imath.h"
 #include <math.h>
 
-#define NUM_LINES 12
+#define NUM_LINES 24
 #define CENTER_X 320
 #define CENTER_Y 240
 #define RADIUS 200
