@@ -11,7 +11,7 @@ int g4p_onInit(int quality, bool fullscreen) {
     
     // Create a stroke polygon (1px outline) - square
     V4pPolygonP stroke_square = v4p_addNew(V4P_ABSOLUTE, V4P_RED, 2);
-    v4p_addCorners(stroke_square, 120, 100, 200, 200);
+    v4p_addCorners(stroke_square, 110, 100, 190, 200);
     v4p_setStroke(stroke_square, 1);  // Set to 1px stroke mode
     
     // Create a stroke polygon with diagonals - diamond shape
@@ -24,7 +24,7 @@ int g4p_onInit(int quality, bool fullscreen) {
     
     // Create another filled polygon on top to test depth ordering
     V4pPolygonP top_filled = v4p_addNew(V4P_ABSOLUTE, V4P_BLUE, 5);
-    v4p_addCorners(top_filled, 150, 160, 400, 200);
+    v4p_addCorners(top_filled, 150, 160, 400, 170);
     
     // Create a stroke-mode circle
     V4pPolygonP stroke_circle = v4p_addNewDisk(V4P_ABSOLUTE, V4P_YELLOW, 6, 450, 150, 40);

@@ -76,7 +76,7 @@ void setup_colorful_style(struct nk_context *ctx) {
 int g4p_onInit(int quality, bool fullscreen) {
     // Initialize v4p
     v4p_init2(quality, fullscreen);
-    v4p_setView(0, 0, 1.2 * v4p_displayWidth, 1.2 * v4p_displayHeight);
+    // v4p_setView(0, 0, 1.2 * v4p_displayWidth, 1.2 * v4p_displayHeight);
     
     v4p_setBGColor(V4P_BLACK);
     
@@ -115,7 +115,7 @@ int g4p_onTick(int32_t deltaTime) {
     v4p_clearScene();
     
     // Set up Nuklear UI
-    if (nk_begin(nk_ctx, "Nuklear Demo", nk_rect(50, 50, 400, 550),
+    if (nk_begin(nk_ctx, "Nuklear Demo", nk_rect(120, 10, 400, 460),
                 NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|
                 NK_WINDOW_CLOSABLE|NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE))
     {
