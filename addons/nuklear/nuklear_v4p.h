@@ -120,9 +120,9 @@ nk_v4p_stroke_line(const struct nk_v4p_context *v4p_ctx,
     if (line_thickness == 1) { // 1px line
         // Use the stroke mode
         v4p_setStroke(line, 1);
+        v4p_addJump(line);
         v4p_addPoint(line, x0, y0);
         v4p_addPoint(line, x0, y1);
-        v4p_addJump(line);
     } else { // line with thickness > 1
         // v4p doesn't support thick line, so we create a rectangle polygon
         V4pCoord half_thick = line_thickness / 2;
@@ -277,7 +277,8 @@ nk_v4p_fill_circle(const struct nk_v4p_context *v4p_ctx,
     v4p_trace(NUKLEAR, "Filling circle: (%d,%d) %d×%d color=%d\n", x0, y0, w, h, col);
     
     // Use v4p's circle drawing
-    V4pPolygonP circle = v4p_sceneAddNewDisk(v4p_ctx->scene, V4P_ABSOLUTE, col, v4p_ctx->current_layer, x0, y0, w/2);
+    V4pPolygonP circle = v4p_sceneAddNewDisk(v4p_ctx->scene, V4P_ABSOLUTE, col, v4p_ctx->current_layer,
+                                             x0 + w / 2, y0 + w / 2, w / 2);
     v4p_trace(NUKLEAR, "Created circle polygon %p at layer %d with radius %d\n", (void*)circle, v4p_ctx->current_layer, w/2);
     
     // Apply scissor clipping
