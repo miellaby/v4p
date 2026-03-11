@@ -32,8 +32,7 @@ int g4p_onInit(int quality, bool fullscreen) {
     
     // Create a stroke-mode round rectangle
     V4pPolygonP stroke_round_rect = v4p_addNew(V4P_ABSOLUTE, V4P_CYAN, 7);
-    v4p_setRound(stroke_round_rect, 1);
-    v4p_addCutCorners(stroke_round_rect, 350, 50, 500, 150, 20);
+    v4p_addRoundCorners(stroke_round_rect, 350, 50, 500, 150, 20);
     v4p_setStroke(stroke_round_rect, 1);  // Set to 1px stroke mode
     
     return success;

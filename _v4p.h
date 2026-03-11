@@ -32,7 +32,6 @@ typedef struct v4p_polygon_s {
     V4pProps props;  // Property flags
     V4pPointP point1;  // List of points (only 1 for disk)
     V4pColor color;  // V4pColor (any data needed by the drawing function)
-    bool round;  // bool is round (disk = round diamond)
     V4pLayer z;  // Depth
     V4pCollisionLayer collisionMask;  // Collision mask
     V4pPolygonP sub1;  // Subs list
@@ -53,21 +52,27 @@ typedef struct activeEdge_s {
     V4pCoord avx, avy, bvx, bvy;  // Vector coordinates in view
     V4pCoord h;  // Remaining scanlines to process
     V4pCoord x;  // Current x coordinate (in view) at y=scanline
-    bool isArc;  // circle arc edge
+    bool isArc;  // ellipse arc edge
     union {
-        struct { // Circle arc edge
-            V4pCoord cx, cy;  // center
-            V4pCoord cvx, cvy;  // center in view coordinates
-            V4pCoord rx;  // bvx-avx
-            V4pCoord ry;  // bvy-avy
-        } arc;
-        struct { // Bresenham algorithm variables for straight edge
+        struct { // Straight edge (Bresenham)
             V4pCoord o1;  // Offset when accumulator under limit
             V4pCoord o2;  // Offset when accumulator cross the limit
             V4pCoord s;  // Accumulator
             V4pCoord r1;  // Remaining 1
             V4pCoord r2;  // r1 - dy
         } straight;
+        struct { // Ellipse arc edge (McIlroy algorithm)
+            V4pCoord cx, cy;     // center in screen coordinates
+            V4pCoord cvx, cvy;   // center in view coordinates
+            V4pCoord a, b;       // semi-axes in view
+            V4pCoord a2, b2;     // a² and b², precomputed
+            V4pCoord ea;         // ceil(a²/4), precomputed
+            V4pCoord t;          // McIlroy accumulator
+            V4pCoord ex;         // x offset from center (always >= 0)
+            V4pCoord ey;         // y offset from center (always >= 0)
+            int8_t   xdir;       // +1 = right side, -1 = left side
+            int8_t   ydir;       // -1 = top-to-bottom (usual), +1 = bottom-to-top
+        } arc;
     } as;
     bool isStroke;  // If true: plot 1px per scanline, don't toggle fill
 } ActiveEdge;

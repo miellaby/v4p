@@ -9,9 +9,8 @@ int main() {
     
     // Create a rounded rectangle with cut corners in the middle of the screen
     V4pPolygonP rect = v4p_addNew(V4P_ABSOLUTE, V4P_BLUE, 1);
-    v4p_addCutCorners(rect, v4p_displayWidth / 2 - 100, v4p_displayHeight / 2 - 50, 
+    v4p_addRoundCorners(rect, v4p_displayWidth / 2 - 100, v4p_displayHeight / 2 - 50, 
                      v4p_displayWidth / 2 + 100, v4p_displayHeight / 2 + 50, 20);
-    v4p_setRound(rect, 1);
     
     v4p_render();
     sleep(2);  // Display for 2 seconds

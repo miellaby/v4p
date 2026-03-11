@@ -14,7 +14,7 @@ V4pPolygonP lines[NUM_LINES];
 int g4p_onInit(int quality, bool fullscreen) {
     v4p_init2(quality, fullscreen);
     
-    v4p_setRound(v4p_addCutCorners(v4p_addNew(V4P_ABSOLUTE, V4P_BLUE, 1), 100, 100, v4p_displayWidth - 100, v4p_displayHeight - 100, 40), 1);
+    v4p_addRoundCorners(v4p_addNew(V4P_ABSOLUTE, V4P_BLUE, 1), 100, 100, v4p_displayWidth - 100, v4p_displayHeight - 100, 40);
 
     // Create stroke lines forming diameters of a circle
     for (int i = 0; i < NUM_LINES; i++) {

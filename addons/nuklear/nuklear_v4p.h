@@ -174,8 +174,7 @@ nk_v4p_fill_rect(const struct nk_v4p_context *v4p_ctx,
     v4p_trace(NUKLEAR, "Created rectangle polygon %p at layer %d\n", (void*)rect, v4p_ctx->current_layer);
     if (r > 0) {
         // rounded rectangles
-        v4p_addCutCorners(rect, x, y, x + w, y + h, r);
-        v4p_setRound(rect, true);
+        v4p_addRoundCorners(rect, x, y, x + w, y + h, r);
     } else {
         v4p_addCorners(rect, x, y, x + w, y + h);
     }
@@ -209,8 +208,7 @@ static void nk_v4p_draw_rect(const struct nk_v4p_context* v4p_ctx, const V4pCoor
         // Use the stroke mode
         v4p_setStroke(rect, 1);
         if (r > 0) { // a rounded rectangle
-            v4p_addCutCorners(rect, x, y, x + w, y + h, r);
-            v4p_setRound(rect, true);
+            v4p_addRoundCorners(rect, x, y, x + w, y + h, r);
         } else { // a regular rectangle
             v4p_addCorners(rect, x, y, x + w, y + h);
         }
@@ -221,10 +219,9 @@ static void nk_v4p_draw_rect(const struct nk_v4p_context* v4p_ctx, const V4pCoor
         V4pCoord half_thick2 = half_thick + (line_thickness % 2);
 
         if (r > 0) { // 2 rounded rectangles
-            v4p_addCutCorners(rect, x - half_thick, y - half_thick, x + w + half_thick, y + h + half_thick, r);
+            v4p_addRoundCorners(rect, x - half_thick, y - half_thick, x + w + half_thick, y + h + half_thick, r);
             v4p_addJump(rect); // Add a jump to separate the two rectangles
-            v4p_addCutCorners(rect, x + half_thick2, y + half_thick2, x + w - half_thick2, y + h - half_thick2, r);
-            v4p_setRound(rect, true);
+            v4p_addRoundCorners(rect, x + half_thick2, y + half_thick2, x + w - half_thick2, y + h - half_thick2, r);
         } else { // 2 regular rectangles
             v4p_addCorners(rect, x - half_thick, y - half_thick, x + w + half_thick, y + h + half_thick);
             v4p_addJump(rect);  // Add a jump to separate the two rectangles

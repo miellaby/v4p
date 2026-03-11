@@ -29,7 +29,7 @@ Concepts
  * V4pColor: any data needed by the drawing function
  * Point: x,y coordinates in scene referential
  * Round polygon: Polygon Where Non-Vertical Edges are turned into arcs (points added in clockwise order)
- * Disk: A round 4-point diamond polygon is a regular Disk.
+ * Disk: A regular Disk.
  * Sub: sub-polygon attached to a parent polygon; It will be transformed with its parent.
  * Clone: A polygon may be cloned. Subsequent transformation are always derived from its Parent rather than
           from its own form (so they are not cumulatives).
@@ -234,7 +234,6 @@ V4pPolygonP v4p_new(V4pProps t, V4pColor col, V4pLayer z) {
     p->z = z;
     p->collisionMask = 0;
     p->color = col;
-    p->round = 0;
     p->stroke = 0;  // 0: filled polygon
     p->point1 = NULL;
     p->sub1 = NULL;
@@ -262,12 +261,28 @@ V4pPolygonP v4p_addNew(V4pProps t, V4pColor col, V4pLayer z) {
 // Create a disk
 V4pPolygonP v4p_newDisk(V4pProps t, V4pColor col, V4pLayer z, V4pCoord center_x, V4pCoord center_y, V4pCoord radius) {
     V4pPolygonP p = v4p_new(t, col, z);
-    // A disk is a round 4-point diamond polygon (added in clockwise order)
-    v4p_addPoint(p, center_x + radius, center_y);  // right
-    v4p_addPoint(p, center_x, center_y + radius);  // bottom
-    v4p_addPoint(p, center_x - radius, center_y);  // left
-    v4p_addPoint(p, center_x, center_y - radius);  // top
-    p->round = 1;  // Diamond form a disk
+    // Create disk using 4 quarter-circle arcs with center flag pattern
+
+    // Left-top quarter (top to left)
+    v4p_addPoint(p, center_x, center_y); // center
+    v4p_addPoint(p, center_x, center_y - radius);  // Start (top)
+    v4p_addPointFlag(p, center_x, center_y, V4P_ARC_CENTER_FLAG);  // Center
+    v4p_addPoint(p, center_x - radius, center_y);  // End (left)
+
+    // Bottom-left quarter (left to bottom)
+    //v4p_addPoint(p, center_x - radius, center_y);  // Start (left)
+    v4p_addPointFlag(p, center_x, center_y, V4P_ARC_CENTER_FLAG);  // Center
+    v4p_addPoint(p, center_x, center_y + radius);  // End (bottom)
+
+    // Bottom-right quarter (bottom to right)
+    //v4p_addPoint(p, center_x, center_y + radius);  // Start (bottom)
+    v4p_addPointFlag(p, center_x, center_y, V4P_ARC_CENTER_FLAG);  // Center
+    v4p_addPoint(p, center_x + radius, center_y);  // End (right)
+
+    // Right-top quarter (right to top)
+    //v4p_addPoint(p, center_x + radius, center_y);  // End (right)
+    v4p_addPointFlag(p, center_x, center_y + 4, V4P_ARC_CENTER_FLAG);  // Center
+    v4p_addPoint(p, center_x, center_y - radius);  // Start (top)
     return p;
 }
 
@@ -449,11 +464,12 @@ V4pProps v4p_setRelative(V4pPolygonP p, bool relative) {
 }
 
 // Add a polygon point
-V4pPointP v4p_addPoint(V4pPolygonP p, V4pCoord x, V4pCoord y) {
+V4pPointP v4p_addPointFlag(V4pPolygonP p, V4pCoord x, V4pCoord y, uint32_t flags) {
     V4pPointP s = QuickHeapAlloc(v4p->pointHeap);
     s->x = x;
     s->y = y;
-    if (x != V4P_NIL && y != V4P_NIL) {
+    s->flags = flags;
+    if (x != V4P_NIL && y != V4P_NIL && !V4P_IS_ARC_CENTER(s)) {
         if (p->miny == V4P_NIL) {
             p->minx = x;
             p->maxx = x;
@@ -480,6 +496,10 @@ V4pPointP v4p_addPoint(V4pPolygonP p, V4pCoord x, V4pCoord y) {
     return s;
 }
 
+V4pPointP v4p_addPoint(V4pPolygonP p, V4pCoord x, V4pCoord y) {
+    return v4p_addPointFlag(p, x, y, 0);
+}
+
 // Add a "jump" point into a polygon
 V4pPointP v4p_addJump(V4pPolygonP p) {
     V4pPointP s = QuickHeapAlloc(v4p->pointHeap);
@@ -489,13 +509,6 @@ V4pPointP v4p_addJump(V4pPolygonP p) {
     p->point1 = s;
     v4p_changed(p);
     return s;
-}
-
-// Make polygon round (turning a diamond into a disk)
-V4pCoord v4p_setRound(V4pPolygonP p, bool round) {
-    p->round = round;
-    v4p_changed(p);
-    return round;
 }
 
 // Set polygon stroke width (0 = filled, 1 = 1px stroke)
@@ -566,7 +579,7 @@ V4pPolygonP v4p_getLimits(V4pPolygonP p, V4pCoord* minx, V4pCoord* maxx, V4pCoor
 
 // move a polygon point
 V4pPointP v4p_movePoint(V4pPolygonP p, V4pPointP s, V4pCoord x, V4pCoord y) {
-    if (p->miny == V4P_NIL || x == V4P_NIL || y == V4P_NIL) {
+    if (p->miny == V4P_NIL || x == V4P_NIL || y == V4P_NIL || V4P_IS_ARC_CENTER(s)) {
         // Nothing to do
     } else if (s->x == p->minx || s->y == p->miny || s->x == p->maxx || s->y == p->maxy) {
         p->miny = V4P_NIL;  // boundaries to be computed again
@@ -615,41 +628,58 @@ V4pPolygonP v4p_setCollisionMask(V4pPolygonP p, V4pCollisionMask collisionMask) 
     return p;
 }
 
+// Create an arc ActiveEdge of a polygon
+ActiveEdgeP v4p_addNewArcActiveEdge(V4pPolygonP p, V4pPointP a, V4pPointP center, V4pPointP b, bool isStroke) {
+    ActiveEdgeP ae = QuickHeapAlloc(v4p->activeEdgeHeap);
+    ae->p = p;
+    ae->isStroke = isStroke;
+    ae->isArc = true;
+    ListPrepend(p->ActiveEdge1, ae);
+
+    int ax, ay, bx, by;
+    if (a->y <= b->y) {
+        ax = a->x;
+        ay = a->y;
+        bx = b->x;
+        by = b->y;
+    } else {
+        ax = b->x;
+        ay = b->y;
+        bx = a->x;
+        by = a->y;
+    }
+
+    ae->ax = ax;
+    ae->ay = ay;
+    ae->bx = bx;
+    ae->by = by;
+    
+    // Store center point (strip the flag)
+    ae->as.arc.cx = center->x;
+    ae->as.arc.cy = center->y;
+    
+    if (p->props & V4P_RELATIVE) {  // Relative polygon
+        ae->avx = ax;
+        ae->avy = ay;
+        ae->bvx = bx;
+        ae->bvy = by;
+        ae->as.arc.cvx = center->x;
+        ae->as.arc.cvy = center->y;
+    }
+    
+    v4p_trace(EDGE, "arc edge %p center=(%d,%d)\n", (void*) ae, ae->as.arc.cvx, ae->as.arc.cvy);
+    return ae;
+}
+
 // Create an ActiveEdge of a polygon
 ActiveEdgeP v4p_addNewActiveEdge(V4pPolygonP p, V4pPointP a, V4pPointP b, bool isStroke) {
     ActiveEdgeP ae = QuickHeapAlloc(v4p->activeEdgeHeap);
     ae->p = p;
     ae->isStroke = isStroke;
+    ae->isArc = false;
     ListPrepend(p->ActiveEdge1, ae);
+
     int ax, ay, bx, by;
-
-    if (p->round && a->x != b->x) {
-        ae->isArc = true;
-        int cx, cy;
-        if (b->y > a->y) {
-            if (b->x < a->x) {
-                cx = a->x;
-                cy = b->y;
-            } else {
-                cx = b->x;
-                cy = a->y;
-            }
-        } else {
-            if (b->x > a->x) {
-                cx = a->x;
-                cy = b->y;
-            } else {
-                cx = b->x;
-                cy = a->y;
-            }
-        }
-        ae->as.arc.cx = cx;
-        ae->as.arc.cy = cy;
-        v4p_trace(EDGE, "arc edge %p center=(%d,%d)\n", (void*) ae, ae->as.arc.cx, ae->as.arc.cy);
-    } else {
-        ae->isArc = false;
-    }
-
     if (a->y <= b->y) {
         ax = a->x;
         ay = a->y;
@@ -672,10 +702,6 @@ ActiveEdgeP v4p_addNewActiveEdge(V4pPolygonP p, V4pPointP a, V4pPointP b, bool i
         ae->avy = ay;
         ae->bvx = bx;
         ae->bvy = by;
-        if (ae->isArc) {
-            ae->as.arc.cvx = ae->as.arc.cx;
-            ae->as.arc.cvy = ae->as.arc.cy;
-        }
     }
 
     return ae;
@@ -756,6 +782,7 @@ V4pPolygonP v4p_recPolygonTransformClone(bool estSub, V4pPolygonP p, V4pPolygonP
             // Translate back and apply position delta
             sc->x = x2 + anchor_x + dx;
             sc->y = y2 + anchor_y + dy;
+            sc->flags = sp->flags;
         } else {
             sc->x = V4P_NIL;
             sc->y = V4P_NIL;
@@ -850,7 +877,10 @@ static V4pPointP clipEdge(V4pPointP subject, bool isVertical, V4pCoord clipCoord
         V4pPointP scan = subStart;
         while (scan != NULL) {
             if (scan->x == V4P_NIL && scan->y == V4P_NIL) break;  // JUMP
-            lastPoint = scan;
+
+            if (! V4P_IS_ARC_CENTER(scan)) {  // Center are not clipped
+                lastPoint = scan;
+            }
             scan = scan->next;
         }
 
@@ -885,14 +915,19 @@ static V4pPointP clipEdge(V4pPointP subject, bool isVertical, V4pCoord clipCoord
                 break;
             }
 
+            if (V4P_IS_ARC_CENTER(current)) { // Center are not clipped
+                current = current->next;
+                continue;
+            }
+
             V4pCoord x = current->x;
             V4pCoord y = current->y;
             bool currentInside;
 
             if (isVertical) {
-                currentInside = isMinEdge ? (x >= clipCoord) : (x <= clipCoord);
+                currentInside = isMinEdge ? (x >= clipCoord) : (x < clipCoord);
             } else {
-                currentInside = isMinEdge ? (y >= clipCoord) : (y <= clipCoord);
+                currentInside = isMinEdge ? (y >= clipCoord) : (y < clipCoord);
             }
 
             // Intersection on inside/outside transition
@@ -906,8 +941,8 @@ static V4pPointP clipEdge(V4pPointP subject, bool isVertical, V4pCoord clipCoord
 
                 if (isVertical) {
                     if (x != prevX) {
-                        V4pCoord t = (clipCoord - prevX) * 256 / (x - prevX);
-                        intersection->x = clipCoord;
+                        V4pCoord t = (clipCoord - (! isMinEdge) - prevX) * 256 / (x - prevX);
+                        intersection->x = clipCoord - (! isMinEdge);
                         intersection->y = prevY + (t * (y - prevY)) / 256;
 
                         if (result == NULL) {
@@ -919,9 +954,9 @@ static V4pPointP clipEdge(V4pPointP subject, bool isVertical, V4pCoord clipCoord
                     }
                 } else {
                     if (y != prevY) {
-                        V4pCoord t = (clipCoord - prevY) * 256 / (y - prevY);
+                        V4pCoord t = (clipCoord - (! isMinEdge) - prevY) * 256 / (y - prevY);
                         intersection->x = prevX + (t * (x - prevX)) / 256;
-                        intersection->y = clipCoord;
+                        intersection->y = clipCoord - (! isMinEdge);
 
                         if (result == NULL) {
                             result = intersection;
@@ -1040,7 +1075,6 @@ V4pPolygonP v4p_clip(V4pPolygonP p, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCo
 V4pPolygonP v4p_recPolygonClone(bool estSub, V4pPolygonP p) {
     V4pPointP s;
     V4pPolygonP c = v4p_new(p->props, p->color, p->z);
-    c->round = p->round;
     c->stroke = p->stroke;  // Copy stroke property
     for (s = p->point1; s; s = s->next) v4p_addPoint(c, s->x, s->y);
 
@@ -1095,7 +1129,7 @@ V4pPolygonP v4p_setAnchor(V4pPolygonP p, V4pCoord x, V4pCoord y) {
 V4pPolygonP v4p_computeLimits(V4pPolygonP p) {
     V4pCoord minx = V4P_NIL, maxx = V4P_NIL, miny = V4P_NIL, maxy = V4P_NIL;
     V4pPointP s = p->point1;
-    while (s && (s->x == V4P_NIL || s->y == V4P_NIL)) {
+    while (s && (s->x == V4P_NIL || s->y == V4P_NIL || V4P_IS_ARC_CENTER(s))) {
         s = s->next;
     }
     if (s) {  // at least one point
@@ -1105,7 +1139,7 @@ V4pPolygonP v4p_computeLimits(V4pPolygonP p) {
         maxy = s->y;
         for (s = s->next; s; s = s->next) {
             V4pCoord x = s->x, y = s->y;
-            if (x == V4P_NIL || y == V4P_NIL) continue;
+            if (x == V4P_NIL || y == V4P_NIL || V4P_IS_ARC_CENTER(s)) continue;
 
             if (x < minx) minx = x;
             if (x > maxx) maxx = x;
@@ -1215,21 +1249,38 @@ V4pPolygonP v4p_buildActiveEdgeList(V4pPolygonP p) {
     }
 
     V4pPointP s1 = p->point1;
-    v4p_trace(POLYGON, "Building active edges for polygon %p round=%d\n", (void*) p, p->round);
-
+    v4p_trace(POLYGON, "Building active edges for polygon %p\n", (void*) p);
     while (s1) {  // path subset
         if (s1->x == V4P_NIL || s1->y == V4P_NIL) {
             s1 = s1->next;
             continue;
         }
         V4pPointP sa = s1, sb = sa->next;
+        V4pPointP center = NULL;
         v4p_trace(POLYGON, "Path with first point (%d, %d)\n", sa->x, sa->y);
 
         // sub-path loop
         while (sb && sb->x != V4P_NIL && sb->y != V4P_NIL) {  // while in sub-path
+            // Check if the point is an arc center
+            if (V4P_IS_ARC_CENTER(sb)) {
+                // This is an arc: [sa, center, sb]
+                center = sb;
+                v4p_trace(POLYGON, "Processing arc center (%d, %d)\n", center->x, center->y);
+                sb = center->next;
+                continue;  // sa doesn't change; loop to handle adjacent centers (illegal)
+            }
+
             v4p_trace(POLYGON, "Processing edge from (%d, %d) to (%d, %d)\n", sa->x, sa->y, sb->x, sb->y);
 
-            if (sa->y != sb->y) {  // add an active edge
+            if (center) { // add a arc edge
+                v4p_trace(POLYGON, "Arc edge from (%d,%d) to (%d,%d) via center (%d,%d)\n", sa->x, sa->y, sb->x, sb->y,
+                          center->x, center->y);
+                v4p_addNewArcActiveEdge(p, sa, center, sb, false);
+                if (p->stroke) {
+                    v4p_addNewArcActiveEdge(p, sa, center, sb, true);
+                }
+                center = NULL;
+            } else if (sa->y != sb->y) {  // add an active edge
                 v4p_addNewActiveEdge(p, sa, sb, false);
                 if (p->stroke) { // if stroke we add another "is_stroke" active edge
                     v4p_addNewActiveEdge(p, sa, sb, true);
@@ -1257,13 +1308,24 @@ V4pPolygonP v4p_buildActiveEdgeList(V4pPolygonP p) {
         if (! sb) {  // no more vertice
             v4p_trace(POLYGON, "End of path subset, last point (%d, %d)\n", sa->x, sa->y);
             if (sa != s1) {  // add a closing edge
-                if (sa->y != s1->y) {
-                    v4p_trace(POLYGON, "Adding closing edge from (%d, %d) to (%d, %d)\n", sa->x, sa->y, s1->x, s1->y);
+                if (center) {  // add a arc edge
+                    v4p_trace(POLYGON, "Adding closing arc edge from (%d,%d) to (%d,%d) via center (%d,%d)\n",
+                         sa->x, sa->y, s1->x, s1->y, center->x, center->y);
+                    v4p_addNewArcActiveEdge(p, sa, center, s1, false);
+                    if (p->stroke) {
+                        v4p_addNewArcActiveEdge(p, sa, center, s1, true);
+                    }
+                    center = NULL;
+                } else if (sa->y != s1->y) {
+                    v4p_trace(POLYGON, "Adding closing edge from (%d,%d) to (%d,%d)\n",
+                              sa->x, sa->y, s1->x, s1->y);
                     v4p_addNewActiveEdge(p, sa, s1, false);
                     if (p->stroke) {  // for a 1px stroke we add another "is_stroke" active edge
                         v4p_addNewActiveEdge(p, sa, s1, true);
                     }
                 } else if (p->stroke && sa->x != s1->x) {
+                    v4p_trace(POLYGON, "Adding 2 thin edges for closing segment from (%d, %d) to (%d, %d)\n",
+                              sa->x, sa->y, s1->x, s1->y);
                     V4pPoint thin;  // to build small vertical edges for horizontal segments
                     thin = *sa;
                     thin.y++;  // Shift down for a thin vertical edge of 1px
@@ -1285,8 +1347,8 @@ V4pPolygonP v4p_buildActiveEdgeList(V4pPolygonP p) {
 
 // called by v4p_sortActiveEdge()
 int compareActiveEdgeX(void* data1, void* data2) {
-    ActiveEdgeP b1 = data1, b2 = data2;
-    return (b1->x < b2->x);
+    ActiveEdgeP ae1 = data1, ae2 = data2;
+    return (ae1->x < ae2->x);
 }
 
 // sort an ActiveEdge list ordered by 'x'
@@ -1299,7 +1361,7 @@ List v4p_sortActiveEdge(List list) {
 void v4p_buildOpenableAELists(V4pPolygonP polygonChain) {
     V4pPolygonP p;
     List l;
-    ActiveEdgeP b;
+    ActiveEdgeP ae;
 
     for (p = polygonChain; p; p = p->next) {
         int isRelative = p->props & V4P_RELATIVE;
@@ -1308,20 +1370,20 @@ void v4p_buildOpenableAELists(V4pPolygonP polygonChain) {
 
         l = p->ActiveEdge1;
         while (l) {
-            b = (ActiveEdgeP) ListData(l);
+            ae = (ActiveEdgeP) ListData(l);
             if (isRelative) {
-                QuickTableAdd(v4p->openableAETable, (b->ay > 0 ? b->ay : 0) & YHASH_MASK, l);
+                QuickTableAdd(v4p->openableAETable, (ae->ay > 0 ? ae->ay : 0) & YHASH_MASK, l);
             } else {
-                v4p_absoluteToView(b->ax, b->ay, &(b->avx), &(b->avy));
-                v4p_absoluteToView(b->bx, b->by, &(b->bvx), &(b->bvy));
-                if (b->isArc) {
-                    v4p_absoluteToView(b->as.arc.cx, b->as.arc.cy, &(b->as.arc.cvx), &(b->as.arc.cvy));
+                v4p_absoluteToView(ae->ax, ae->ay, &(ae->avx), &(ae->avy));
+                v4p_absoluteToView(ae->bx, ae->by, &(ae->bvx), &(ae->bvy));
+                if (ae->isArc) {
+                    v4p_absoluteToView(ae->as.arc.cx, ae->as.arc.cy, &(ae->as.arc.cvx), &(ae->as.arc.cvy));
                 }
 
-                if (b->ay < v4p->viewMinY) {
+                if (ae->ay < v4p->viewMinY) {
                     QuickTableAdd(v4p->openableAETable, 0, l);
                 } else {
-                    QuickTableAdd(v4p->openableAETable, b->avy & YHASH_MASK, l);
+                    QuickTableAdd(v4p->openableAETable, ae->avy & YHASH_MASK, l);
                 }
             }
             l = ListNext(l);
@@ -1362,9 +1424,9 @@ List v4p_openActiveEdge(V4pCoord vy, V4pCoord yu) {
         dx = bvx - avx;
         dy = bvy - avy;
 
-        v4p_trace(OPEN, "Opening edge %p, height=%d, dx=%d, dy=%d\n", (void*) ae, ae->h, dx, dy);
 
-        if (!ae->isArc) {
+        if (! ae->isArc) {
+            v4p_trace(OPEN, "Opening edge %p, height=%d, dx=%d, dy=%d\n", (void*) ae, ae->h, dx, dy);
             q = dx / dy;
             r = IABS(dx) % dy;
             ae->as.straight.o1 = q;
@@ -1384,13 +1446,100 @@ List v4p_openActiveEdge(V4pCoord vy, V4pCoord yu) {
                 ae->as.straight.s += (IABS(dx) > dy ? r : 0); // += dy / 2 - 1; // += dy / 2; //  * SIGN(dy - dx);
             }
         } else {
-            ae->as.arc.rx = dx * (ae->ay == ae->as.arc.cy ? -1 : 1);
-            ae->as.arc.ry = dy;
-            if (ae->isStroke) {
-                ae->as.arc.rx += (ae->ax == ae->as.arc.cx ? 1 : - 1);
-                ae->as.arc.ry += 1;
+            // Initialize McIlroy ellipse algorithm
+            V4pCoord cvx = ae->as.arc.cvx;
+            V4pCoord cvy = ae->as.arc.cvy;
+            v4p_trace(OPEN, "Opening arc edge %p, (%d,%d)-(%d,%d)-(%d,%d)\n", (void*) ae, avx, avy, cvx, cvy, bvx, bvy);
+
+            // Cramer (?)
+            int dax = avx - cvx;
+            int day = avy - cvy;
+            int dbx = bvx - cvx;
+            int dby = bvy - cvy;
+            long det = dax * dax * dby * dby - dbx * dbx * day * day;
+            long a2, b2;
+
+            if (dax == dbx || day == dby) {
+                // avoid 0 division
+                a2 = ae->as.arc.a = 0;
+                b2 = ae->as.arc.b = 1;
+            } else {
+                long det = dax * dax * dby * dby - dbx * dbx * day * day;
+                a2 = det / (dby * dby - day * day);
+                b2 = det / (dax * dax - dbx * dbx);
+
+                // Semi-axes in view coordinates
+                ae->as.arc.a = isqrt(a2);
+                ae->as.arc.b = isqrt(b2);
             }
-            v4p_trace(OPEN, "Opening arc edge %p, center=(%d,%d)\n", (void*) ae, ae->as.arc.cvx, ae->as.arc.cvy);
+
+            // Direction determination
+            // xdir: use a if not on y-axis, else use b
+            if (avx != cvx)
+                ae->as.arc.xdir = (avx > cvx) ? 1 : -1;
+            else
+                ae->as.arc.xdir = (bvx > cvx) ? 1 : -1;
+
+            // ydir: use a if not on x-axis, else use b
+            if (avy != cvy)
+                ae->as.arc.ydir = (avy < cvy) ? -1 : 1;
+            else
+                ae->as.arc.ydir = (bvy < cvy) ? -1 : 1;
+
+            // Precompute values for McIlroy algorithm
+            long sb = ae->as.arc.b;
+
+            ae->as.arc.a2 = (V4pCoord) a2;
+            ae->as.arc.b2 = (V4pCoord) b2;
+            ae->as.arc.ea = (V4pCoord) ((a2 + 3) / 4);  // ceil(a²/4)
+
+            // Entry y offset from center
+            V4pCoord ey0 = avy - cvy;
+            ey0 = IABS(ey0);
+            ae->as.arc.ey = ey0;
+
+            // Init McIlroy t then jump to ey=ey0 in closed form
+            long t;
+            // EV drain: advance ex until ellipse is correctly tracked at entry row
+            V4pCoord ex;
+            if (ae->as.arc.ydir == -1) {
+                ex = 0;
+                t = -a2 * sb;
+                t += a2 * ((long) ey0 * ey0 - ey0 - b2 + sb);
+                // Top half: ex grows from 0 to find entry position
+                if (ey0 < ae->as.arc.b) {
+                    while (t + b2 * ex <= -(ae->as.arc.ea + b2)) {
+                        ex++;
+                        t += b2 * (2 * ex);
+                    }
+                }
+            } else {
+                // Bottom half: entry is at equator, 
+                ex = ae->as.arc.a;
+                t = (long) b2 * (ex * ex + ex);  // + a2*0 - a2*0 - a2*b2
+                t -= (long) a2 * b2;
+
+                // Bottom half: ex shrinks from full radius to entry position
+                while (ex > 0 && t - b2 * (2 * ex) > -(ae->as.arc.ea + b2)) {
+                    t -= b2 * (2 * ex);
+                    ex--;
+                }
+            }
+            ae->as.arc.ex = ex;
+            ae->as.arc.t = (V4pCoord) t;
+
+            // Set initial x
+            ae->x = cvx + ae->as.arc.xdir * ex;
+
+            if (ae->isStroke) { // TODO
+                ae->as.arc.t = 0;
+            }
+            v4p_trace(OPEN, "Opening ellipse arc edge %p, center=(%d,%d), a=%d, b=%d\n", (void*) ae,
+                        ae->as.arc.cvx, ae->as.arc.cvy, ae->as.arc.a, ae->as.arc.b);
+            v4p_trace(OPEN, "  Arc attributes: (%d,%d)-(%d,%d)-(%d,%d) cx=%d, cy=%d, a2=%d, b2=%d, ea=%d, t=%d, ex=%d, ey=%d, xdir=%d, ydir=%d\n",
+                        ae->avx, ae->avy, ae->as.arc.cvx, ae->as.arc.cvy, ae->bvx, ae->bvy,
+                        ae->as.arc.cx, ae->as.arc.cy, ae->as.arc.a2, ae->as.arc.b2, ae->as.arc.ea,
+                        ae->as.arc.t, ae->as.arc.ex, ae->as.arc.ey, ae->as.arc.xdir, ae->as.arc.ydir);
         }
         ListPrepend(newlyOpenedAEList, ae);
     }
@@ -1400,6 +1549,8 @@ List v4p_openActiveEdge(V4pCoord vy, V4pCoord yu) {
 
 // Render a scene
 int v4p_render() {
+    v4p_trace(SCAN, "v4p_render\n");
+    
     List l, pl;
     ActiveEdgeP ae;
     V4pPolygonP p; // b->p
@@ -1464,13 +1615,32 @@ int v4p_render() {
             } else {  // Shift ActiveEdge
                 ae->h--;
                 if (ae->isArc) {
-                    V4pCoord rx = ae->as.arc.rx;
-                    V4pCoord ry = ae->as.arc.ry;
-                    V4pCoord dyv = vy - ae->as.arc.cvy;
-                    V4pCoord dxv = rx * isqrt(ry * ry - dyv * dyv) / ry;
-                    vx = ae->x = ae->as.arc.cvx + dxv;
-                    v4p_trace(SHIFT, "Shift circle arc edge %p (%d,%d)x(%d,%d) to x=%d, y=%d\n",
-                              (void*) ae, ae->avx, ae->avy, ae->bvx, ae->bvy, vx, vy);
+                    // Step y offset and update McIlroy accumulator
+                    ae->as.arc.ey += ae->as.arc.ydir;
+                    ae->as.arc.t += ae->as.arc.a2 * 2 * ae->as.arc.ydir * ae->as.arc.ey;
+
+                    // EV drain: step x until ellipse is tracked at new y
+                    if (ae->as.arc.ydir == -1) {
+                        // Top half: ey shrinking, ex grows
+                        while (ae->as.arc.t + ae->as.arc.b2 * ae->as.arc.ex
+                             <= -(ae->as.arc.ea + ae->as.arc.b2)) {
+                            ae->as.arc.ex++;
+                            ae->as.arc.t += ae->as.arc.b2 * (2 * ae->as.arc.ex);
+                        }
+                    } else {
+                        // Bottom half: ex shrinks
+                        while (ae->as.arc.ex > 0
+                               && ae->as.arc.t - ae->as.arc.b2 * (2 * ae->as.arc.ex)
+                                   > -(ae->as.arc.ea + ae->as.arc.b2)) {
+                            ae->as.arc.t -= ae->as.arc.b2 * (2 * ae->as.arc.ex);
+                            ae->as.arc.ex--;
+                        }
+                    }
+
+                    ae->x = ae->as.arc.cvx + ae->as.arc.xdir * ae->as.arc.ex;
+                    vx = ae->x;
+
+                    v4p_trace(SHIFT, "Shift ellipse arc edge %p to x=%d, y=%d\n", (void*) ae, vx, vy);
 
                 } else {
                     if (ae->as.straight.o2) {
@@ -1630,8 +1800,9 @@ V4pPolygonP v4p_addCorners(V4pPolygonP p, V4pCoord x0, V4pCoord y0, V4pCoord x1,
     return p;
 }
 
-// Add 8 points as a rectangle with cutted corners 
-V4pPolygonP v4p_addCutCorners(V4pPolygonP p, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1, V4pCoord radius) {
+// Add 8 points as a rectangle with cutted corners
+V4pPolygonP v4p_addRoundCorners(V4pPolygonP p, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1,
+                                V4pCoord radius) {
     // ensure radius is not too big for the rectangle dimensions
     if (radius > (x1 - x0) / 2) {
         radius = (x1 - x0) / 2;
@@ -1640,14 +1811,18 @@ V4pPolygonP v4p_addCutCorners(V4pPolygonP p, V4pCoord x0, V4pCoord y0, V4pCoord 
         radius = (y1 - y0) / 2;
     }
 
-    // Add the 4 points of the rectangle with cut corners using direct boundary calculations
+    // Add points for a rectangle with round corners
     v4p_addPoint(p, x1 - radius, y0);  // top-right
+    v4p_addPointFlag(p, (x1 - radius), y0 + radius, V4P_ARC_CENTER_FLAG);
     v4p_addPoint(p, x1, y0 + radius);  // top-right corner
     v4p_addPoint(p, x1, y1 - radius);  // bottom-right corner
+    v4p_addPointFlag(p, (x1 - radius), y1 - radius, V4P_ARC_CENTER_FLAG);
     v4p_addPoint(p, x1 - radius, y1);  // bottom-right
     v4p_addPoint(p, x0 + radius, y1);  // bottom-left
+    v4p_addPointFlag(p, (x0 + radius), y1 - radius, V4P_ARC_CENTER_FLAG);
     v4p_addPoint(p, x0, y1 - radius);  // bottom-left corner
     v4p_addPoint(p, x0, y0 + radius);  // top-left corner
+    v4p_addPointFlag(p, (x0 + radius), y0 + radius, V4P_ARC_CENTER_FLAG);
     v4p_addPoint(p, x0 + radius, y0);  // top-left
     return p;
 }

@@ -23,15 +23,13 @@ void v4p_debugPolygon(V4pPolygonP poly, const char* name) {
     if (poly->miny == V4P_NIL) {
         v4p_debug("WARNING: Bounds not computed (miny == NIL)\n");
     }
-    v4p_debug("Anchor: ax=%d, ay=%d, round=%d\n", 
-              poly->anchor_x, poly->anchor_y, poly->round);
+    v4p_debug("Anchor: ax=%d, ay=%d\n", poly->anchor_x, poly->anchor_y);
 
     // Display point coordinates
     V4pPointP pt = poly->point1;
     int point_idx = 0;
     while (pt) {
-        v4p_debug("Point %d: x=%d, y=%d (NIL=%d), x==NIL=%d, y==NIL=%d, (x&y)!=NIL=%d\n", point_idx++, pt->x, pt->y,
-                   V4P_NIL, pt->x == V4P_NIL, pt->y == V4P_NIL, (pt->x & pt->y) != V4P_NIL);
+        v4p_debug("Point %d: (%d,%d) center=%d\n", point_idx++, pt->x, pt->y, V4P_IS_ARC_CENTER(pt));
         pt = pt->next;
     }
 

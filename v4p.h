@@ -43,10 +43,15 @@ typedef struct v4p_scene_s {
 
 typedef struct v4p_point_s {
     V4pCoord x, y;
+    uint32_t flags;
     V4pPointP next;
 } V4pPoint;
 
 #define V4P_NIL ((V4pCoord) INT32_MAX)
+
+// Arc center point encoding macros
+#define V4P_ARC_CENTER_FLAG  0x00000001u
+#define V4P_IS_ARC_CENTER(p) (p->flags & V4P_ARC_CENTER_FLAG)
 
 /**
  * Variables
@@ -103,11 +108,11 @@ V4pProps v4p_putProp(V4pPolygonP p, V4pProps i);
 V4pProps v4p_removeProp(V4pPolygonP p, V4pProps i);
 V4pProps v4p_setRelative(V4pPolygonP p, bool relative);
 V4pPointP v4p_addPoint(V4pPolygonP p, V4pCoord x, V4pCoord y);
+V4pPointP v4p_addPointFlag(V4pPolygonP p, V4pCoord x, V4pCoord y, uint32_t flags);
 V4pPointP v4p_addJump(V4pPolygonP p);
 V4pPointP v4p_movePoint(V4pPolygonP p, V4pPointP s, V4pCoord x, V4pCoord y);
 V4pColor v4p_setColor(V4pPolygonP p, V4pColor c);
 V4pLayer v4p_setLayer(V4pPolygonP p, V4pLayer z);
-V4pCoord v4p_setRound(V4pPolygonP p, bool round);
 int  v4p_setVisibility(V4pPolygonP p, bool visible);
 uint32_t   v4p_setStroke(V4pPolygonP p, uint32_t stroke);
 V4pPointP v4p_getPoints(V4pPolygonP p);
@@ -143,7 +148,7 @@ V4pPolygonP v4p_setAnchor(V4pPolygonP p, V4pCoord x, V4pCoord y);
 
 // helpers & combo
 V4pPolygonP v4p_addCorners(V4pPolygonP p, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1);
-V4pPolygonP v4p_addCutCorners(V4pPolygonP p, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1, V4pCoord radius);
+V4pPolygonP v4p_addRoundCorners(V4pPolygonP p, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1, V4pCoord radius);
 V4pPolygonP v4p_add(V4pPolygonP p);
 V4pPolygonP v4p_remove(V4pPolygonP);
 V4pPolygonP v4p_sceneAddNewPoly(V4pSceneP, V4pProps t, V4pColor col, V4pLayer z);
