@@ -8,7 +8,7 @@
 
 #define NUM_STARS 1000
 #define STAR_DEPTH 100.0f
-#define SPEED 0.004f
+#define SPEED 0.012f
 #define TWINKLE_SPEED 0.003f
 
 typedef struct {
@@ -24,10 +24,10 @@ Star3D stars[NUM_STARS];
 V4pPolygonP starPolygons[NUM_STARS];
 
 // Initialize a star with random position
-void initStar(Star3D* star) {
-    star->x = (float) (rand() % (v4p_displayWidth * 32) - v4p_displayWidth * 16);
-    star->y = (float) (rand() % (v4p_displayHeight * 32) - v4p_displayHeight * 16);
-    star->z = (float) (rand() % (int) STAR_DEPTH * 100 + 100) / 100.0f + 1.0f;  // Avoid z=0 for division
+void initStar(Star3D* star, float z) {
+    star->x = (float) (rand() % (v4p_displayWidth * 32) - v4p_displayWidth * 16) * 2;
+    star->y = (float) (rand() % (v4p_displayHeight * 32) - v4p_displayHeight * 16) * 2;
+    star->z = (float) STAR_DEPTH -  STAR_DEPTH * z / (NUM_STARS + 1) + 0.1f;
     star->size = (1.0f + (float) (rand() % 5) * 0.1f);
     star->brightness = 0.1f + (float) (rand() % 20) * 0.01f;
     star->twinkle_phase = (float) (rand() % 100) * 0.01f;
@@ -74,7 +74,7 @@ int g4p_onInit(int quality, bool fullscreen) {
 
     // Initialize all stars
     for (i = 0; i < NUM_STARS; i++) {
-        initStar(&stars[i]);
+        initStar(&stars[i], i);
         starPolygons[i] = createStarPolygon();
     }
 
@@ -101,14 +101,14 @@ int g4p_onTick(int32_t deltaTime) {
 
         // If star passes the viewer, reset it to the back
         if (stars[i].z <= 0) {
-            initStar(&stars[i]);
+            initStar(&stars[i], 0);
         }
 
         // Project 3D position to 2D screen
         projectStar(&stars[i], &screenX, &screenY, &screenSize);
         screenSize *= (1.0 + bright * 0.4f);  // Make brighter stars slightly larger
         // Update star position and appearance
-        v4p_transform(starPolygons[i], screenX, screenY, 0, 0, screenSize * 128, screenSize * 128);
+        v4p_transform(starPolygons[i], screenX, screenY, 0, 0, screenSize * 256, screenSize * 256);
 
         // Adjust color based on brightness using RGB palette mapping
         // Calculate RGB values based on star color and brightness
