@@ -39,19 +39,20 @@ int g4p_onTick(int32_t deltaTime) {
     static int elapsedTime = 0;
     elapsedTime += deltaTime;
 
-    int unzoom = triangle_wave(elapsedTime, 1024, 512);
+    int unzoom = triangle_wave(elapsedTime, 4096, 4096);
     v4p_setView(-v4p_displayWidth * unzoom / 256,
                 -v4p_displayHeight * unzoom / 256,
                 v4p_displayWidth + v4p_displayWidth * unzoom / 256,
                 v4p_displayHeight + v4p_displayHeight * unzoom / 256);
+    dimension = IMIN(v4p_displayWidth, v4p_displayHeight) / 3 * 2;
 
     for (int i = 0; i < GRID_SIZE; i++) {
         for (int j = 0; j < GRID_SIZE; j++) {
             v4p_transform(stars[i][j],
-                          (dimension * 2) * (2 + i - GRID_SIZE / 2),
-                          (dimension * 2) * (2 + i - GRID_SIZE / 2),
+                          dimension * (2 + i - GRID_SIZE / 2),
+                          dimension * (2 + j - GRID_SIZE / 2),
                           (i * j) + elapsedTime / 10,
-                          (i * j),
+                          (i * GRID_SIZE + j + 1),
                           256,
                           256);
         }

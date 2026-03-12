@@ -56,7 +56,7 @@ V4pPolygonP createStarPolygon() {
         v4p_decodeSVGPath(poly, "M 478.1,5  L 490.5,43.2 L 530.7,43.2 L 498.2,66.8 \
           L 510.6,105 L 478.1,81.4 L 445.6,105 L 458,66.8 \
           L 425.5,43.2 L 465.7,43.2 L 478.1,5 z",
-                          0.5f);
+                          4.f);
         v4p_centerPolygon(poly);
     }
     return v4p_addClone(poly);
@@ -108,7 +108,7 @@ int g4p_onTick(int32_t deltaTime) {
         projectStar(&stars[i], &screenX, &screenY, &screenSize);
         screenSize *= (1.0 + bright * 0.4f);  // Make brighter stars slightly larger
         // Update star position and appearance
-        v4p_transform(starPolygons[i], screenX, screenY, 0, 0, screenSize * 1024, screenSize * 1024);
+        v4p_transform(starPolygons[i], screenX, screenY, 0, 0, screenSize * 128, screenSize * 128);
 
         // Adjust color based on brightness using RGB palette mapping
         // Calculate RGB values based on star color and brightness

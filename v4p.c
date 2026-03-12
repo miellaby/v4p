@@ -737,7 +737,7 @@ V4pPolygonP v4p_recPolygonTransformClone(bool estSub, V4pPolygonP p, V4pPolygonP
     V4pCoord zoomY_whole = zoom_y / 256;
     V4pCoord zoomY_rem = zoom_y % 256;
 
-    c->z = (p->z + dz) & 31;  // Shift z
+    c->z = p->z + dz;  // Shift z
     c->miny = V4P_NIL;  // Invalidate computed boundaries
 
     sp = p->point1;
@@ -776,8 +776,8 @@ V4pPolygonP v4p_recPolygonTransformClone(bool estSub, V4pPolygonP p, V4pPolygonP
             // Apply zoom/scaling using integer scaling technique
             // This prevents 16-bit overflow by using quotient-remainder decomposition
             // Formula: x2 * zoom_x / 256 = x2 * zoomX_whole + ((x2 * zoomX_rem) + SIGN(x2) * (256 / 2)) / 256
-            x2 = x2 * zoomX_whole + ((x2 * zoomX_rem) + SIGN(x2) * (256 / 2)) / 256;
-            y2 = y2 * zoomY_whole + ((y2 * zoomY_rem) + SIGN(y2) * (256 / 2)) / 256;
+            x2 = x2 * zoomX_whole + (x2 * zoomX_rem + SIGN(x2) * 128) / 256;
+            y2 = y2 * zoomY_whole + (y2 * zoomY_rem + SIGN(y2) * 128) / 256;
 
             // Translate back and apply position delta
             sc->x = x2 + anchor_x + dx;
