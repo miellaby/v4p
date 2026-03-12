@@ -281,7 +281,7 @@ V4pPolygonP v4p_newDisk(V4pProps t, V4pColor col, V4pLayer z, V4pCoord center_x,
 
     // Right-top quarter (right to top)
     //v4p_addPoint(p, center_x + radius, center_y);  // End (right)
-    v4p_addPointFlag(p, center_x, center_y + 4, V4P_ARC_CENTER_FLAG);  // Center
+    v4p_addPointFlag(p, center_x, center_y, V4P_ARC_CENTER_FLAG);  // Center
     v4p_addPoint(p, center_x, center_y - radius);  // Start (top)
     return p;
 }
@@ -1507,7 +1507,7 @@ List v4p_openActiveEdge(V4pCoord vy, V4pCoord yu) {
                 t = -a2 * sb;
                 t += a2 * ((long) ey0 * ey0 - ey0 - b2 + sb);
                 // Top half: ex grows from 0 to find entry position
-                if (ey0 < ae->as.arc.b) {
+                if (ey0 <= ae->as.arc.b) {
                     while (t + b2 * ex <= -(ae->as.arc.ea + b2)) {
                         ex++;
                         t += b2 * (2 * ex);
@@ -1616,11 +1616,12 @@ int v4p_render() {
                 ae->h--;
                 if (ae->isArc) {
                     // Step y offset and update McIlroy accumulator
-                    ae->as.arc.ey += ae->as.arc.ydir;
-                    ae->as.arc.t += ae->as.arc.a2 * 2 * ae->as.arc.ydir * ae->as.arc.ey;
 
                     // EV drain: step x until ellipse is tracked at new y
                     if (ae->as.arc.ydir == -1) {
+                        ae->as.arc.t += ae->as.arc.a2 * 2 * ae->as.arc.ydir * ae->as.arc.ey;
+                        ae->as.arc.ey += ae->as.arc.ydir;
+
                         // Top half: ey shrinking, ex grows
                         while (ae->as.arc.t + ae->as.arc.b2 * ae->as.arc.ex
                              <= -(ae->as.arc.ea + ae->as.arc.b2)) {
@@ -1628,6 +1629,9 @@ int v4p_render() {
                             ae->as.arc.t += ae->as.arc.b2 * (2 * ae->as.arc.ex);
                         }
                     } else {
+                        ae->as.arc.ey += ae->as.arc.ydir;
+                        ae->as.arc.t += ae->as.arc.a2 * 2 * ae->as.arc.ydir * ae->as.arc.ey;
+
                         // Bottom half: ex shrinks
                         while (ae->as.arc.ex > 0
                                && ae->as.arc.t - ae->as.arc.b2 * (2 * ae->as.arc.ex)
