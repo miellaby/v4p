@@ -100,6 +100,24 @@ uint16_t isqrt(uint16_t v) {  // Jim Henry isqrt
     return g;
 }
 
+uint16_t isqrt32(uint32_t v) {
+    uint32_t t;
+    uint16_t g = 0;
+    uint16_t b = 0x100;  // 9 bits of search (result fits uint16_t)
+    int s = 15;
+    while (b > 0) {
+        t = ((uint32_t) (g << 1) + b) << s;
+        if (v >= t) {
+            g += b;
+            v -= t;
+        }
+        s--;
+        b >>= 1;
+    }
+    return g;
+}
+
+
 // 64 entries, index = y*64/x (0..63), value = angle in [0..64]
 static const uint8_t tabAtan64[65] = {
     0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 14, 15, 16, 17, 18, 19, 20,

@@ -16,12 +16,12 @@ void v4p_debugPolygon(V4pPolygonP poly, const char* name) {
     v4p_debug("Flags: DISABLED=%d, RELATIVE=%d\n", 
               (poly->props & V4P_DISABLED) != 0, 
               (poly->props & V4P_RELATIVE) != 0);
-    v4p_debug("Bounds: minx=%d, maxx=%d, miny=%d, maxy=%d (NIL=%d)", 
-              poly->minx, poly->maxx, poly->miny, poly->maxy, V4P_NIL);
 
     // Check if bounds are valid
     if (poly->miny == V4P_NIL) {
         v4p_debug("WARNING: Bounds not computed (miny == NIL)\n");
+    } else {
+        v4p_debug("Bounds: minx=%d, maxx=%d, miny=%d, maxy=%d\n", poly->minx, poly->maxx, poly->miny, poly->maxy);
     }
     v4p_debug("Anchor: ax=%d, ay=%d\n", poly->anchor_x, poly->anchor_y);
 

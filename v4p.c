@@ -259,8 +259,11 @@ V4pPolygonP v4p_addNew(V4pProps t, V4pColor col, V4pLayer z) {
 }
 
 // Create a disk
-V4pPolygonP v4p_newDisk(V4pProps t, V4pColor col, V4pLayer z, V4pCoord center_x, V4pCoord center_y, V4pCoord radius) {
+V4pPolygonP v4p_newDisk(V4pProps t, V4pColor col, V4pLayer z, V4pCoord center_x, V4pCoord center_y, uint16_t radius) {
     V4pPolygonP p = v4p_new(t, col, z);
+    if (radius == 0) {
+        return p;
+    }
     // Create disk using 4 quarter-circle arcs with center flag pattern
 
     // Left-top quarter (top to left)
@@ -283,14 +286,14 @@ V4pPolygonP v4p_newDisk(V4pProps t, V4pColor col, V4pLayer z, V4pCoord center_x,
 
 // Combo DiskNew+SceneAdd
 V4pPolygonP v4p_sceneAddNewDisk(V4pSceneP s, V4pProps t, V4pColor col, V4pLayer z, V4pCoord center_x, V4pCoord center_y,
-                                V4pCoord radius) {
+                                uint16_t radius) {
     V4pPolygonP p = v4p_newDisk(t, col, z, center_x, center_y, radius);
     v4p_sceneAdd(s, p);
     return p;
 }
 
 V4pPolygonP v4p_addNewDisk(V4pProps t, V4pColor col, V4pLayer z, V4pCoord center_x, V4pCoord center_y,
-                           V4pCoord radius) {
+                           uint16_t radius) {
     return v4p_sceneAddNewDisk(v4p->scene, t, col, z, center_x, center_y, radius);
 }
 
@@ -493,7 +496,7 @@ V4pPointP v4p_addEllipseCenter(V4pPolygonP p, V4pCoord x, V4pCoord y, V4pCoord a
 }
 
 V4pPointP v4p_addPoint(V4pPolygonP p, V4pCoord x, V4pCoord y) {
-    return v4p_addEllipseCenter(p, x, y, V4P_NIL, V4P_NIL);
+    return v4p_addEllipseCenter(p, x, y, 0, 0);
 }
 
 // Add a "jump" point into a polygon
@@ -665,8 +668,8 @@ ActiveEdgeP v4p_addNewArcActiveEdge(V4pPolygonP p, V4pPointP a, V4pPointP center
         ae->as.arc.cvy = center->y;
         ae->as.arc.a = center->a;
         ae->as.arc.b = center->b;
-        ae->as.arc.a2 = center->a * center->a;
-        ae->as.arc.b2 = center->b * center->b;
+        ae->as.arc.a2 = (V4pCoord) center->a * center->a;
+        ae->as.arc.b2 = (V4pCoord) center->b * center->b;
     }
 
     v4p_trace(EDGE, "arc edge %p center=(%d,%d)\n", (void*) ae, ae->as.arc.cvx, ae->as.arc.cvy);
@@ -755,6 +758,8 @@ V4pPolygonP v4p_recPolygonTransformClone(bool estSub, V4pPolygonP p, V4pPolygonP
             V4pPointP new_point = QuickHeapAlloc(v4p->pointHeap);
             new_point->x = V4P_NIL;
             new_point->y = V4P_NIL;
+            new_point->a = 0;
+            new_point->b = 0,
             new_point->next = NULL;
 
             if (prev_sc) {
@@ -784,11 +789,13 @@ V4pPolygonP v4p_recPolygonTransformClone(bool estSub, V4pPolygonP p, V4pPolygonP
             // Translate back and apply position delta
             sc->x = x2 + anchor_x + dx;
             sc->y = y2 + anchor_y + dy;
-            sc->a = sp->a == V4P_NIL ? V4P_NIL : sp->a * zoomX_whole + (sp->a * zoomX_rem + 128) / 256;
-            sc->b = sp->b == V4P_NIL ? V4P_NIL : sp->b * zoomY_whole + (sp->b * zoomY_rem + 128) / 256;
+            sc->a = sp->a == 0 ? 0 : sp->a * zoomX_whole + (sp->a * zoomX_rem + 128) / 256;
+            sc->b = sp->b == 0 ? 0 : sp->b * zoomY_whole + (sp->b * zoomY_rem + 128) / 256;
         } else {
             sc->x = V4P_NIL;
             sc->y = V4P_NIL;
+            sc->a = 0;
+            sc->b = 0;
         }
 
         prev_sc = sc;
@@ -858,7 +865,6 @@ V4pPolygonP v4p_centerPolygon(V4pPolygonP p) {
     return v4p_transform(p, -centerX, -centerY, 0, 0, 256, 256);
 }
 
-// Helper functions for Sutherland-Hodgman clipping
 // Simplified clipEdge for axis-aligned clipping
 static V4pPointP clipEdge(V4pPointP subject, bool isVertical, V4pCoord clipCoord, bool isMinEdge) {
     V4pPointP result = NULL;
@@ -874,16 +880,26 @@ static V4pPointP clipEdge(V4pPointP subject, bool isVertical, V4pCoord clipCoord
     //   1. Scan ahead to find sub-path tail for closure init.
     //   2. Process points normally, resetting on JUMP.
 
+    // Track arc information
+    V4pPointP arcCenter = NULL;   // Current arc center point
+
     while (subStart != NULL) {
         // Find the last real point of this sub-path (before next JUMP or end)
         V4pPointP lastPoint = NULL;
         V4pPointP scan = subStart;
+        int pointCount = 0;
         while (scan != NULL) {
-            if (scan->x == V4P_NIL && scan->y == V4P_NIL) break;  // JUMP
-
-            if (! V4P_IS_ARC_CENTER(scan)) {  // Center are not clipped
-                lastPoint = scan;
+            if (scan->x == V4P_NIL && scan->y == V4P_NIL) {
+                break;  // JUMP
             }
+
+            if (V4P_IS_ARC_CENTER(scan)) {  // Center isn't a last point for loop closing
+                arcCenter = scan;
+            } else {
+                lastPoint = scan;
+                arcCenter = NULL;
+            }
+            pointCount++;
             scan = scan->next;
         }
 
@@ -894,9 +910,9 @@ static V4pPointP clipEdge(V4pPointP subject, bool isVertical, V4pCoord clipCoord
             V4pCoord lx = prevPoint->x;
             V4pCoord ly = prevPoint->y;
             if (isVertical) {
-                prevInside = isMinEdge ? (lx >= clipCoord) : (lx <= clipCoord);
+                prevInside = isMinEdge ? (lx >= clipCoord) : (lx < clipCoord);
             } else {
-                prevInside = isMinEdge ? (ly >= clipCoord) : (ly <= clipCoord);
+                prevInside = isMinEdge ? (ly >= clipCoord) : (ly < clipCoord);
             }
         }
 
@@ -910,16 +926,22 @@ static V4pPointP clipEdge(V4pPointP subject, bool isVertical, V4pCoord clipCoord
                     V4pPointP jump = QuickHeapAlloc(v4p->pointHeap);
                     jump->x = V4P_NIL;
                     jump->y = V4P_NIL;
+                    jump->a = 0;
+                    jump->b = 0;
                     jump->next = NULL;
                     prev->next = jump;
                     prev = jump;
                 }
                 subStart = current->next;  // Advance outer loop past JUMP
+                arcCenter = NULL;
                 break;
             }
 
-            if (V4P_IS_ARC_CENTER(current)) { // Center are not clipped
+            if (V4P_IS_ARC_CENTER(current)) { 
+                // Store arc center information for potential arc intersection
+                arcCenter = current;
                 current = current->next;
+                // skip to the next point. Note prevPoint/prevInside is kept as is, corresponding to the actual previous point
                 continue;
             }
 
@@ -933,6 +955,21 @@ static V4pPointP clipEdge(V4pPointP subject, bool isVertical, V4pCoord clipCoord
                 currentInside = isMinEdge ? (y >= clipCoord) : (y < clipCoord);
             }
 
+            if (prevPoint != NULL && arcCenter != NULL && prevInside && currentInside) {
+                // both arc ends are inside, one includes the arcCenter back
+                V4pPointP arcCenterPoint = QuickHeapAlloc(v4p->pointHeap);
+                arcCenterPoint->x = arcCenter->x;
+                arcCenterPoint->y = arcCenter->y;
+                arcCenterPoint->a = arcCenter->a;
+                arcCenterPoint->b = arcCenter->b;
+                if (result == NULL) {
+                    result = arcCenterPoint;
+                } else {
+                    prev->next = arcCenterPoint;
+                }
+                prev = arcCenterPoint;
+            }
+
             // Intersection on inside/outside transition
             if (prevPoint != NULL && (prevInside != currentInside)) {
                 V4pCoord prevX = prevPoint->x;
@@ -940,34 +977,99 @@ static V4pPointP clipEdge(V4pPointP subject, bool isVertical, V4pCoord clipCoord
 
                 // Compute intersection with the clip edge
                 V4pPointP intersection = QuickHeapAlloc(v4p->pointHeap);
+                intersection->x = 0;
+                intersection->y = 0;
+                intersection->a = 0;
+                intersection->b = 0;
                 intersection->next = NULL;
 
-                if (isVertical) {
-                    if (x != prevX) {
-                        V4pCoord t = (clipCoord - (! isMinEdge) - prevX) * 256 / (x - prevX);
-                        intersection->x = clipCoord - (! isMinEdge);
+                // Check if we have an arc transition (both prev and current are arc-ends)
+                bool isArcTransition = (arcCenter != NULL);
+                V4pPointP arcCenterPoint = NULL;
+                if (isArcTransition) {
+                    // For arc transitions, we need to preserve the arc structure
+                    // First, add the arc center point to maintain the arc relationship
+                    arcCenterPoint = QuickHeapAlloc(v4p->pointHeap);
+                    arcCenterPoint->x = arcCenter->x;
+                    arcCenterPoint->y = arcCenter->y;
+                    arcCenterPoint->a = arcCenter->a;
+                    arcCenterPoint->b = arcCenter->b;
+                    if (prevInside) { // one puts arcCenterPoint between the previous point and the intersection
+                        if (result == NULL) {
+                            result = arcCenterPoint;
+                        } else {
+                            prev->next = arcCenterPoint;
+                        }
+                        prev = arcCenterPoint;
+                    }
+
+                    // Now compute the intersection point
+                    V4pCoord edge = clipCoord - (! isMinEdge);
+                    V4pCoord cx = arcCenterPoint->x;
+                    V4pCoord cy = arcCenterPoint->y;
+                    uint32_t a = (uint32_t) arcCenterPoint->a;
+                    uint32_t b = (uint32_t) arcCenterPoint->b;
+                    uint32_t a2 = a * a;
+                    uint32_t b2 = b * b;
+                    if (isVertical) {
+                        // Solve: ((edge - cx) / a)² + ((py - cy) / b)² = 1
+                        // => (py - cy)² = b² * (1 - ((edge - cx) / a)²)
+                        // => (py - cy)² = (b² * (a² - (edge - cx)²)) / a²
+                        V4pCoord dx = edge - cx;
+                        // Use 64-bit intermediates to avoid overflow
+                        int64_t disc = b2 * (a2 - (int64_t) dx * dx);  // = b²*(a² - dx²)
+
+                        // sqrt(disc) / a  — keep fixed-point precision
+                        V4pCoord dy = (V4pCoord) isqrt32(disc / a2);
+                        // Pick the root closer to the linear-interpolated y
+                        V4pCoord yMid = (prevY + y) / 2;
+                        V4pCoord y1 = cy + dy;
+                        V4pCoord y2 = cy - dy;
+                        intersection->x = edge;
+                        intersection->y = (abs(y1 - yMid) <= abs(y2 - yMid)) ? y1 : y2;
+                    } else {
+                        // Solve: ((px - cx) / a)² + ((edge - cy) / b)² = 1
+                        // => (px - cx)² = a² * (1 - ((edge - cy) / b)²)
+                        V4pCoord dy = edge - cy;
+                        int64_t disc = a2 * (b2 - (int64_t) dy * dy);  // = a²*(b² - dy²)
+
+                        V4pCoord dx = (V4pCoord) isqrt32(disc / b2);
+                        V4pCoord xMid = (prevX + x) / 2;
+                        V4pCoord x1 = cx + dx;
+                        V4pCoord x2 = cx - dx;
+                        intersection->x = (abs(x1 - xMid) <= abs(x2 - xMid)) ? x1 : x2;
+                        intersection->y = edge;
+                    }
+                }
+                else {
+                    // Standard line intersection
+                    if (isVertical) {
+                        V4pCoord edge = clipCoord - (! isMinEdge);
+                        V4pCoord t = (edge - prevX) * 256 / (x - prevX);
+                        intersection->x = edge;
                         intersection->y = prevY + (t * (y - prevY)) / 256;
-
-                        if (result == NULL) {
-                            result = intersection;
-                        } else {
-                            prev->next = intersection;
-                        }
-                        prev = intersection;
-                    }
-                } else {
-                    if (y != prevY) {
-                        V4pCoord t = (clipCoord - (! isMinEdge) - prevY) * 256 / (y - prevY);
+                    } else {
+                        V4pCoord edge = clipCoord - (! isMinEdge);
+                        V4pCoord t = (edge - prevY) * 256 / (y - prevY);
                         intersection->x = prevX + (t * (x - prevX)) / 256;
-                        intersection->y = clipCoord - (! isMinEdge);
-
-                        if (result == NULL) {
-                            result = intersection;
-                        } else {
-                            prev->next = intersection;
-                        }
-                        prev = intersection;
+                        intersection->y = edge;
                     }
+                }
+
+                if (result == NULL) {
+                    result = intersection;
+                } else {
+                    prev->next = intersection;
+                }
+                prev = intersection;
+
+                if (isArcTransition && currentInside) {  // one puts arcCenterPoint between the intersection and the current point
+                    if (result == NULL) {
+                        result = arcCenterPoint;
+                    } else {
+                        prev->next = arcCenterPoint;
+                    }
+                    prev = arcCenterPoint;
                 }
             }
 
@@ -976,6 +1078,8 @@ static V4pPointP clipEdge(V4pPointP subject, bool isVertical, V4pCoord clipCoord
                 V4pPointP newPoint = QuickHeapAlloc(v4p->pointHeap);
                 newPoint->x = x;
                 newPoint->y = y;
+                newPoint->a = 0;
+                newPoint->b = 0;
                 newPoint->next = NULL;
 
                 if (result == NULL) {
@@ -985,10 +1089,11 @@ static V4pPointP clipEdge(V4pPointP subject, bool isVertical, V4pCoord clipCoord
                 }
                 prev = newPoint;
             }
-
+            
             prevPoint = current;
             prevInside = currentInside;
             current = current->next;
+            arcCenter = NULL;
         }
 
         // If we reached end of list (no JUMP broke us out), exit outer loop
@@ -1009,7 +1114,6 @@ V4pPolygonP v4p_recPolygonClipClone(bool estSub, V4pPolygonP p, V4pPolygonP c, V
 
     // If p is not entirely into the clip region
     if (p->minx < x0 || p->maxx > x1 || p->miny < y0 || p->maxy > y1) {
-
         // If p is entirely outside the clip region, clear c points and return
         if (p->maxx < x0 || p->minx > x1 || p->maxy < y0 || p->miny > y1) {
             clippedPoints = NULL; // all points clipped
@@ -1022,6 +1126,8 @@ V4pPolygonP v4p_recPolygonClipClone(bool estSub, V4pPolygonP p, V4pPolygonP c, V
                 V4pPointP newPoint = QuickHeapAlloc(v4p->pointHeap);
                 newPoint->x = sp->x;
                 newPoint->y = sp->y;
+                newPoint->a = sp->a;
+                newPoint->b = sp->b;
                 newPoint->next = NULL;
                 *tail = newPoint;
                 tail = &newPoint->next;
@@ -1217,8 +1323,8 @@ static int arcAngle(V4pPoint* p, V4pPoint* c) {
 #define FULL_CIRCLE 512
 static V4pPoint boundaryPoint(V4pPoint* center, int angle) {
     V4pPoint pt = *center;
-    pt.a = V4P_NIL;
-    pt.b = V4P_NIL;
+    pt.a = 0;
+    pt.b = 0;
     switch (angle) {
         case QUAD_RIGHT:
             pt.x += center->a;
@@ -1859,13 +1965,16 @@ V4pPolygonP v4p_addCorners(V4pPolygonP p, V4pCoord x0, V4pCoord y0, V4pCoord x1,
 
 // Add 8 points as a rectangle with cutted corners
 V4pPolygonP v4p_addRoundCorners(V4pPolygonP p, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1,
-                                V4pCoord radius) {
+                                uint16_t radius) {
     // ensure radius is not too big for the rectangle dimensions
     if (radius > (x1 - x0) / 2) {
         radius = (x1 - x0) / 2;
     }
     if (radius > (y1 - y0) / 2) {
         radius = (y1 - y0) / 2;
+    }
+    if (radius == 0) {
+        return v4p_addCorners(p, x0, y0, x1, y1);
     }
 
     // Add points for a rectangle with round corners

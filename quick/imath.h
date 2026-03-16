@@ -37,6 +37,7 @@ void straighten(V4pCoord x, V4pCoord y, V4pCoord* xn, V4pCoord* yn);
 
 // Jim Henry's isqrt
 uint16_t isqrt(uint16_t v);
+uint16_t isqrt32(uint32_t v);
 
 // compute the angle of (0-0)->(x,y) vector
 uint16_t iatan(V4pCoord x, V4pCoord y);

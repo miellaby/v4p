@@ -43,14 +43,14 @@ typedef struct v4p_scene_s {
 
 typedef struct v4p_point_s {
     V4pCoord x, y;
-    V4pCoord a, b;
+    uint16_t a, b;
     V4pPointP next;
 } V4pPoint;
 
 #define V4P_NIL ((V4pCoord) INT32_MAX)
 
 // Arc center point encoding macros
-#define V4P_IS_ARC_CENTER(p) (p->a != V4P_NIL)
+#define V4P_IS_ARC_CENTER(p) (p->a != 0)
 
 /**
  * Variables
@@ -94,7 +94,7 @@ void v4p_absoluteToView(V4pCoord x, V4pCoord y, V4pCoord* xa, V4pCoord* ya);
 
 // v4p polygon
 V4pPolygonP v4p_new(V4pProps t, V4pColor col, V4pLayer z);
-V4pPolygonP v4p_newDisk(V4pProps t, V4pColor col, V4pLayer z, V4pCoord center_x, V4pCoord center_y, V4pCoord radius);
+V4pPolygonP v4p_newDisk(V4pProps t, V4pColor col, V4pLayer z, V4pCoord center_x, V4pCoord center_y, uint16_t radius);
 V4pPolygonP v4p_clone(V4pPolygonP p);
 V4pPolygonP v4p_setCollisionMask(V4pPolygonP p, V4pCollisionMask collisionMask);
 V4pPolygonP v4p_intoList(V4pPolygonP p, V4pPolygonP* list);
@@ -147,15 +147,15 @@ V4pPolygonP v4p_setAnchor(V4pPolygonP p, V4pCoord x, V4pCoord y);
 
 // helpers & combo
 V4pPolygonP v4p_addCorners(V4pPolygonP p, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1);
-V4pPolygonP v4p_addRoundCorners(V4pPolygonP p, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1, V4pCoord radius);
+V4pPolygonP v4p_addRoundCorners(V4pPolygonP p, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1, uint16_t radius);
 V4pPolygonP v4p_add(V4pPolygonP p);
 V4pPolygonP v4p_remove(V4pPolygonP);
 V4pPolygonP v4p_sceneAddNewPoly(V4pSceneP, V4pProps t, V4pColor col, V4pLayer z);
 V4pPolygonP v4p_sceneAddNewDisk(V4pSceneP, V4pProps t, V4pColor col, V4pLayer z, V4pCoord center_x, V4pCoord center_y,
-                                V4pCoord radius);
+                                uint16_t radius);
 V4pPolygonP v4p_sceneAddClone(V4pSceneP, V4pPolygonP p);
 V4pPolygonP v4p_addNew(V4pProps t, V4pColor col, V4pLayer z);
-V4pPolygonP v4p_addNewDisk(V4pProps t, V4pColor col, V4pLayer z, V4pCoord center_x, V4pCoord center_y, V4pCoord radius); 
+V4pPolygonP v4p_addNewDisk(V4pProps t, V4pColor col, V4pLayer z, V4pCoord center_x, V4pCoord center_y, uint16_t radius); 
 V4pPolygonP v4p_addClone(V4pPolygonP p);
 int v4p_destroy(V4pPolygonP p);
 int v4p_destroyFromScene(V4pPolygonP p);

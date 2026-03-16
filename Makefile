@@ -249,7 +249,7 @@ tests/%.o: tests/%.c # Note: It is recommanded to build tests with DEBUG=1 for b
 	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -DDEBUG=1 -Iaddons -c $< -o $@
 
 # Link tests in their directories
-tests/%: tests/%.o libg4p.a libqfont.a libv4pserial.a libparticles.a libv4p.a
+tests/%: tests/%.o libdebug.a libg4p.a libqfont.a libv4pserial.a libparticles.a libv4p.a
 	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS) -lm
 
 # ============================================
@@ -287,7 +287,7 @@ endif
 demos: $(DEMO_TARGETS)
 
 TEST_TARGETS := $(patsubst tests/%.c,tests/%,$(wildcard tests/*.c))
-tests: $(TEST_TARGETS)
+tests: addons $(TEST_TARGETS)
 
 clean:
 	$(Q)$(RM) *.o *.a
