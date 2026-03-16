@@ -15,8 +15,14 @@ const int tabCos[129] = {
     56,  53,  50,  47,  44,  41,  37,  34,  31,  28,  25,  22,  19,  16,  13,  9,   6,   3,
     0  // The 129th entry (Index 128)
 };
+
 int floorLog2(uint32_t v) {
-    return floorLog232(v);
+    if (! v) return -1;
+    #if defined(__GNUC__) || defined(__clang__)
+        return 31 - __builtin_clz(v);
+    #else
+        return floorLog232(v);
+    #endif
 }
 
 int floorLog232(uint32_t v) {
@@ -94,28 +100,30 @@ uint16_t isqrt(uint16_t v) {  // Jim Henry isqrt
     return g;
 }
 
-static uint16_t tabAtanFloorLog2[8] = {
-    // 19, 37, 64, 90, 108, 117, 122, 125
-    64, 63, 60, 50, 37, 28, 19, 7
+// 64 entries, index = y*64/x (0..63), value = angle in [0..64]
+static const uint8_t tabAtan64[65] = {
+    0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 14, 15, 16, 17, 18, 19, 20,
+    20, 21, 22, 23, 23, 24, 25, 25, 26, 27, 27, 28, 29, 29, 30, 30, 31, 32, 32, 33, 33, 34,
+    34, 35, 35, 36, 36, 37, 37, 38, 38, 39, 39, 40, 40, 41, 41, 42, 42, 43, 43, 44,
+    64  // sentinel for index==64 (x==y case)
 };
 
 uint16_t iatan(V4pCoord x, V4pCoord y) {
-    uint16_t m, a;
+    uint16_t a;
     V4pCoord t;
     bool op1, op2, op3;
-    if (y < 0) {  // y inverted
+
+    if (y < 0) {
         y = -y;
         op3 = true;
     } else
         op3 = false;
-
-    if (x < 0) {  // x inverted
+    if (x < 0) {
         x = -x;
         op2 = true;
     } else
         op2 = false;
-
-    if (x < y) {  // swap x y
+    if (x < y) {
         t = x;
         x = y;
         y = t;
@@ -123,25 +131,17 @@ uint16_t iatan(V4pCoord x, V4pCoord y) {
     } else
         op1 = false;
 
-    if (y == 0)
+    if (y == 0) {
         a = 0;
-    else {
-        m = (x << 3) / y;
-        if (! m)
-            a = 128;
-        else if (m > 255)
-            a = 0;
-        else
-            a = tabAtanFloorLog2[floorLog2(m)];
+    } else {
+        int idx = (int) ((long) y * 64 / x);  // 0..64, x>=y so no overflow
+        a = tabAtan64[idx];
     }
+
     if (op1) a = 128 - a;
     if (op2) a = 256 - a;
-    if (op3) a = 512 - a;
-    return a;
-}
-
-uint16_t iatan2p(V4pCoord x1, V4pCoord y1, V4pCoord x0, V4pCoord y0) {
-    return iatan(x1 - x0, y1 - y0);
+    if (op3) a = (uint16_t) (512 - a);
+    return a % 512;
 }
 
 int angleCmp(uint16_t a1, uint16_t a0) {

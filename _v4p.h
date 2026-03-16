@@ -62,9 +62,10 @@ typedef struct activeEdge_s {
             V4pCoord r2;  // r1 - dy
         } straight;
         struct { // Ellipse arc edge (McIlroy algorithm)
-            V4pCoord cx, cy;     // center in screen coordinates
+            V4pCoord cx, cy;     // center in scene coordinates
+            V4pCoord ra, rb;     // semi-axes in scene coordinates
             V4pCoord cvx, cvy;   // center in view coordinates
-            V4pCoord a, b;       // semi-axes in view
+            V4pCoord a, b;       // semi-axes in view coordinates
             V4pCoord a2, b2;     // a² and b², precomputed
             V4pCoord ea;         // ceil(a²/4), precomputed
             V4pCoord t;          // McIlroy accumulator

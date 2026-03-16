@@ -43,15 +43,14 @@ typedef struct v4p_scene_s {
 
 typedef struct v4p_point_s {
     V4pCoord x, y;
-    uint32_t flags;
+    V4pCoord a, b;
     V4pPointP next;
 } V4pPoint;
 
 #define V4P_NIL ((V4pCoord) INT32_MAX)
 
 // Arc center point encoding macros
-#define V4P_ARC_CENTER_FLAG  0x00000001u
-#define V4P_IS_ARC_CENTER(p) (p->flags & V4P_ARC_CENTER_FLAG)
+#define V4P_IS_ARC_CENTER(p) (p->a != V4P_NIL)
 
 /**
  * Variables
@@ -108,7 +107,7 @@ V4pProps v4p_putProp(V4pPolygonP p, V4pProps i);
 V4pProps v4p_removeProp(V4pPolygonP p, V4pProps i);
 V4pProps v4p_setRelative(V4pPolygonP p, bool relative);
 V4pPointP v4p_addPoint(V4pPolygonP p, V4pCoord x, V4pCoord y);
-V4pPointP v4p_addPointFlag(V4pPolygonP p, V4pCoord x, V4pCoord y, uint32_t flags);
+V4pPointP v4p_addEllipseCenter(V4pPolygonP p, V4pCoord x, V4pCoord y, V4pCoord a, V4pCoord b);
 V4pPointP v4p_addJump(V4pPolygonP p);
 V4pPointP v4p_movePoint(V4pPolygonP p, V4pPointP s, V4pCoord x, V4pCoord y);
 V4pColor v4p_setColor(V4pPolygonP p, V4pColor c);

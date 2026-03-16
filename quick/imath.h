@@ -41,9 +41,6 @@ uint16_t isqrt(uint16_t v);
 // compute the angle of (0-0)->(x,y) vector
 uint16_t iatan(V4pCoord x, V4pCoord y);
 
-// compute the angle of (x1,y1)->(x2,y2) vector
-uint16_t iatan2p(V4pCoord x1, V4pCoord y1, V4pCoord x0, V4pCoord y0);
-
 // compare two angle in do-what-I-mean way
 int angleCmp(uint16_t a1, uint16_t a0);
 
