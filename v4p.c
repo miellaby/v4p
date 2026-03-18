@@ -880,14 +880,16 @@ static V4pPointP clipEdge(V4pPointP subject, bool isVertical, V4pCoord clipCoord
     //   1. Scan ahead to find sub-path tail for closure init.
     //   2. Process points normally, resetting on JUMP.
 
-    // Track arc information
-    V4pPointP arcCenter = NULL;   // Current arc center point
 
     while (subStart != NULL) {
         // Find the last real point of this sub-path (before next JUMP or end)
         V4pPointP lastPoint = NULL;
         V4pPointP scan = subStart;
         int pointCount = 0;
+
+        // Track arc information
+        V4pPointP arcCenter = NULL;  // Current arc center point
+        V4pPointP ultimateCenter = NULL;  // center to be put at the result list end
         while (scan != NULL) {
             if (scan->x == V4P_NIL && scan->y == V4P_NIL) {
                 break;  // JUMP
@@ -933,7 +935,6 @@ static V4pPointP clipEdge(V4pPointP subject, bool isVertical, V4pCoord clipCoord
                     prev = jump;
                 }
                 subStart = current->next;  // Advance outer loop past JUMP
-                arcCenter = NULL;
                 break;
             }
 
@@ -957,23 +958,34 @@ static V4pPointP clipEdge(V4pPointP subject, bool isVertical, V4pCoord clipCoord
 
             if (prevPoint != NULL && arcCenter != NULL && prevInside && currentInside) {
                 // both arc ends are inside, one includes the arcCenter back
+                v4p_trace(TRANSFORM, "both arc ends are inside, one includes the arcCenter back\n");
+
                 V4pPointP arcCenterPoint = QuickHeapAlloc(v4p->pointHeap);
                 arcCenterPoint->x = arcCenter->x;
                 arcCenterPoint->y = arcCenter->y;
                 arcCenterPoint->a = arcCenter->a;
                 arcCenterPoint->b = arcCenter->b;
-                if (result == NULL) {
-                    result = arcCenterPoint;
+                if (prevPoint == lastPoint) {
+                    // special case: one puts the center at the end of the list, like in the initial list
+                    v4p_trace(TRANSFORM,
+                              "special case: one puts the center at the end of the list, like in the initial list\n");
+                    ultimateCenter = arcCenterPoint;
                 } else {
-                    prev->next = arcCenterPoint;
+                    if (result == NULL) {
+                        result = arcCenterPoint;
+                    } else {
+                        prev->next = arcCenterPoint;
+                    }
+                    prev = arcCenterPoint;
                 }
-                prev = arcCenterPoint;
             }
 
             // Intersection on inside/outside transition
             if (prevPoint != NULL && (prevInside != currentInside)) {
                 V4pCoord prevX = prevPoint->x;
                 V4pCoord prevY = prevPoint->y;
+                v4p_trace(TRANSFORM, "Intersection on inside/outside transition (%d,%d)-(%d,%d)\n",
+                            prevX, prevY, x, y);
 
                 // Compute intersection with the clip edge
                 V4pPointP intersection = QuickHeapAlloc(v4p->pointHeap);
@@ -994,11 +1006,24 @@ static V4pPointP clipEdge(V4pPointP subject, bool isVertical, V4pCoord clipCoord
                     arcCenterPoint->y = arcCenter->y;
                     arcCenterPoint->a = arcCenter->a;
                     arcCenterPoint->b = arcCenter->b;
-                    if (prevInside) { // one puts arcCenterPoint between the previous point and the intersection
-                        if (result == NULL) {
-                            result = arcCenterPoint;
+                    v4p_trace(TRANSFORM, "arc intersection with center (%d, %d)\n", arcCenterPoint->x, arcCenterPoint->y);
+
+                    if (prevInside) {
+                        // one puts arcCenterPoint between the previous point and the intersection
+                        v4p_trace(TRANSFORM, "put arcCenterPoint between the previous point and the intersection\n");
+
+                        if (prevPoint == lastPoint) {
+                            // special case: one puts the center at the end of the list, like in the initial list
+                            v4p_trace(TRANSFORM,
+                                      "special case: one puts the center at the end of the list, like in the initial list\n");
+
+                            ultimateCenter = arcCenterPoint;
                         } else {
-                            prev->next = arcCenterPoint;
+                            if (result == NULL) {
+                                result = arcCenterPoint;
+                            } else {
+                                prev->next = arcCenterPoint;
+                            }
                         }
                         prev = arcCenterPoint;
                     }
@@ -1020,29 +1045,38 @@ static V4pPointP clipEdge(V4pPointP subject, bool isVertical, V4pCoord clipCoord
                         int64_t disc = b2 * (a2 - (int64_t) dx * dx);  // = b²*(a² - dx²)
 
                         // sqrt(disc) / a  — keep fixed-point precision
-                        V4pCoord dy = (V4pCoord) isqrt32(disc / a2);
+                        V4pCoord dy = (V4pCoord) isqrt32(disc / (int64_t) a2);
                         // Pick the root closer to the linear-interpolated y
                         V4pCoord yMid = (prevY + y) / 2;
                         V4pCoord y1 = cy + dy;
                         V4pCoord y2 = cy - dy;
                         intersection->x = edge;
                         intersection->y = (abs(y1 - yMid) <= abs(y2 - yMid)) ? y1 : y2;
+                        v4p_trace(TRANSFORM,
+                                  "isVertical: intersection for cx,cy,a,b,dx,disc,dy,yMid,y1,y2"
+                                  "=%d,%d,%d,%d,%d,%d,%d,%d,%d,%d => y=%d\n",
+                                  cx, cy, a, b, dx, disc, dy, yMid, y1, y2, intersection->y);
                     } else {
                         // Solve: ((px - cx) / a)² + ((edge - cy) / b)² = 1
                         // => (px - cx)² = a² * (1 - ((edge - cy) / b)²)
                         V4pCoord dy = edge - cy;
                         int64_t disc = a2 * (b2 - (int64_t) dy * dy);  // = a²*(b² - dy²)
 
-                        V4pCoord dx = (V4pCoord) isqrt32(disc / b2);
+                        V4pCoord dx = (V4pCoord) isqrt32(disc / (int64_t) b2);
                         V4pCoord xMid = (prevX + x) / 2;
                         V4pCoord x1 = cx + dx;
                         V4pCoord x2 = cx - dx;
                         intersection->x = (abs(x1 - xMid) <= abs(x2 - xMid)) ? x1 : x2;
                         intersection->y = edge;
+                        v4p_trace(TRANSFORM,
+                                  "isHorizontal: intersection for cx,cy,a,b,dy,disc,dx,xMid,x1,x2"
+                                  "=%d,%d,%d,%d,%d,%d,%d,%d,%d,%d => x=%d\n",
+                                  cx, cy, a, b, dy, disc, dx, xMid, x1, x2, intersection->x);
                     }
                 }
                 else {
                     // Standard line intersection
+                    v4p_trace(TRANSFORM, "standard line intersection\n");
                     if (isVertical) {
                         V4pCoord edge = clipCoord - (! isMinEdge);
                         V4pCoord t = (edge - prevX) * 256 / (x - prevX);
@@ -1055,6 +1089,7 @@ static V4pPointP clipEdge(V4pPointP subject, bool isVertical, V4pCoord clipCoord
                         intersection->y = edge;
                     }
                 }
+                v4p_trace(TRANSFORM, "intersection (%d,%d)\n", intersection->x, intersection->y);
 
                 if (result == NULL) {
                     result = intersection;
@@ -1063,12 +1098,14 @@ static V4pPointP clipEdge(V4pPointP subject, bool isVertical, V4pCoord clipCoord
                 }
                 prev = intersection;
 
-                if (isArcTransition && currentInside) {  // one puts arcCenterPoint between the intersection and the current point
-                    if (result == NULL) {
-                        result = arcCenterPoint;
-                    } else {
-                        prev->next = arcCenterPoint;
-                    }
+                if (isArcTransition && currentInside) {
+                      // one puts arcCenterPoint between the intersection and the current point
+                      v4p_trace(TRANSFORM, "arcCenterPoint between the intersection and the current point\n");
+                      if (result == NULL) {
+                          result = arcCenterPoint;
+                      } else {
+                          prev->next = arcCenterPoint;
+                      }
                     prev = arcCenterPoint;
                 }
             }
@@ -1094,6 +1131,17 @@ static V4pPointP clipEdge(V4pPointP subject, bool isVertical, V4pCoord clipCoord
             prevInside = currentInside;
             current = current->next;
             arcCenter = NULL;
+        }
+
+        if (ultimateCenter != NULL) {
+            v4p_trace(TRANSFORM, "Ultimate center (%d, %d)\n", ultimateCenter->x, ultimateCenter->y);
+            if (result == NULL) {
+                result = ultimateCenter;
+            } else {
+                prev->next = ultimateCenter;
+            }
+            prev = ultimateCenter;
+            ultimateCenter->next = NULL;
         }
 
         // If we reached end of list (no JUMP broke us out), exit outer loop
@@ -1136,10 +1184,14 @@ V4pPolygonP v4p_recPolygonClipClone(bool estSub, V4pPolygonP p, V4pPolygonP c, V
 
             // Clip against each edge of the rectangle
             // Order: top, right, bottom, left (clockwise)
-            clippedPoints = clipEdge(clippedPoints, false, y0, true);    // Top edge (horizontal, min y)
-            clippedPoints = clipEdge(clippedPoints, true, x1, false);   // Right edge (vertical, max x)
-            clippedPoints = clipEdge(clippedPoints, false, y1, false);   // Bottom edge (horizontal, max y)
-            clippedPoints = clipEdge(clippedPoints, true, x0, true);    // Left edge (vertical, min x)
+            v4p_trace(TRANSFORM, "clipping Top edge (horizontal, min y)\n");
+            clippedPoints = clipEdge(clippedPoints, false, y0, true);  // Top edge (horizontal, min y)
+            v4p_trace(TRANSFORM, "clipping Right edge (vertical, max x)\n");
+            clippedPoints = clipEdge(clippedPoints, true, x1, false);  // Right edge (vertical, max x)
+            v4p_trace(TRANSFORM, "clipping Bottom edge (horizontal, max y)\n");
+            clippedPoints = clipEdge(clippedPoints, false, y1, false);  // Bottom edge (horizontal, max y)
+            v4p_trace(TRANSFORM, "clipping Left edge (vertical, min x)\n");
+            clippedPoints = clipEdge(clippedPoints, true, x0, true);  // Left edge (vertical, min x)
         }
 
         // Replace the points in c with the clipped points

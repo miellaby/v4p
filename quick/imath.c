@@ -103,7 +103,7 @@ uint16_t isqrt(uint16_t v) {  // Jim Henry isqrt
 uint16_t isqrt32(uint32_t v) {
     uint32_t t;
     uint16_t g = 0;
-    uint16_t b = 0x100;  // 9 bits of search (result fits uint16_t)
+    uint16_t b = 0x8000;  // 16 bits of search (result fits uint16_t)
     int s = 15;
     while (b > 0) {
         t = ((uint32_t) (g << 1) + b) << s;
