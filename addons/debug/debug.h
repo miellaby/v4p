@@ -3,6 +3,10 @@
 
 #include "v4p.h"
 
+
+/** just the points */
+void v4p_debugPolygonPoints(V4pPointP points);
+
 /**
  * Debug function to dump polygon information to console
  * 

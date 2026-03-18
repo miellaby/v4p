@@ -3,6 +3,17 @@
 #include "_v4p.h"  // Internal V4P structures (only for debug addon)
 #include <stdio.h>
 
+void v4p_debugPolygonPoints(V4pPointP points) {
+    // Display point coordinates
+    V4pPointP pt = points;
+    int point_idx = 0;
+    while (pt) {
+        v4p_debug(pt->a > 0 ? "Point %d: (%d,%d) center of ellipsis (%d,%d)\n" : "Point %d: (%d, %d)\n", point_idx++,
+                  pt->x, pt->y, pt->a, pt->b);
+        pt = pt->next;
+    }
+}
+
 void v4p_debugPolygon(V4pPolygonP poly, const char* name) {
     if (!poly) {
         v4p_debug("Polygon '%s' is NULL!\n", name ? name : "unknown");
@@ -25,13 +36,7 @@ void v4p_debugPolygon(V4pPolygonP poly, const char* name) {
     }
     v4p_debug("Anchor: ax=%d, ay=%d\n", poly->anchor_x, poly->anchor_y);
 
-    // Display point coordinates
-    V4pPointP pt = poly->point1;
-    int point_idx = 0;
-    while (pt) {
-        v4p_debug("Point %d: (%d,%d) center=%d\n", point_idx++, pt->x, pt->y, V4P_IS_ARC_CENTER(pt));
-        pt = pt->next;
-    }
+    v4p_debugPolygonPoints(poly->point1);
 
     // Check visibility
     bool visible = v4p_isVisible(poly);

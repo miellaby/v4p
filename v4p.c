@@ -169,11 +169,11 @@ V4pContextP v4p_newContext(V4pSceneP scene) {
 
 // Delete a v4p context
 void v4p_destroyContext(V4pContextP p) {
-    QuickHeapDestroy(v4p->pointHeap);
-    QuickHeapDestroy(v4p->polygonHeap);
-    QuickHeapDestroy(v4p->activeEdgeHeap);
-    TreeDestroy(v4p->openedPolygons);
-    QuickTableDestroy(v4p->openableAETable);
+    QuickHeapDestroy(p->pointHeap);
+    QuickHeapDestroy(p->polygonHeap);
+    QuickHeapDestroy(p->activeEdgeHeap);
+    TreeDestroy(p->openedPolygons);
+    QuickTableDestroy(p->openableAETable);
     v4p_free(p);
 }
 
@@ -410,7 +410,7 @@ void v4p_clearScene() {
 
 // combo remove+destroy from scence
 int v4p_destroyFromScene(V4pPolygonP p) {
-    return v4p_sceneRemove(v4p->scene, p) && v4p_destroy(p);
+    return (v4p_sceneRemove(v4p->scene, p), v4p_destroy(p));
 }
 
 // combo PolygonAddSub+PolygonNew
@@ -1185,7 +1185,7 @@ V4pPolygonP v4p_recPolygonClone(bool estSub, V4pPolygonP p) {
     V4pPointP s;
     V4pPolygonP c = v4p_new(p->props, p->color, p->z);
     c->stroke = p->stroke;  // Copy stroke property
-    for (s = p->point1; s; s = s->next) v4p_addPoint(c, s->x, s->y);
+    for (s = p->point1; s; s = s->next) v4p_addEllipseCenter(c, s->x, s->y, s->a, s->b);
 
     // Set parent reference for clones (but not for sub-polygons)
     if (! estSub) {
@@ -1263,7 +1263,7 @@ V4pPolygonP v4p_computeLimits(V4pPolygonP p) {
     return p;
 }
 
-// transform relative coordinates into absolute (scene related) ones
+// transform relative (screen related) coordinates into absolute (scene related) ones
 // Uses integer scaling technique to avoid overflow (see integer_scaling.md)
 void v4p_viewToAbsolute(V4pCoord x, V4pCoord y, V4pCoord* xa, V4pCoord* ya) {
     int lineWidth = v4p_displayWidth, lineNb = v4p_displayHeight;
@@ -1273,7 +1273,7 @@ void v4p_viewToAbsolute(V4pCoord x, V4pCoord y, V4pCoord* xa, V4pCoord* ya) {
     *ya = v4p->viewMinY + y * v4p->viewToScreen_wholeY + ((y * v4p->viewToScreen_remY) + SIGN(y) * (lineNb / 2)) / lineNb;
 }
 
-// transform absolute coordinates into relative (scene related) ones
+// transform absolute coordinates (scene related) into relative (screen related) ones
 // Uses integer scaling technique to avoid overflow (see integer_scaling.md)
 void v4p_absoluteToView(V4pCoord x, V4pCoord y, V4pCoord* xa, V4pCoord* ya) {
     x -= v4p->viewMinX;
@@ -1352,9 +1352,6 @@ static int pointQuadrant(V4pPoint* p, V4pPoint* center) {
 }
 
 void v4p_addArcEdges(V4pPolygonP p, V4pPoint* sa, V4pPoint* center, V4pPoint* sb, bool isStroke) {
-    V4pCoord r
-        = isqrt((long) (sa->x - center->x) * (sa->x - center->x) + (long) (sa->y - center->y) * (sa->y - center->y));
-
     int qa = pointQuadrant(sa, center);
     int qb = pointQuadrant(sb, center);
     if (qa == qb) { // same quadrant
@@ -1843,7 +1840,6 @@ int v4p_render() {
 
         // Reset depth tree for opened polygons (keep AVL tree for depth management)
         TreeReset(v4p->openedPolygons);
-        // TreeSetCompareFunc(TreeSetCompareFunc); // alreay set in v4p_init
 
         // Reset concrete polygons
         v4p_memset(concretePolygons, 0, sizeof(concretePolygons));

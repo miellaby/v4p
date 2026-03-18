@@ -19,7 +19,7 @@ int g4p_onInit(int quality, bool fullscreen) {
     v4p_setBGColor(V4P_BLACK);
     
     // Create arcs
-    for (int i = 0; i < NUM_ARCS, i < 1; i++) {
+    for (int i = 0; i < NUM_ARCS; i++) {
         V4pPolygonP proto = v4p_new(V4P_ABSOLUTE, (i % 2 == 0) ? V4P_RED : V4P_BLUE, i + 1);
         
         // Initial positions
@@ -55,7 +55,7 @@ int g4p_onTick(int32_t deltaTime) {
     
     // Rotate all arcs
     angle += speed;
-    for (int i = 0; i < NUM_ARCS, i < 1; i++) {
+    for (int i = 0; i < NUM_ARCS; i++) {
         v4p_transform(arcs[i], 0, 0, angle * 2 * 512.0f / 360.0f, 0, 256, 256 + 128);
     }
 
