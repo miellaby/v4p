@@ -1375,6 +1375,7 @@ List v4p_openActiveEdge(V4pCoord vy, V4pCoord yu) {
                     ex++;
                     t += b2 * (2 * ex);
                 }
+                ae->as.arc.lex = ex - 1;
             } else {
                 // Bottom half
                 t = (long) b2 * ((long) ex * ex) + (long) a2 * ((long) ey0 * ey0) - (long) a2 * b2;
@@ -1383,16 +1384,13 @@ List v4p_openActiveEdge(V4pCoord vy, V4pCoord yu) {
                     ex--;
                     t -= b2 * (2 * ex);
                 }
+                ae->as.arc.lex = ex - 1;
             }
             ae->as.arc.ex = ex;
             ae->as.arc.t = (V4pCoord) t;
 
             // Set initial x
             ae->x = cvx + ae->as.arc.xdir * ex;
-
-            if (ae->isStroke) { // TODO
-                
-            }
             v4p_trace(OPEN, "Opening ellipse arc edge %p, center=(%d,%d), a=%d, b=%d\n", (void*) ae,
                         ae->as.arc.cvx, ae->as.arc.cvy, ae->as.arc.a, ae->as.arc.b);
             v4p_trace(OPEN, "  Arc attributes: (%d,%d)-(%d,%d)-(%d,%d) cx=%d, cy=%d, a2=%d, b2=%d, ea=%d, t=%d, ex=%d, ey=%d, xdir=%d, ydir=%d\n",
@@ -1477,6 +1475,7 @@ int v4p_render() {
                     // Step y offset and update McIlroy accumulator
 
                     // EV drain: step x until ellipse is tracked at new y
+                    V4pCoord pex = ae->as.arc.ex;
                     if (ae->as.arc.ydir == -1) {
                         // Top half: ey shrinking, ex grows
                         ae->as.arc.t -= ae->as.arc.a2 * 2 * ae->as.arc.ey;
@@ -1487,10 +1486,13 @@ int v4p_render() {
                             ae->as.arc.ex++;
                             ae->as.arc.t += ae->as.arc.b2 * (2 * ae->as.arc.ex);
                         }
+                        if (pex != ae->as.arc.ex) {
+                            ae->as.arc.lex = pex - 1;
+                        }
                     } else {
                         // Bottom half: ey grows, ex shrinks
                         ae->as.arc.ey++;
-                        ae->as.arc.t += ae->as.arc.a2 * 2 * ae->as.arc.ey;
+                        ae->as.arc.t += ae->as.arc.a2 * 2 * (ae->as.arc.ey + 1);
 
                         while (ae->as.arc.ex > 0
                                && ae->as.arc.t - ae->as.arc.b2 * (2 * ae->as.arc.ex)
@@ -1498,9 +1500,12 @@ int v4p_render() {
                             ae->as.arc.ex--;
                             ae->as.arc.t -= ae->as.arc.b2 * (2 * ae->as.arc.ex);
                         }
+                        if (pex != ae->as.arc.ex) {
+                            ae->as.arc.lex = pex - 1;
+                        }
                     }
 
-                    ae->x = ae->as.arc.cvx + ae->as.arc.xdir * ae->as.arc.ex;
+                    ae->x = ae->as.arc.cvx + ae->as.arc.xdir * (ae->isStroke ? ae->as.arc.lex : ae->as.arc.ex);
                     vx = ae->x;
 
                     v4p_trace(SHIFT, "Shift ellipse arc edge %p to x=%d, y=%d\n", (void*) ae, vx, vy);

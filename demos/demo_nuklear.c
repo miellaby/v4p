@@ -53,9 +53,9 @@ void setup_colorful_style(struct nk_context *ctx) {
     table[NK_COLOR_SELECT] = nk_rgba(180, 40, 40, 255);
     table[NK_COLOR_SELECT_ACTIVE] = nk_rgba(230, 130, 130, 255);
     table[NK_COLOR_SLIDER] = nk_rgba(140, 40, 40, 255);
-    table[NK_COLOR_SLIDER_CURSOR] = nk_rgba(240, 240, 240, 255);
-    table[NK_COLOR_SLIDER_CURSOR_HOVER] = nk_rgba(200, 70, 70, 255);
-    table[NK_COLOR_SLIDER_CURSOR_ACTIVE] = nk_rgba(230, 130, 130, 255);
+    table[NK_COLOR_SLIDER_CURSOR] = nk_rgba(230, 130, 130, 255);
+    table[NK_COLOR_SLIDER_CURSOR_HOVER] = nk_rgba(230, 200, 200, 255);
+    table[NK_COLOR_SLIDER_CURSOR_ACTIVE] = nk_rgba(240, 240, 240, 255);
     table[NK_COLOR_PROPERTY] = nk_rgba(50, 50, 60, 255);
     table[NK_COLOR_EDIT] = nk_rgba(50, 50, 60, 225);
     table[NK_COLOR_EDIT_CURSOR] = nk_rgba(190, 190, 200, 255);

@@ -71,6 +71,7 @@ typedef struct activeEdge_s {
             V4pCoord t;          // McIlroy accumulator
             V4pCoord ex;         // x offset from center (always >= 0)
             V4pCoord ey;         // y offset from center (always >= 0)
+            V4pCoord lex;        // previous ex (for stroke edge)
             int8_t   xdir;       // +1 = right side, -1 = left side
             int8_t   ydir;       // -1 = top-to-bottom (usual), +1 = bottom-to-top
         } arc;
