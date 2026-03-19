@@ -212,6 +212,7 @@ QFONT_SRCS = addons/qfont/qfont.c
 V4PSERIAL_SRCS = addons/v4pserial/v4pserial.c
 PARTICLES_SRCS = addons/particles/particles.c
 DEBUG_SRCS = addons/debug/debug.c
+CLIPPING_SRCS = addons/clipping/clipping.c
 
 # ============================================
 # BUILD RULES
@@ -234,13 +235,13 @@ demos/%.o: demos/%.c
 demos/demo_nuklear.o: addons/nuklear/nuklear_v4p.h
 
 # Link demos in their directories
-demos/%: demos/%.o libv4p.a libg4p.a libqfont.a libv4pserial.a libparticles.a libdebug.a
+demos/%: demos/%.o libv4p.a libg4p.a libqfont.a libv4pserial.a libparticles.a libdebug.a libclipping.a
 	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS) -lm
 
 # Emscripten demo pages
 TEMPLATE_FILE := web/templates/$(BACKEND)-template.html
-demos/%.html: demos/%.o $(TEMPLATE_FILE) libv4p.a libg4p.a libqfont.a libv4pserial.a libparticles.a libdebug.a
-	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) -o demos/$*.js $< libv4p.a libg4p.a libqfont.a libv4pserial.a libparticles.a libdebug.a $(LDLIBS) -lm
+demos/%.html: demos/%.o $(TEMPLATE_FILE) libv4p.a libg4p.a libqfont.a libv4pserial.a libparticles.a libdebug.a libclipping.a
+	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) -o demos/$*.js $< libv4p.a libg4p.a libqfont.a libv4pserial.a libparticles.a libdebug.a libclipping.a $(LDLIBS) -lm
 	$(Q)sed "s|{{DEMO_NAME}}|$*|g; s|{{DEMO_TITLE}}|$* Demo|g" $(TEMPLATE_FILE) > $@
 	$(Q)echo "Generated: $@ and demos/$*.js"
 
@@ -249,7 +250,7 @@ tests/%.o: tests/%.c # Note: It is recommanded to build tests with DEBUG=1 for b
 	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -DDEBUG=1 -Iaddons -c $< -o $@
 
 # Link tests in their directories
-tests/%: tests/%.o libdebug.a libg4p.a libqfont.a libv4pserial.a libparticles.a libv4p.a
+tests/%: tests/%.o libdebug.a libg4p.a libqfont.a libv4pserial.a libparticles.a libv4p.a libclipping.a
 	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS) -lm
 
 # ============================================
@@ -261,7 +262,7 @@ libv4p.a: $(patsubst %.c,%.o,$(CORE_SRCS)) $(patsubst %.c,%.o,$(BACKEND_SRCS))
 	$(Q)$(AR) rcs $@ $^
 
 # Addons
-addons: libg4p.a libqfont.a libv4pserial.a libparticles.a libdebug.a
+addons: libg4p.a libqfont.a libv4pserial.a libparticles.a libdebug.a libclipping.a
 
 libg4p.a: $(patsubst %.c,%.o,$(GAME_ENGINE_SRCS))
 	$(Q)$(AR) rcs $@ $^
@@ -276,6 +277,9 @@ libparticles.a: $(patsubst %.c,%.o,$(PARTICLES_SRCS))
 	$(Q)$(AR) rcs $@ $^
 
 libdebug.a: $(patsubst %.c,%.o,$(DEBUG_SRCS))
+	$(Q)$(AR) rcs $@ $^
+
+libclipping.a: $(patsubst %.c,%.o,$(CLIPPING_SRCS))
 	$(Q)$(AR) rcs $@ $^
 
 # Demos target - build all available demos

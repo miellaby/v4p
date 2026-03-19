@@ -4,6 +4,7 @@
 #include "addons/debug/debug.h"
 #include "game_engine/g4p.h"
 #include <stdio.h>
+#include "clipping/clipping.h"
 
 int g4p_onInit(int quality, bool fullscreen) {
     v4p_init2(quality, fullscreen);

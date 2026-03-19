@@ -1,6 +1,7 @@
 #include "v4p.h"
 #include "_v4p.h"
 #include <stdio.h>
+#include "clipping/clipping.h"
 
 int main() {
     v4p_init();

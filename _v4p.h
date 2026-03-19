@@ -83,6 +83,15 @@ typedef struct activeEdge_s* ActiveEdgeP;
 // Forward declaration for Tree (defined in quick/sorted.h)
 typedef struct sTree QuickTree;
 
+// Create a new point
+V4pPointP v4p_newPoint(V4pCoord x, V4pCoord y, V4pCoord a, V4pCoord b);
+
+// Destroy a point
+void v4p_destroyPoint(V4pPointP point);
+
+// Mark a polygon as changed
+#define v4p_changed(P) ((P)->props |= V4P_CHANGED)
+
 // V4P context
 typedef struct v4p_context_s {
     V4piContextP display;

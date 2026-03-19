@@ -137,9 +137,7 @@ V4pPolygonP v4p_transform(V4pPolygonP p, V4pCoord dx, V4pCoord dy, int angle, V4
                           V4pCoord zoom_y);
 V4pPolygonP v4p_centerPolygon(V4pPolygonP p);
 
-// clipping
-V4pPolygonP v4p_clipClone(V4pPolygonP p, V4pPolygonP c, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1);
-V4pPolygonP v4p_clip(V4pPolygonP p, V4pCoord x0, V4pCoord y0, V4pCoord x1, V4pCoord y1);
+
 
 // anchor point management
 V4pPolygonP v4p_setAnchorToCenter(V4pPolygonP p);

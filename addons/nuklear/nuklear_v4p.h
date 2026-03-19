@@ -50,6 +50,7 @@ NK_API int                   nk_v4p_handle_event(struct nk_context *ctx, G4pEven
 #ifdef NK_V4P_IMPLEMENTATION
 
 #include "qfont/qfont.h"
+#include "clipping/clipping.h"
 #include "v4p_trace.h"
 #include <string.h>
 #include <stdlib.h>
