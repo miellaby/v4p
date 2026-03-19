@@ -1380,8 +1380,8 @@ List v4p_openActiveEdge(V4pCoord vy, V4pCoord yu) {
                 t = (long) b2 * ((long) ex * ex) + (long) a2 * ((long) ey0 * ey0) - (long) a2 * b2;
                 // small drain to correct isqrt rounding
                 while (ex > 0 && t - b2 * (2 * ex) > -(ae->as.arc.ea + b2)) {
-                    t -= b2 * (2 * ex);
                     ex--;
+                    t -= b2 * (2 * ex);
                 }
             }
             ae->as.arc.ex = ex;
@@ -1495,8 +1495,8 @@ int v4p_render() {
                         while (ae->as.arc.ex > 0
                                && ae->as.arc.t - ae->as.arc.b2 * (2 * ae->as.arc.ex)
                                    > -(ae->as.arc.ea + ae->as.arc.b2)) {
-                            ae->as.arc.t -= ae->as.arc.b2 * (2 * ae->as.arc.ex);
                             ae->as.arc.ex--;
+                            ae->as.arc.t -= ae->as.arc.b2 * (2 * ae->as.arc.ex);
                         }
                     }
 
