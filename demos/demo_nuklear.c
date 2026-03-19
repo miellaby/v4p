@@ -44,18 +44,18 @@ void setup_colorful_style(struct nk_context *ctx) {
     table[NK_COLOR_WINDOW] = nk_rgba(50, 50, 60, 215);
     table[NK_COLOR_HEADER] = nk_rgba(180, 40, 40, 220);
     table[NK_COLOR_BORDER] = nk_rgba(100, 100, 100, 255);
-    table[NK_COLOR_BUTTON] = nk_rgba(180, 40, 40, 255);
-    table[NK_COLOR_BUTTON_HOVER] = nk_rgba(190, 70, 70, 255);
-    table[NK_COLOR_BUTTON_ACTIVE] = nk_rgba(200, 100, 100, 255);
-    table[NK_COLOR_TOGGLE] = nk_rgba(50, 50, 60, 255);
-    table[NK_COLOR_TOGGLE_HOVER] = nk_rgba(45, 45, 55, 255);
-    table[NK_COLOR_TOGGLE_CURSOR] = nk_rgba(180, 40, 40, 255);
+    table[NK_COLOR_BUTTON] = nk_rgba(170, 30, 30, 255);
+    table[NK_COLOR_BUTTON_HOVER] = nk_rgba(200, 70, 70, 255);
+    table[NK_COLOR_BUTTON_ACTIVE] = nk_rgba(230, 130, 130, 255);
+    table[NK_COLOR_TOGGLE] = nk_rgba(20, 20, 20, 255);
+    table[NK_COLOR_TOGGLE_HOVER] = nk_rgba(230, 130, 130, 255);
+    table[NK_COLOR_TOGGLE_CURSOR] = nk_rgba(180, 40, 40, 220);
     table[NK_COLOR_SELECT] = nk_rgba(180, 40, 40, 255);
-    table[NK_COLOR_SELECT_ACTIVE] = nk_rgba(190, 70, 70, 255);
-    table[NK_COLOR_SLIDER] = nk_rgba(180, 40, 40, 255);
-    table[NK_COLOR_SLIDER_CURSOR] = nk_rgba(190, 70, 70, 255);
-    table[NK_COLOR_SLIDER_CURSOR_HOVER] = nk_rgba(200, 100, 100, 255);
-    table[NK_COLOR_SLIDER_CURSOR_ACTIVE] = nk_rgba(210, 130, 130, 255);
+    table[NK_COLOR_SELECT_ACTIVE] = nk_rgba(230, 130, 130, 255);
+    table[NK_COLOR_SLIDER] = nk_rgba(140, 40, 40, 255);
+    table[NK_COLOR_SLIDER_CURSOR] = nk_rgba(240, 240, 240, 255);
+    table[NK_COLOR_SLIDER_CURSOR_HOVER] = nk_rgba(200, 70, 70, 255);
+    table[NK_COLOR_SLIDER_CURSOR_ACTIVE] = nk_rgba(230, 130, 130, 255);
     table[NK_COLOR_PROPERTY] = nk_rgba(50, 50, 60, 255);
     table[NK_COLOR_EDIT] = nk_rgba(50, 50, 60, 225);
     table[NK_COLOR_EDIT_CURSOR] = nk_rgba(190, 190, 200, 255);
@@ -64,13 +64,15 @@ void setup_colorful_style(struct nk_context *ctx) {
     table[NK_COLOR_CHART_COLOR] = nk_rgba(180, 40, 40, 255);
     table[NK_COLOR_CHART_COLOR_HIGHLIGHT] = nk_rgba(255, 0, 0, 255);
     table[NK_COLOR_SCROLLBAR] = nk_rgba(50, 50, 60, 255);
-    table[NK_COLOR_SCROLLBAR_CURSOR] = nk_rgba(180, 40, 40, 255);
-    table[NK_COLOR_SCROLLBAR_CURSOR_HOVER] = nk_rgba(190, 70, 70, 255);
-    table[NK_COLOR_SCROLLBAR_CURSOR_ACTIVE] = nk_rgba(200, 100, 100, 255);
+    table[NK_COLOR_SCROLLBAR_CURSOR] = nk_rgba(170, 30, 30, 255);
+    table[NK_COLOR_SCROLLBAR_CURSOR_HOVER] = nk_rgba(200, 70, 70, 255);
+    table[NK_COLOR_SCROLLBAR_CURSOR_ACTIVE] = nk_rgba(230, 130, 130, 255);
     table[NK_COLOR_TAB_HEADER] = nk_rgba(180, 40, 40, 220);
-
+    table[NK_COLOR_KNOB] = nk_rgba(20, 20, 20, 255);
+    table[NK_COLOR_KNOB_CURSOR] = nk_rgba(170, 30, 30, 255);
+    table[NK_COLOR_KNOB_CURSOR_HOVER] = nk_rgba(200, 100, 100, 255);
+    table[NK_COLOR_KNOB_CURSOR_ACTIVE] = nk_rgba(230, 130, 130, 255);
     nk_style_from_table(ctx, table);
-
 }
 
 int g4p_onInit(int quality, bool fullscreen) {
@@ -96,9 +98,11 @@ int g4p_onInit(int quality, bool fullscreen) {
 }
 
 int g4p_onTick(int32_t deltaTime) {
+    static int32_t elapsedTime = 0;
+    elapsedTime += deltaTime;
+
     // Update progress value for demo
-    progress_value += 0.0001f * deltaTime;
-    if (progress_value > 1.0f) progress_value = 0.0f;
+    progress_value = (elapsedTime / 1000) % 100;
     
     // Handle Nuklear input using G4P events
     nk_input_begin(nk_ctx);
